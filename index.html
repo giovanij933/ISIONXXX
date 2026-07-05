@@ -1,0 +1,400 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<meta name="theme-color" content="#0a0a0a">
+<meta name="description" content="Giovani — futures day trader and systems builder. Trading systems. Built for success.">
+<title>ISIONXXX // TERMINAL</title>
+
+<link rel="icon" href="./favicon-64.png" sizes="64x64" type="image/png">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+
+<style>
+  /* ============================================================
+     TOKENS
+     Accent swap: change --accent (and --accent-tint) below.
+       amber (default):  #ffb000  / rgba(255,176,0, .12)
+       electric green:   #00e676  / rgba(0,230,118, .12)
+     ============================================================ */
+  :root{
+    --bg:        #0a0a0a;
+    --bg-raise:  #101010;
+    --bg-hover:  #15130d;
+    --line:      #1e1d1a;
+    --line-lit:  #2c2a24;
+    --text:      #d6d3c8;
+    --text-dim:  #8a877d;
+    --text-faint:#56544c;
+    --accent:    #ffb000;
+    --accent-tint: rgba(255,176,0,.12);
+
+    --mono: 'IBM Plex Mono','SFMono-Regular','SF Mono','Courier New',monospace;
+    --maxw: 760px;
+    --pad:  24px;
+  }
+
+  *,*::before,*::after{ box-sizing:border-box; }
+  a,button,input{ border-radius:0; }
+
+  html{ -webkit-text-size-adjust:100%; }
+  body{
+    margin:0;
+    background:var(--bg);
+    color:var(--text);
+    font-family:var(--mono);
+    font-weight:400;
+    font-size:15px;
+    line-height:1.7;
+    letter-spacing:.01em;
+    -webkit-font-smoothing:antialiased;
+    text-rendering:optimizeLegibility;
+    overflow-x:hidden;
+  }
+
+  /* faint CRT scanline atmosphere — kept extremely subtle */
+  body::after{
+    content:"";
+    position:fixed; inset:0;
+    pointer-events:none;
+    z-index:9;
+    background:repeating-linear-gradient(
+      to bottom,
+      rgba(255,255,255,.022) 0px,
+      rgba(255,255,255,.022) 1px,
+      transparent 1px,
+      transparent 3px
+    );
+  }
+
+  ::selection{ background:var(--accent); color:#0a0a0a; }
+
+  /* ---------- top command bar (sticky) ---------- */
+  .cmdbar{
+    position:sticky; top:0; z-index:20;
+    background:var(--bg);
+    border-bottom:1px solid var(--line);
+    font-size:12px;
+    letter-spacing:.04em;
+  }
+  .cmdbar-inner{
+    max-width:var(--maxw); margin:0 auto;
+    padding:9px var(--pad);
+    display:flex; align-items:center; justify-content:space-between; gap:16px;
+  }
+  .prompt{ color:var(--text-dim); white-space:nowrap; }
+  .prompt .u{ color:var(--accent); }
+  .prompt .p{ color:var(--text-faint); }
+  .prompt .t{ color:var(--accent); }
+
+  .sysstat{ display:flex; align-items:center; gap:10px; color:var(--text-dim); white-space:nowrap; }
+  .sq-live{
+    width:7px; height:7px; background:var(--accent); display:inline-block;
+    animation:pulse 1.7s steps(12,end) infinite;
+  }
+  #clock{ color:var(--text); font-variant-numeric:tabular-nums; }
+  .sep{ color:var(--text-faint); }
+
+  /* ---------- ticker tape ---------- */
+  .ticker{
+    border-bottom:1px solid var(--line);
+    overflow:hidden; white-space:nowrap;
+    font-size:11px; letter-spacing:.22em; color:var(--text-faint);
+    padding:7px 0; text-transform:uppercase;
+  }
+  .ticker-track{ display:inline-block; will-change:transform; animation:ticker 34s linear infinite; }
+  .ticker-set{ display:inline-block; }
+  .ticker-set b{ color:var(--text-dim); font-weight:500; }
+  .dot{ color:var(--accent); padding:0 .9em; }
+
+  /* ---------- layout shell ---------- */
+  main{ max-width:var(--maxw); margin:0 auto; padding:0 var(--pad); }
+
+  .rule{ border:0; border-top:1px solid var(--line); margin:0; }
+  .rule-dash{
+    height:1px; margin:0;
+    background:repeating-linear-gradient(to right,var(--line) 0 8px,transparent 8px 14px);
+  }
+
+  /* ---------- hero ---------- */
+  .hero{ padding:64px 0 52px; }
+  .kicker{
+    margin:0 0 22px; font-size:12px; letter-spacing:.26em; text-transform:uppercase;
+    color:var(--text-dim); font-weight:500;
+  }
+  .wordmark{
+    margin:0; font-weight:700;
+    font-size:clamp(2.4rem,11vw,4rem);
+    line-height:.98; letter-spacing:-.03em; color:var(--text);
+  }
+  .cursor{ color:var(--accent); font-weight:400; animation:blink 1.05s steps(2,start) infinite; }
+  .tagline{
+    margin:22px 0 0; font-size:clamp(1rem,3.4vw,1.2rem); font-weight:400;
+    color:var(--accent); letter-spacing:.005em;
+  }
+  .heroline{
+    margin:18px 0 0; font-size:13px; color:var(--text-dim); letter-spacing:.02em;
+  }
+  .heroline .ar{ color:var(--accent); }
+
+  /* ---------- section eyebrows ---------- */
+  .eyebrow{
+    display:flex; align-items:baseline; justify-content:space-between; gap:16px;
+    padding:30px 0 18px; font-size:12px; letter-spacing:.22em; text-transform:uppercase;
+  }
+  .eyebrow .lbl{ color:var(--accent); font-weight:600; }
+  .eyebrow .meta{ color:var(--text-faint); font-weight:400; }
+
+  /* ---------- bio ---------- */
+  .bio{ padding:0 0 8px; }
+  .bio p{ margin:0; max-width:62ch; color:var(--text); font-size:15px; }
+  .bio p + p{ margin-top:14px; }
+
+  /* ---------- systems / module stack ---------- */
+  .stack{ display:flex; flex-direction:column; }
+  .mod{
+    display:block; text-decoration:none; color:inherit; position:relative;
+    background:var(--bg-raise);
+    border:1px solid var(--line);
+    border-left:2px solid transparent;
+    border-top:0;
+    padding:18px 20px 20px;
+    transition:background .13s linear, border-color .13s linear;
+  }
+  .mod:first-child{ border-top:1px solid var(--line); }
+  .mod:hover,.mod:focus-visible{
+    background:var(--bg-hover);
+    border-color:var(--line-lit);
+    border-left-color:var(--accent);
+    outline:none;
+  }
+  .mod-head{
+    display:flex; align-items:center; justify-content:space-between; gap:12px;
+    flex-wrap:wrap; margin-bottom:11px;
+  }
+  .mod-id{
+    font-size:11px; letter-spacing:.18em; color:var(--text-faint);
+    margin-right:14px;
+  }
+  .mod-statwrap{ display:flex; align-items:center; gap:14px; }
+  .mod-status{
+    display:inline-flex; align-items:center; gap:7px;
+    font-size:10.5px; letter-spacing:.2em; color:var(--text-dim);
+  }
+  .sq{ width:8px; height:8px; display:inline-block; }
+  .st-live  .sq{ background:var(--accent); animation:pulse 1.7s steps(12,end) infinite; }
+  .st-stable .sq{ background:var(--accent); }
+  .st-build .sq{ background:var(--accent); animation:blink 0.85s steps(2,start) infinite; }
+  .st-archive .sq{ background:var(--text-faint); }
+  .st-archive{ color:var(--text-faint); }
+
+  .mod-tags{ font-size:10.5px; letter-spacing:.14em; color:var(--text-faint); }
+
+  .mod-title{
+    margin:0; font-size:1.06rem; font-weight:600; letter-spacing:-.005em; color:var(--text);
+  }
+  .mod-title .br{ color:var(--text-dim); font-weight:400; }
+  .mod:hover .mod-title,.mod:focus-visible .mod-title{ color:var(--accent); }
+
+  .mod-desc{ margin:8px 0 0; font-size:13.5px; color:var(--text-dim); max-width:60ch; }
+
+  .mod-go{
+    display:block; text-align:right; margin-top:12px;
+    font-size:11px; letter-spacing:.2em; color:var(--accent);
+    opacity:0; transform:translateX(-6px);
+    transition:opacity .13s linear, transform .13s linear;
+  }
+  .mod:hover .mod-go,.mod:focus-visible .mod-go{ opacity:1; transform:translateX(0); }
+
+  /* ---------- channels / footer ---------- */
+  footer{ padding:0 0 64px; }
+  .channels{ display:flex; flex-direction:column; border-top:1px solid var(--line); }
+  .chan{
+    display:flex; align-items:baseline; justify-content:space-between; gap:14px;
+    text-decoration:none; color:var(--text);
+    border-bottom:1px solid var(--line);
+    padding:14px 2px; font-size:13px; letter-spacing:.06em;
+    transition:color .12s linear, padding-left .12s linear;
+  }
+  .chan .k{ color:var(--text-dim); text-transform:uppercase; letter-spacing:.18em; font-size:12px; }
+  .chan .v{ color:var(--text-dim); }
+  .chan:hover,.chan:focus-visible{ color:var(--accent); padding-left:8px; outline:none; }
+  .chan:hover .k,.chan:focus-visible .k{ color:var(--accent); }
+  .chan:hover .v,.chan:focus-visible .v{ color:var(--accent); }
+
+  .signoff{ margin:26px 0 0; font-size:13px; color:var(--text-dim); }
+  .signoff .ar{ color:var(--accent); }
+  .copy{ margin:14px 0 0; font-size:11px; letter-spacing:.16em; color:var(--text-faint); text-transform:uppercase; }
+
+  /* ---------- focus visibility (global) ---------- */
+  a:focus-visible{ outline:2px solid var(--accent); outline-offset:3px; }
+
+  /* ---------- keyframes ---------- */
+  @keyframes blink{ 0%,49%{opacity:1} 50%,100%{opacity:0} }
+  @keyframes pulse{ 0%,100%{opacity:1} 50%{opacity:.35} }
+  @keyframes ticker{ from{transform:translateX(0)} to{transform:translateX(-50%)} }
+
+  /* ---------- responsive ---------- */
+  @media (max-width:540px){
+    body{ font-size:14px; }
+    .cmdbar-inner{ padding:8px var(--pad); }
+    .prompt .pathx{ display:none; }     /* shorten prompt on phones */
+    .sysstat .lbl{ display:none; }       /* hide 'SYSTEM ONLINE' text */
+    .hero{ padding:48px 0 40px; }
+    .mod-desc{ font-size:13px; }
+  }
+
+  /* ---------- reduced motion ---------- */
+  @media (prefers-reduced-motion:reduce){
+    *,*::before,*::after{ animation:none !important; }
+    .cursor{ opacity:1; }
+    .ticker-track{ transform:translateX(0); }
+    body::after{ display:none; }
+  }
+</style>
+</head>
+
+<body>
+
+  <!-- =================== COMMAND BAR =================== -->
+  <header class="cmdbar">
+    <div class="cmdbar-inner">
+      <div class="prompt">
+        <span class="u">ISIONXXX</span>//<span class="p">desk</span><span class="pathx">:<span class="p">~/systems</span></span><span class="t"></span>
+      </div>
+      <div class="sysstat">
+        <span class="sq-live" aria-hidden="true"></span>
+        <span class="lbl">SYSTEM ONLINE</span>
+        <span class="sep">·</span>
+        <span id="clock" aria-hidden="true">--:--:--</span>
+      </div>
+    </div>
+  </header>
+
+  <!-- =================== TICKER =================== -->
+  <div class="ticker" aria-hidden="true">
+    <div class="ticker-track">
+      <span class="ticker-set">
+        <b>SYSTEMS ONLINE</b><span class="dot">·</span><b>MNQ // 1H</b><span class="dot">·</span><b>PINE v6</b><span class="dot">·</span><b>BUILT FOR SUCCESS</b><span class="dot">·</span><b>RISK FIRST</b><span class="dot">·</span><b>PROCESS &gt; PREDICTION</b><span class="dot">·</span><b>ZONES // FLOW // EXECUTION</b><span class="dot">·</span>
+      </span>
+      <span class="ticker-set">
+        <b>SYSTEMS ONLINE</b><span class="dot">·</span><b>MNQ // 1H</b><span class="dot">·</span><b>PINE v6</b><span class="dot">·</span><b>BUILT FOR SUCCESS</b><span class="dot">·</span><b>RISK FIRST</b><span class="dot">·</span><b>PROCESS &gt; PREDICTION</b><span class="dot">·</span><b>ZONES // FLOW // EXECUTION</b><span class="dot">·</span>
+      </span>
+    </div>
+  </div>
+
+  <main>
+
+    <!-- =================== HERO =================== -->
+    <!-- EDIT: change wordmark text below to your name / handle -->
+    <section class="hero">
+      <p class="kicker">// Futures Day Trader — Systems Builder</p>
+      <h1 class="wordmark">ISIONXXX<span class="cursor">█</span></h1>
+      <p class="tagline">Trading systems.</p>
+      <p class="heroline"><span class="ar">&gt;</span> supply &amp; demand · systematic execution · live risk control</p>
+    </section>
+
+    <hr class="rule">
+
+    <!-- =================== BIO =================== -->
+    <div class="eyebrow"><span class="lbl">// 01 — Profile</span><span class="meta">[ mnq · systematic ]</span></div>
+    <section class="bio">
+      <p>I trade MNQ futures and build the systems I trade with. Supply-and-demand models, execution frameworks, and risk engines — written, tested against live data, and refined one session at a time.</p>
+      <p>No black boxes. No rented signals. The edge is the process, and the process is engineered to repeat.</p>
+    </section> 
+
+    <hr class="rule-dash">
+
+    <!-- =================== SYSTEMS =================== -->
+    <div class="eyebrow"><span class="lbl">// 02 — Systems</span><span class="meta">[ 04 modules ]</span></div>
+    <section class="stack">
+
+      <!-- EDIT each href below with your real links -->
+      <a class="mod" href="/strategy/">
+        <div class="mod-head">
+          <div class="mod-statwrap">
+            <span class="mod-id">MOD.01</span>
+            <span class="mod-status st-live"><span class="sq"></span>LIVE</span>
+          </div>
+          <span class="mod-tags">PINE v6 · MNQ · SUBSCRIPTION</span>
+        </div>
+        <h3 class="mod-title">S&amp;D by ISIONXXX <span class="br">[Strategy]</span></h3>
+        <p class="mod-desc">Supply-and-demand engine — zone touch/flip state, position sizer, and a daily circuit-breaker trade cap.</p>
+        <span class="mod-go">ACCESS →</span>
+      </a>
+
+      <a class="mod" href="/desk/">
+        <div class="mod-head">
+          <div class="mod-statwrap">
+            <span class="mod-id">MOD.02</span>
+            <span class="mod-status st-live"><span class="sq"></span>LIVE</span>
+          </div>
+          <span class="mod-tags">DASHBOARD · SUBSCRIPTION</span>
+        </div>
+        <h3 class="mod-title">Trading Command Center</h3>
+        <p class="mod-desc">Position sizer, session circuit-breaker, and trade journal in one terminal view. Available with an active subscription.</p>
+        <span class="mod-go">ACCESS →</span>
+      </a>
+
+      <a class="mod" href="#">
+        <div class="mod-head">
+          <div class="mod-statwrap">
+            <span class="mod-id">MOD.03</span>
+            <span class="mod-status st-stable"><span class="sq"></span>STABLE</span>
+          </div>
+          <span class="mod-tags">PINE · ORDER FLOW</span>
+        </div>
+        <h3 class="mod-title">CVD Toolkit</h3>
+        <p class="mod-desc">Cumulative-volume-delta suite for reading order flow and absorption beneath price.</p>
+        <span class="mod-go">ACCESS →</span>
+      </a>
+
+      <!-- DUPLICATE a block above to add another module. Status classes:
+           st-live · st-stable · st-build · st-archive -->
+
+    </section>
+
+    <hr class="rule-dash">
+
+    <!-- =================== CHANNELS / FOOTER =================== -->
+    <div class="eyebrow"><span class="lbl">// 03 — Channels</span><span class="meta">[ open ]</span></div>
+    <footer>
+      <!-- EDIT handles + hrefs below -->
+      <nav class="channels" aria-label="Social channels">
+        <a class="chan" href="https://www.tradingview.com/u/SionTraderXXX/"><span class="k">TradingView</span><span class="v">→ @SionTraderXXX</span></a>
+        <a class="chan" href="https://www.tiktok.com/@siontraderxxx?lang=en"><span class="k">TikTok</span><span class="v">→ @SionTraderXXX</span></a>
+        <a class="chan" href="https://x.com/Isionxxx""><span class="k">X / Twitter</span><span class="v">→ @Isionxxx</span></a>
+      </nav>
+
+      <p class="signoff"><span class="ar">&gt;</span> session open — built, for success <span class="cursor">█</span></p>
+      <p class="copy">© 2026 · ISIONXXX · every system self-built</p>
+    </footer>
+
+  </main>
+
+<script>
+  (function(){
+    var el = document.getElementById('clock');
+    if(!el) return;
+    function pad(n){ return n<10 ? '0'+n : ''+n; }
+    function tz(d){
+      try{
+        var p = new Intl.DateTimeFormat('en-US',{timeZoneName:'short'}).formatToParts(d);
+        var m = p.find(function(x){return x.type==='timeZoneName';});
+        return m ? ' '+m.value : '';
+      }catch(e){ return ''; }
+    }
+    function tick(){
+      var d = new Date();
+      el.textContent = pad(d.getHours())+':'+pad(d.getMinutes())+':'+pad(d.getSeconds())+tz(d);
+    }
+    tick();
+    setInterval(tick, 1000);
+  })();
+</script>
+
+</body>
+</html>
