@@ -70,7 +70,7 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 .tc.none{opacity:.7}.tc.none .sub{margin-top:4px}
 @keyframes tIn{from{opacity:0;transform:translateY(8px)}}
 .tch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
-.st{font-size:10px;letter-spacing:.12em;color:var(--dim);border:1px solid var(--line2);padding:2px 6px}.st.ok{color:var(--green);border-color:#1d6b3f}
+.st{font-size:10px;letter-spacing:.12em;color:var(--dim);border:1px solid var(--line2);padding:2px 6px}.st.ok{color:var(--green);border-color:#1d6b3f}.st.bad{color:var(--red);border-color:#6b1d1d}
 .tc .big{font-size:24px;font-weight:600;margin:2px 0 2px}
 .rws{margin-top:8px;font-size:12px}.rws div{display:flex;justify-content:space-between;gap:8px;padding:2px 0;border-top:1px solid var(--line)}.rws span{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .mt{margin-top:10px}.mt .lb{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--dim);margin-bottom:4px}.mt .lb span:last-child{color:var(--tx)}
@@ -239,7 +239,9 @@ function tTrain(t){
   const car=W.filter(e=>e.type==='C').reduce((a,e)=>a+(+e.mins||0),0),str=T.some(e=>!work(e));
   const wd=new Set(L.filter(work).map(e=>dayAt(e.at))),sd=new Set(L.filter(e=>!work(e)).map(e=>dayAt(e.at)));
   const wk=new Set(L.filter(e=>work(e)&&e.at>=ws).map(e=>dayAt(e.at))).size;
-  return {id:'training',label:'TRAIN',done:W.length>0||wk>=goal,rest:!W.length,
+  // a day off after the weekly goal is hit is a planned rest day: not a win, but not held against you either
+  const rest=!W.length&&wk>=goal;
+  return {id:'training',label:'TRAIN',done:W.length?true:rest?null:false,rest,
     big:W.length?plural(W.length,'exercise'):str?'Stretched':'Rest day',
     sub:[vol?`${fi(vol)} ${s.wu||'lb'} lifted`:'',car?`${Math.round(car)} min cardio`:'',str&&W.length?'+ stretch':'',!W.length&&wk>=goal?'weekly goal hit':''],
     meter:{v:wk,max:goal,lb:'Workouts this week',val:`${wk} / ${goal}`},
@@ -300,7 +302,9 @@ function tRewire(t){
   const gd=G.reduce((a,g,i)=>a+Math.min(good[i],g.target||1),0),gt=G.reduce((a,g)=>a+(g.target||1),0);
   const urges=L.filter(e=>e.t==='resist'&&dayAt(e.at)===t).length,start=Math.min(...B.map(b=>b.start||now));
   const sd=new Set(slips.map(e=>dayAt(e.at))),top=clean.sort((a,b)=>a.ms-b.ms)[0];
-  return {id:'rewire',label:'REWIRE',done:!slipT,big:top?`${span(top.ms)} clean`:`${gd} / ${gt}`,bigCls:slipT?'neg':'',
+  // not slipping isn't enough on its own: the win is doing today's good habits (or, with none set up, resisting an urge)
+  const won=!slipT&&(gt?gd>=gt:urges>0);
+  return {id:'rewire',label:'REWIRE',done:won,slip:slipT,big:top?`${span(top.ms)} clean`:`${gd} / ${gt}`,bigCls:slipT?'neg':'',
     sub:[top&&B.length>1?`shortest of ${B.length} habits`:top?esc(top.b.name):'',slipT?'<b class="neg">slipped today</b>':'',urges?`${plural(urges,'urge')} resisted`:''],
     rows:clean.length>1?clean.map(c=>[esc(c.b.name),span(c.ms)]):null,
     meter:G.length?{v:gd,max:gt,lb:'Good habits today',val:`${gd} / ${gt}`}:top?{v:top.ms/864e5,max:top.b.goal||30,lb:`Goal ${top.b.goal||30} days`,val:`${Math.floor(top.ms/864e5)} / ${top.b.goal||30}`}:null,
@@ -311,7 +315,7 @@ const meter=m=>{if(!m)return'';const p=m.max?Math.min(100,m.v/m.max*100):0;
   return `<div class="mt"><div class="lb"><span>${m.lb}</span><span>${m.val}</span></div><div class="bar"><i class="${p>=100?'full':''}" style="width:${p.toFixed(1)}%"></i></div></div>`};
 const DOW='SMTWTFS';
 function card(c){
-  const st=c.done==null?'':c.done?'<span class="st ok">✓ DONE</span>':c.rest?'<span class="st">REST</span>':'<span class="st">NOT YET</span>';
+  const st=c.slip?'<span class="st bad">SLIPPED</span>':c.done?'<span class="st ok">✓ DONE</span>':c.rest?'<span class="st">REST</span>':c.done===false?'<span class="st">NOT YET</span>':'';
   return `<button type="button" class="tc" data-open="${c.id}" aria-label="Open ${c.label}">
     <div class="tch"><span class="h">${c.label}</span>${st}</div>
     <div class="big ${c.bigCls||''}">${c.big}</div>
