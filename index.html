@@ -32,11 +32,13 @@ nav button:active{transform:scale(.94)}
 @media(prefers-reduced-motion:reduce){#apps>.pane,nav,nav button,#today *{transition:none!important;animation:none!important}}
 nav{position:absolute;z-index:5;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));
   bottom:max(10px,calc(env(safe-area-inset-bottom) - 12px));height:64px;padding:6px;border-radius:32px;
-  display:grid;grid-template-columns:repeat(7,1fr);gap:1px;
+  display:flex;gap:0;
   background:rgba(22,22,22,.42);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);
   border:1px solid rgba(255,255,255,.12);box-shadow:inset 0 1px 0 rgba(255,255,255,.10),0 10px 30px rgba(0,0,0,.45)}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){nav{background:rgba(16,16,16,.94)}}
-nav button{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:26px;color:rgba(217,213,200,.62);font:600 9px var(--f);letter-spacing:.05em;position:relative;-webkit-tap-highlight-color:transparent;transition:background .2s,color .2s}
+/* each tab is as wide as its label plus an equal share of the spare room, so the gaps between labels
+   are the same whatever the names' lengths (equal-width tabs left short names floating in space) */
+nav button{all:unset;flex:1 1 auto;min-width:0;padding:0 2px;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:26px;color:rgba(217,213,200,.62);font:600 9px var(--f);letter-spacing:.05em;position:relative;-webkit-tap-highlight-color:transparent;transition:background .2s,color .2s}
 nav button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2}
 nav button:hover{color:var(--tx)}
 /* scrolling down (or opening a dialog) slides the bar away; scrolling up brings it back */
