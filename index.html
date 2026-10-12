@@ -78,6 +78,8 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 .dots{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:auto;padding-top:12px}
 .dots span{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9px;color:var(--dim)}.dots span.t{color:var(--amber)}
 .dots i{display:block;width:100%;height:6px;background:#161616}.dots i.on{background:var(--amber)}.dots i.half{background:rgba(255,176,0,.35)}.dots i.pos{background:var(--green)}.dots i.neg{background:var(--red)}
+/* seven labels on a small phone: NUTRITION is the longest */
+@media(max-width:400px){nav button{letter-spacing:.01em}}
 @media(min-width:900px){nav.away{transform:translate(-50%,calc(100% + 40px))}nav{left:50%;right:auto;transform:translateX(-50%);width:min(760px,calc(100% - 24px));height:56px}nav button{flex-direction:row;gap:8px;font-size:11px}}
 </style>
 </head>
@@ -92,8 +94,8 @@ const TABS=[
   {id:'today',label:'TODAY',pane:1,icon:'<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/>'},
   {id:'mind',label:'MIND',path:'../MEDITATE/',icon:'<circle cx="12" cy="11" r="7"/><circle cx="12" cy="11" r="3"/>'},
   {id:'training',label:'TRAIN',path:'../TRAINING/',icon:'<path d="M3 12h18M6 8v8M18 8v8M4 10v4M20 10v4"/>'},
-  {id:'fuel',label:'FUEL',path:'../nutrition/',icon:'<path d="M3 11h18a9 8 0 0 1-18 0z"/><path d="M9 7v1M12 5v3M15 7v1"/>'},
-  {id:'extract',label:'EXTRACT',path:'../data-analytics/',icon:'<path d="M5 7l5 5-5 5M12 17h7"/>'},
+  {id:'nutrition',label:'NUTRITION',path:'../nutrition/',icon:'<path d="M3 11h18a9 8 0 0 1-18 0z"/><path d="M9 7v1M12 5v3M15 7v1"/>'},
+  {id:'learn',label:'LEARN',path:'../data-analytics/',icon:'<path d="M3 5h6a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H3zM21 5h-6a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h7z"/>'},
   {id:'journal',label:'JOURNAL',path:'../JOURNAL/',icon:'<path d="M4 18l5-6 4 3 7-9"/><path d="M15 6h5v5"/>'},
   {id:'rewire',label:'REWIRE',path:'../rewire/',icon:'<path d="M3 8h6l6 8h6M17 12l4 4-4 4M3 16h5"/>'}
 ];
@@ -174,7 +176,9 @@ setInterval(()=>{
   if(m)setBar(true);else if(wasModal)setBar(false);
   wasModal=m;
 },300);
-const pick=id=>TABS.find(t=>t.id===id)||TABS[0];   // TABS[0] = TODAY
+// old names still open the right tab (links and bookmarks from before the rename)
+const OLD={fuel:'nutrition',extract:'learn'};
+const pick=id=>TABS.find(t=>t.id===(OLD[id]||id))||TABS[0];   // TABS[0] = TODAY
 $('#tabs').innerHTML=TABS.map(t=>`<button type="button" data-t="${t.id}" aria-label="${t.label}"><svg viewBox="0 0 24 24" aria-hidden="true">${t.icon}</svg>${t.label}</button>`).join('');
 let cur=null;
 // an app's frame: made the first time it's needed, then kept so switching back keeps your place
@@ -186,7 +190,7 @@ function frame(t,path){
   f.addEventListener('load',()=>{f.dataset.ready=1;document.getElementById('ld-'+t.id)?.remove();embed(f);watch(f)});
   apps.append(f);return f;
 }
-// load an app in the background (TODAY uses this so FUEL's totals and every app's sync stay current)
+// load an app in the background (TODAY uses this so NUTRITION's totals and every app's sync stay current)
 const preload=id=>{const t=TABS.find(x=>x.id===id);if(t&&!t.pane&&!document.getElementById('f-'+id))frame(t)};
 function show(id,path){
   const t=pick(id);
@@ -250,12 +254,12 @@ function tTrain(t){
 let fuelStale=false;
 function tFuel(t){
   const raw=localStorage.getItem('nj.meals.v1')||'',M=arr(read('nj.meals.v1'));if(!M.length)return null;
-  // FUEL saves its own daily totals (bowl nutrition is worked out there); if they are older than the meals, it reloads them
+  // NUTRITION saves its own daily totals (bowl nutrition is worked out there); if they are older than the meals, it reloads them
   const sum=read('nj.daily.v1'),sig=raw.length+':'+(localStorage.getItem('nj.settings.v1')||'').length;
   fuelStale=!sum||sum.sig!==sig;
   const set=new Set(M.map(m=>dayAt(Date.parse(m.time)))),d=sum?.days?.[t],n=M.filter(m=>dayAt(Date.parse(m.time))===t).length;
   const kT=sum?.kcal||2000,pT=sum?.protein||100;
-  return {id:'fuel',label:'FUEL',done:n>0,big:d?`${fi(d.kcal)} kcal`:n?'…':'Nothing yet',
+  return {id:'nutrition',label:'NUTRITION',done:n>0,big:d?`${fi(d.kcal)} kcal`:n?'…':'Nothing yet',
     sub:[n?plural(n,'meal'):'No meals logged today',fuelStale?'<span class="amb">updating…</span>':''],
     meter:{v:d?.kcal||0,max:kT,lb:'Calories',val:`${fi(d?.kcal)} / ${fi(kT)}`},
     meter2:{v:d?.p||0,max:pT,lb:'Protein',val:`${fi(d?.p)} / ${fi(pT)} g`},
@@ -267,7 +271,7 @@ function tExtract(t){
   const set=new Set([...S,...E].map(x=>dayAt(Date.parse(x.time))));
   const min=S.filter(x=>dayAt(Date.parse(x.time))===t).reduce((a,x)=>a+(+x.min||0),0);
   const done=Object.values(P).filter(p=>p&&p.done&&p.date===t),xp=done.reduce((a,p)=>a+(p.xp||0),0),st=streakOf(set);
-  return {id:'extract',label:'EXTRACT',done:set.has(t),big:min>=1?`${Math.round(min)} min`:done.length?plural(done.length,'lesson'):set.has(t)?'Studied':'Not yet',
+  return {id:'learn',label:'LEARN',done:set.has(t),big:min>=1?`${Math.round(min)} min`:done.length?plural(done.length,'lesson'):set.has(t)?'Studied':'Not yet',
     sub:[done.length?`${plural(done.length,'lesson')} · <b class="pos">+${xp} XP</b>`:'',st?`${st}-day streak`:''],
     meter:{v:min,max:goal,lb:'Study minutes today',val:`${Math.round(min)} / ${goal}`},
     dots:week7().map(d=>set.has(ymd(d))?'on':'')};
@@ -325,11 +329,11 @@ function card(c){
     <div class="dots" aria-label="Last 7 days">${week7().map((d,i)=>`<span class="${i===6?'t':''}"><i class="${c.dots[i]}"></i>${DOW[d.getDay()]}</span>`).join('')}</div>
   </button>`;
 }
-const EMPTY={mind:'Meditate, breathe or journal',training:'Log a workout',fuel:'Log a meal',extract:'Study a lesson',journal:'Import or log trades',rewire:'Name a habit to break'};
+const EMPTY={mind:'Meditate, breathe or journal',training:'Log a workout',nutrition:'Log a meal',learn:'Study a lesson',journal:'Import or log trades',rewire:'Name a habit to break'};
 function drawToday(){
   const el=$('#today');if(!el)return;
   const t=ymd(new Date()),C=[tMind(t),tTrain(t),tFuel(t),tExtract(t),tJournal(),tRewire(t)];
-  const ids=['mind','training','fuel','extract','journal','rewire'],used=C.filter(Boolean),wins=used.filter(c=>c.done!=null),won=wins.filter(c=>c.done).length;
+  const ids=['mind','training','nutrition','learn','journal','rewire'],used=C.filter(Boolean),wins=used.filter(c=>c.done!=null),won=wins.filter(c=>c.done).length;
   const r=26,L=2*Math.PI*r,p=wins.length?won/wins.length:0;
   const d=new Date(),date=d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'}).toUpperCase();
   const top=wins.length?`<section class="wins">
@@ -341,7 +345,7 @@ function drawToday(){
   // apps you use first, apps you haven't started at the end
   const order=C.map((c,i)=>[c?0:1,i]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).map(x=>cards[x[1]]);
   el.innerHTML=`<div class="in"><header class="th"><div class="brand">ISIONXXX <b>//</b> TODAY<span class="cur"></span></div><div class="dt">${date}</div></header>${top}<div class="tg">${order.join('')}</div></div>`;
-  if(fuelStale)preload('fuel');
+  if(fuelStale)preload('nutrition');
 }
 
 // TODAY refreshes whenever it comes into view, when any app saves, and each minute (clean-time counters)
@@ -358,7 +362,7 @@ $('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(
 // an app asks to open another one (e.g. REWIRE's OPEN buttons): switch tabs instead of opening a new window
 addEventListener('message',e=>{
   if(e.origin!==location.origin||!e.data||e.data.isx!=='open')return;
-  const t=TABS.find(x=>x.id===e.data.app);if(t)show(t.id);
+  const t=TABS.find(x=>x.id===(OLD[e.data.app]||e.data.app));if(t)show(t.id);
 });
 addEventListener('hashchange',()=>show(location.hash.slice(1)));
 // the app opens on TODAY; a link to a tab (#fuel) opens that tab
