@@ -1,6 +1,6 @@
 // The shell only: each app inside it keeps its own service worker and cache.
 // Bump the version string whenever you change index.html so clients pick up the new shell.
-const CACHE = 'isx-shell-v8';
+const CACHE = 'isx-shell-v9';
 const SHELL = ['./', './index.html', './manifest.webmanifest', './icon.svg', './apple-touch-icon.png', './icon-192.png', './icon-512.png'];
 
 self.addEventListener('install', e => {
