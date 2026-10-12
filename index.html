@@ -53,6 +53,23 @@ const TABS=[
   {id:'rewire',label:'REWIRE',path:'../rewire/',icon:'<path d="M3 8h6l6 8h6M17 12l4 4-4 4M3 16h5"/>'}
 ];
 const $=s=>document.querySelector(s),apps=$('#apps'),KEY='isx.shell.tab';
+// inside the shell every app gets the same frame: header pinned to the top (brand, then one row of actions you
+// can swipe), nothing floating over the content. Injected here so the apps stay unchanged when opened on their own.
+const EMBED_CSS=`
+html.isx-embed header.top{position:sticky;top:0;z-index:8;background:#070707;margin-top:-14px;padding:12px 0 10px;row-gap:8px}
+html.isx-embed header.top .brand{font-size:14px}
+html.isx-embed header.top .acts{flex-wrap:nowrap;overflow-x:auto;max-width:100%;scrollbar-width:none;-webkit-overflow-scrolling:touch}
+html.isx-embed header.top .acts::-webkit-scrollbar{display:none}
+html.isx-embed header.top .acts>*{flex:none}
+html.isx-embed dialog{max-height:calc(100% - 24px)}
+@media(max-width:560px){html.isx-embed header.top{flex-direction:column;align-items:stretch}html.isx-embed header.top .acts{justify-content:flex-start}}`;
+function embed(f){
+  try{
+    const d=f.contentDocument;if(!d||d.getElementById('isx-embed'))return;
+    d.documentElement.classList.add('isx-embed');
+    const st=d.createElement('style');st.id='isx-embed';st.textContent=EMBED_CSS;d.head.appendChild(st);
+  }catch(e){}
+}
 const pick=id=>TABS.find(t=>t.id===id)||TABS[0];
 $('#tabs').innerHTML=TABS.map(t=>`<button type="button" data-t="${t.id}" aria-label="${t.label}"><svg viewBox="0 0 24 24" aria-hidden="true">${t.icon}</svg>${t.label}</button>`).join('');
 let cur=null;
@@ -63,7 +80,9 @@ function show(id,path){
   if(!f){
     f=document.createElement('iframe');f.id='f-'+t.id;f.title=t.label;f.src=path||t.path;
     const ld=document.createElement('div');ld.className='ld';ld.innerHTML=`LOADING ${t.label}<i></i>`;apps.append(ld);
-    f.addEventListener('load',()=>ld.remove(),{once:true});apps.append(f);
+    f.addEventListener('load',()=>ld.remove(),{once:true});
+    // every load, including the app reloading itself after a sync
+    f.addEventListener('load',()=>embed(f));apps.append(f);
   }else if(path)f.src=path;
   document.querySelectorAll('#apps iframe').forEach(x=>x.classList.toggle('on',x===f));
   document.querySelectorAll('#tabs button').forEach(b=>{const on=b.dataset.t===t.id;b.classList.toggle('on',on);b.setAttribute('aria-current',on?'page':'false')});
