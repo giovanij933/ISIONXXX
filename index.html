@@ -36,12 +36,15 @@ nav{position:absolute;z-index:5;left:max(12px,env(safe-area-inset-left));right:m
 nav button{all:unset;cursor:pointer;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px;border-radius:26px;color:rgba(217,213,200,.62);font:600 9.5px var(--f);letter-spacing:.08em;position:relative;-webkit-tap-highlight-color:transparent;transition:background .2s,color .2s}
 nav button svg{width:20px;height:20px;fill:none;stroke:currentColor;stroke-width:2}
 nav button:hover{color:var(--tx)}
+/* scrolling down (or opening a dialog) slides the bar away; scrolling up brings it back */
+nav{transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .2s}
+nav.away{transform:translateY(calc(100% + 40px));opacity:0;pointer-events:none}
 nav button.on{color:var(--amber);background:rgba(255,176,0,.16);box-shadow:inset 0 0 0 1px rgba(255,176,0,.22)}
 nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 .ld{position:absolute;inset:0;display:grid;place-items:center;color:var(--dim);letter-spacing:.14em;pointer-events:none}
 .ld i{display:inline-block;width:.6em;height:1.05em;margin-left:6px;background:var(--amber);vertical-align:-2px;animation:bl 1.1s steps(1) infinite}
 @keyframes bl{50%{opacity:0}}
-@media(min-width:900px){nav{left:50%;right:auto;transform:translateX(-50%);width:min(760px,calc(100% - 24px));height:56px}nav button{flex-direction:row;gap:8px;font-size:11px}}
+@media(min-width:900px){nav.away{transform:translate(-50%,calc(100% + 40px))}nav{left:50%;right:auto;transform:translateX(-50%);width:min(760px,calc(100% - 24px));height:56px}nav button{flex-direction:row;gap:8px;font-size:11px}}
 </style>
 </head>
 <body>
@@ -95,6 +98,35 @@ function room(f){
   }catch(e){}
 }
 addEventListener('resize',()=>document.querySelectorAll('#apps iframe').forEach(room));
+
+/* hide the bar while scrolling down, show it on the way up (iOS style). It also stays out of the way while a
+   dialog or full-screen view is open in the app, whose bottom buttons it would otherwise cover. */
+const bar=$('#tabs');
+let barAway=false;
+const setBar=away=>{if(away!==barAway){barAway=away;bar.classList.toggle('away',away)}};
+function watch(f){
+  try{
+    const d=f.contentDocument,last=new WeakMap();
+    last.set(d.scrollingElement,d.scrollingElement.scrollTop);
+    // capture: catches the page and anything scrollable inside it (dialogs, lesson view, tables)
+    d.addEventListener('scroll',e=>{
+      const el=e.target===d?d.scrollingElement:e.target,y=el.scrollTop;
+      if(!last.has(el)){last.set(el,y);return}
+      const p=last.get(el);if(Math.abs(y-p)<8)return;last.set(el,y);
+      // at the very end it comes back, like Safari's toolbar: each app leaves room for it there
+      const end=y+el.clientHeight>=el.scrollHeight-4;
+      if(f.classList.contains('on')&&!modalOpen(f))setBar(y>p&&y>40&&!end);
+    },{capture:true,passive:true});
+  }catch(e){}
+}
+const modalOpen=f=>{try{return !!f.contentDocument.querySelector('dialog[open], .modal:not(.hidden), .po:not(.hidden)')}catch(e){return false}};
+let wasModal=false;
+setInterval(()=>{
+  const f=document.querySelector('#apps iframe.on');if(!f)return;
+  const m=modalOpen(f);
+  if(m)setBar(true);else if(wasModal)setBar(false);
+  wasModal=m;
+},300);
 const pick=id=>TABS.find(t=>t.id===id)||TABS[0];
 $('#tabs').innerHTML=TABS.map(t=>`<button type="button" data-t="${t.id}" aria-label="${t.label}"><svg viewBox="0 0 24 24" aria-hidden="true">${t.icon}</svg>${t.label}</button>`).join('');
 let cur=null;
@@ -107,9 +139,10 @@ function show(id,path){
     const ld=document.createElement('div');ld.className='ld';ld.innerHTML=`LOADING ${t.label}<i></i>`;apps.append(ld);
     f.addEventListener('load',()=>ld.remove(),{once:true});
     // every load, including the app reloading itself after a sync
-    f.addEventListener('load',()=>embed(f));apps.append(f);
+    f.addEventListener('load',()=>{embed(f);watch(f)});apps.append(f);
   }else if(path)f.src=path;
   document.querySelectorAll('#apps iframe').forEach(x=>x.classList.toggle('on',x===f));
+  if(!modalOpen(f))setBar(false);   // switching tabs always brings the bar back
   document.querySelectorAll('#tabs button').forEach(b=>{const on=b.dataset.t===t.id;b.classList.toggle('on',on);b.setAttribute('aria-current',on?'page':'false')});
   if(cur!==t.id){cur=t.id;try{localStorage.setItem(KEY,t.id)}catch(e){}history.replaceState(null,'','#'+t.id)}
   document.title=`ISIONXXX // ${t.label}`;
