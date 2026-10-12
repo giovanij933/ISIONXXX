@@ -25,8 +25,11 @@ body{position:relative;height:100vh;height:var(--vh,100vh)}
 /* each app runs in its own frame; frames stay alive so switching tabs keeps your place */
 /* apps run full height, under the tab bar: the bar is frosted glass floating over them (iOS 26 style) */
 #apps{position:absolute;inset:env(safe-area-inset-top) 0 0 0}
-#apps iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg);visibility:hidden}
-#apps iframe.on{visibility:visible}
+/* switching tabs cross-fades instead of cutting */
+#apps iframe{position:absolute;inset:0;width:100%;height:100%;border:0;background:var(--bg);visibility:hidden;opacity:0;transition:opacity .22s ease,visibility 0s linear .22s}
+#apps iframe.on{visibility:visible;opacity:1;transition:opacity .22s ease}
+nav button:active{transform:scale(.94)}
+@media(prefers-reduced-motion:reduce){#apps iframe,nav,nav button{transition:none!important}}
 nav{position:absolute;z-index:5;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));
   bottom:max(10px,calc(env(safe-area-inset-bottom) - 12px));height:64px;padding:6px;border-radius:32px;
   display:grid;grid-template-columns:repeat(6,1fr);gap:2px;
@@ -81,6 +84,17 @@ html.isx-embed header.top .acts{flex-wrap:nowrap;overflow-x:auto;max-width:100%;
 html.isx-embed header.top .acts::-webkit-scrollbar{display:none}
 html.isx-embed header.top .acts>*{flex:none}
 html.isx-embed dialog{max-height:calc(100% - 24px)}
+/* motion: taps respond, dialogs and sheets ease in, no 300 ms tap delay */
+html.isx-embed{-webkit-tap-highlight-color:transparent}
+html.isx-embed button,html.isx-embed .btn,html.isx-embed select,html.isx-embed .cd,html.isx-embed .chip{touch-action:manipulation;transition:background-color .15s,border-color .15s,color .15s,transform .12s}
+html.isx-embed button:active,html.isx-embed .btn:active,html.isx-embed .chip:active{transform:scale(.97)}
+html.isx-embed dialog[open],html.isx-embed .modal:not(.hidden) .box{animation:isxPop .26s cubic-bezier(.2,.8,.2,1)}
+html.isx-embed dialog[open]::backdrop,html.isx-embed .modal:not(.hidden){animation:isxFade .2s ease}
+html.isx-embed .po:not(.hidden){animation:isxUp .3s cubic-bezier(.2,.8,.2,1)}
+@keyframes isxPop{from{opacity:0;transform:translateY(14px) scale(.98)}}
+@keyframes isxFade{from{opacity:0}}
+@keyframes isxUp{from{opacity:0;transform:translateY(28px)}}
+@media(prefers-reduced-motion:reduce){html.isx-embed *{animation:none!important;transition:none!important}}
 @media(max-width:560px){html.isx-embed header.top{flex-direction:column;align-items:stretch}html.isx-embed header.top .acts{justify-content:flex-start}}`;
 function embed(f){
   try{
