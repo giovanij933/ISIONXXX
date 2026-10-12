@@ -293,11 +293,12 @@ function tJournal(){
 }
 // REWIRE's good habits that tick themselves off from another app's log
 const LK={meditate:['isx.mind.v1',e=>e.kind==='M'],breathwork:['isx.mind.v1',e=>e.kind==='B'],mjournal:['isx.mind.v1',e=>e.kind==='J'],mind:['isx.mind.v1'],
+  cardio:['isx.training.v1',(e,g)=>e.type==='C'&&(!g.ex||e.ex===g.ex)],reps:['isx.training.v1',(e,g)=>e.type==='B'&&e.ex===g.ex],
   workout:['isx.training.v1',e=>e.type!=='S',1],stretch:['isx.training.v1',e=>e.type==='S',1],meals:['nj.meals.v1'],bowl:['nj.meals.v1',e=>e.kind==='bowl'],
   study:['xl.sessions.v1'],trades:['isx.journal.v1',null,1]};
-function lkToday(link,t){
-  const L=LK[link];if(!L)return 0;const s=read(L[0]),rows=arr(Array.isArray(s)?s:s?.log||s?.trades);
-  const n=rows.filter(e=>(!L[1]||L[1](e))&&dayAt(e.at??e.close??Date.parse(e.time))===t).length;
+function lkToday(g,t){
+  const L=LK[g.link];if(!L)return 0;const s=read(L[0]),rows=arr(Array.isArray(s)?s:s?.log||s?.trades);
+  const n=rows.filter(e=>(!L[1]||L[1](e,g))&&dayAt(e.at??e.close??Date.parse(e.time))===t).length;
   return L[2]?Math.min(1,n):n;
 }
 function tRewire(t){
@@ -305,7 +306,7 @@ function tRewire(t){
   const now=Date.now(),slips=L.filter(e=>e.t==='slip'),slipT=slips.some(e=>dayAt(e.at)===t);
   const clean=B.map(b=>{const last=Math.max(b.start||0,...slips.filter(e=>e.b===b.id).map(e=>e.at));return{b,ms:now-last}});
   // same count as REWIRE: what the linked app logged, plus anything ticked off in REWIRE itself
-  const good=G.map(g=>(LK[g.link]?lkToday(g.link,t):0)+L.filter(e=>dayAt(e.at)===t&&e.g===g.name&&(e.t==='done'||(e.t==='resist'&&!e.lk))).length);
+  const good=G.map(g=>(LK[g.link]?lkToday(g,t):0)+L.filter(e=>dayAt(e.at)===t&&e.g===g.name&&(e.t==='done'||(e.t==='resist'&&!e.lk))).length);
   const gd=G.reduce((a,g,i)=>a+Math.min(good[i],g.target||1),0),gt=G.reduce((a,g)=>a+(g.target||1),0);
   const urges=L.filter(e=>e.t==='resist'&&dayAt(e.at)===t).length,start=Math.min(...B.map(b=>b.start||now));
   const sd=new Set(slips.map(e=>dayAt(e.at))),top=clean.sort((a,b)=>a.ms-b.ms)[0];
