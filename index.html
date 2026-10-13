@@ -229,13 +229,14 @@ const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
 
 function tMind(t){
   const s=read('isx.mind.v1'),L=arr(s?.log);if(!L.length)return null;
-  const T=L.filter(e=>dayAt(e.at)===t),goal=s.goal||70,ws=wkStart();
-  const min=T.reduce((a,e)=>a+(+e.mins||0),0),wk=L.filter(e=>e.at>=ws).reduce((a,e)=>a+(+e.mins||0),0);
+  const T=L.filter(e=>dayAt(e.at)===t),goal=s.goal||70;
+  const min=Math.round(T.reduce((a,e)=>a+(+e.mins||0),0));
   const R=T.filter(e=>e.pre!=null&&e.post!=null),sh=R.length?R.reduce((a,e)=>a+e.post-e.pre,0)/R.length:null;
   const set=new Set(L.map(e=>dayAt(e.at))),st=streakOf(set);
   return {id:'mind',label:'MIND',done:T.length>0,big:T.length?`${min} min`:'Not yet',
     sub:[T.length?plural(T.length,'session'):'No session today',sh!=null?`mood <b class="${sh>0?'pos':sh<0?'neg':''}">${sh>0?'+':''}${Math.round(sh*10)/10}</b>`:'',st?`${st}-day streak`:''],
-    meter:{v:wk,max:goal,lb:'Mindful minutes this week',val:`${wk} / ${goal}`},
+    // MIND's goal is set per week (5, 10, 15, 20, 30 min a day x 7); TODAY shows the day's share of it
+    meter:{v:min,max:Math.round(goal/7),lb:'Mindful minutes today',val:`${min} / ${Math.round(goal/7)}`},
     dots:week7().map(d=>set.has(ymd(d))?'on':'')};
 }
 function tTrain(t){
