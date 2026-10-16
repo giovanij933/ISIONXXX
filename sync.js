@@ -129,6 +129,21 @@
     return r.text();
   }
 
+  /* ---------- last synced copy ----------
+     The three-way merge needs the last synced copy of each key. It is as big as the data itself, and every app on this
+     site shares one ~5 MB localStorage: the data plus these copies outgrew it after about two years of heavy use, and
+     then every save failed. So the copies live in IndexedDB; ones still in localStorage move over the first time they
+     are read. Without IndexedDB (rare) they stay in localStorage as before. */
+  const idb = (() => { let p; return () => p ??= new Promise((res, rej) => { const r = indexedDB.open('isx-sync', 1); r.onupgradeneeded = () => r.result.createObjectStore('base'); r.onsuccess = () => res(r.result); r.onerror = () => rej(r.error) }) })();
+  const tx = (mode, f) => idb().then(db => new Promise((res, rej) => { const t = db.transaction('base', mode), q = f(t.objectStore('base')); t.oncomplete = () => res(q.result); t.onerror = t.onabort = () => rej(t.error) }));
+  const baseSet = (k, v) => tx('readwrite', s => s.put(v, k)).catch(() => put(BASE(k), v));
+  const baseRm = k => tx('readwrite', s => s.delete(k)).catch(() => {});
+  async function baseGet(k) {
+    const old = get(BASE(k));
+    if (old != null) { try { await tx('readwrite', s => s.put(old, k)); ls.removeItem(BASE(k)) } catch (e) {} return old }
+    try { return (await tx('readonly', s => s.get(k))) ?? null } catch (e) { return null }
+  }
+
   /* ---------- sync ---------- */
   function setState(s, m = '') { state = s; msg = m; paint() }
   async function sync() {
@@ -142,7 +157,7 @@
       for (const k of KEYS) {
         const remoteText = await fileText(g.files[fname(k)]);
         const remote = remoteText ? await open(remoteText) : null;
-        const base = get(BASE(k)), local = get(k), baseDel = new Set(get(DEL(k), []));
+        const base = await baseGet(k), local = get(k), baseDel = new Set(get(DEL(k), []));
         // ids that were in the last synced copy and are gone here were deleted on this device
         const gone = [...ids(base)].filter(i => !ids(local).has(i));
         const del = new Set([...baseDel, ...gone, ...(remote?.del || [])]);
@@ -152,7 +167,7 @@
         if (!eq(merged, local)) { if (!(k in pre)) pre[k] = local; put(k, merged); changedHere = true }
         const doc = { data: merged, del: [...del] };
         if (!remote || !eq(doc.data, remote.data) || doc.del.length !== (remote.del || []).length) files[fname(k)] = { content: await seal(doc) };
-        put(BASE(k), merged); put(DEL(k), [...del]);
+        await baseSet(k, merged); put(DEL(k), [...del]);
       }
       if (Object.keys(files).length) await gh(`${API}/${cfg.gist}`, { method: 'PATCH', body: JSON.stringify({ files }) });
       last = Date.now(); setState('ok');
@@ -200,7 +215,7 @@
     } else await gh(`${API}/${cfg.gist}`);
     put(CFG, cfg);
     // a fresh connection starts from "nothing synced yet": everything here is merged in, nothing is deleted
-    KEYS.forEach(k => { ls.removeItem(BASE(k)); ls.removeItem(DEL(k)) });
+    await Promise.all(KEYS.map(k => { ls.removeItem(BASE(k)); ls.removeItem(DEL(k)); return baseRm(k) }));
     await sync();
     if (state === 'error') throw new Error(msg);
   }

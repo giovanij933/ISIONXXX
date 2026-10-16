@@ -98,6 +98,7 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 .qa button:focus-visible,.nx:focus-visible{outline:1px solid var(--amber)}
 .nx{display:flex;justify-content:space-between;gap:10px;width:100%;margin-top:10px;text-align:left;border-color:var(--amber);color:var(--amber)}.nx b{font-weight:600;white-space:nowrap}.tc.none .sub{margin-top:4px}
 @keyframes tIn{from{opacity:0;transform:translateY(8px)}}
+#today.drawn .tc,#today.drawn .ci,#today.drawn .ins{animation:none}
 .tch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
 .st{font-size:10px;letter-spacing:.12em;color:var(--dim);border:1px solid var(--line2);padding:2px 6px}.st.ok{color:var(--green);border-color:#1d6b3f}.st.bad{color:var(--red);border-color:#6b1d1d}
 .tc .big{font-size:24px;font-weight:600;margin:2px 0 2px}
@@ -243,12 +244,21 @@ function show(id,path){
 }
 /* ---------- TODAY: every app on one screen, read straight from what they've saved (read-only) ---------- */
 const pad=n=>String(n).padStart(2,'0'),ymd=d=>`${d.getFullYear()}-${pad(d.getMonth()+1)}-${pad(d.getDate())}`;
-const read=k=>{try{return JSON.parse(localStorage.getItem(k))}catch(e){return null}};
+// parsed once per change: TODAY reads the same keys many times per redraw (training data ~6x, once more per linked
+// habit) and redraws on every save, so parsing was most of its time. A string compare is far cheaper than JSON.parse.
+// The result is shared: callers must not modify it.
+const RC=new Map();
+const read=k=>{const raw=localStorage.getItem(k),c=RC.get(k);if(c&&c.raw===raw)return c.v;let v=null;try{v=JSON.parse(raw)}catch(e){}RC.set(k,{raw,v});return v};
 const esc=s=>String(s??'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
-const fi=n=>Math.round(n||0).toLocaleString('en-US');
-const money=v=>(v<0?'-':v>0?'+':'')+'$'+Math.abs(v).toLocaleString('en-US',{maximumFractionDigits:0});
+// formatters made once: toLocaleString builds a new one on every call, which adds up over long tables and charts
+const FMT={dmy:new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',year:'numeric'}),dt:new Intl.DateTimeFormat('en-US',{month:'short',day:'numeric',hour:'numeric',minute:'2-digit'}),
+  n0:new Intl.NumberFormat('en-US',{maximumFractionDigits:0}),n1:new Intl.NumberFormat('en-US',{maximumFractionDigits:1}),n2:new Intl.NumberFormat('en-US',{minimumFractionDigits:2,maximumFractionDigits:2})};
+const fi=n=>FMT.n0.format(Math.round(n||0));
+const money=v=>(v<0?'-':v>0?'+':'')+'$'+FMT.n0.format(Math.abs(v));
 const span=ms=>{ms=Math.max(0,ms);const d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5),m=Math.floor(ms%36e5/6e4);return d?`${d}d ${h}h`:h?`${h}h ${m}m`:`${m}m`};
-const dayAt=ms=>ymd(new Date(ms));
+// a timestamp's day, remembered per 15-minute slot (every time zone is a multiple of 15 min, so a slot never spans
+// midnight): TODAY asks thousands of times per redraw. Capped so it can't grow forever.
+const DAC=new Map(),dayAt=ms=>{const k=Math.floor(ms/9e5);let d=DAC.get(k);if(d===undefined){if(DAC.size>50000)DAC.clear();d=ymd(new Date(k*9e5));DAC.set(k,d)}return d};
 // the last seven days, oldest first, ending today
 function week7(){const out=[],d=new Date();d.setHours(12,0,0,0);for(let i=6;i>=0;i--){const x=new Date(d);x.setDate(d.getDate()-i);out.push(x)}return out}
 // MIND and TRAINING count their weeks from Sunday
@@ -383,7 +393,7 @@ function ciDraft(t){
   return {day:t,sleep:b.sleep??7.5,q:b.q??3,energy:b.energy??3,w:b.w??null};
 }
 function ciSave(){
-  let s=read(CIK);if(!s||!Array.isArray(s.log))s={log:[]};
+  let s=null;try{s=JSON.parse(localStorage.getItem(CIK))}catch(e){}if(!s||!Array.isArray(s.log))s={log:[]};
   const i=s.log.findIndex(e=>e.day===CI.day);
   // one id per day, so the same day checked in on two devices merges instead of doubling
   const e={id:'ci-'+CI.day,day:CI.day,at:Date.now(),sleep:CI.sleep,q:CI.q,energy:CI.energy,w:CI.w,u:wUnit()};
@@ -471,6 +481,7 @@ function insHTML(){
     ${I.list.length?I.list.map(x=>`<p class="in1">${x.t}</p>`).join(''):'<p class="sub">No clear patterns yet. Keep checking in; they show up once there are enough days on both sides.</p>'}
     <div class="sub ft">Patterns in your own data, not proof. Short sleep = under 7 h.</div></section>`;
 }
+let lastToday='';
 function drawToday(){
   const el=$('#today');if(!el)return;
   if(document.activeElement?.id==='ciw')return;   // don't redraw under you while you type your weight
@@ -488,7 +499,11 @@ function drawToday(){
   // what's still to do today first, then neutral (journal, rest day), then done; apps you haven't started at the end
   const rank=c=>!c?3:c.done===false||c.slip?0:c.done?2:1;
   const order=C.map((c,i)=>[rank(c),i]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).map(x=>cards[x[1]]);
-  el.innerHTML=`<div class="in"><header class="th top"><div class="brand">ISIONXXX <b>//</b> TODAY<span class="cur"></span></div><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>${ciHTML()}${top}${insHTML()}<div class="tg">${order.join('')}</div></div>`;
+  const html=`<div class="in"><header class="th top"><div class="brand">ISIONXXX <b>//</b> TODAY<span class="cur"></span></div><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>${ciHTML()}${top}${insHTML()}<div class="tg">${order.join('')}</div></div>`;
+  // the minute tick and every save in any app land here: only touch the page when something changed, and play the
+  // cards' entrance once, not on every refresh
+  if(html!==lastToday){lastToday=html;el.innerHTML=html}
+  if(!el.classList.contains('drawn'))requestAnimationFrame(()=>setTimeout(()=>el.classList.add('drawn'),400));
   if(fuelStale)preload('nutrition');
 }
 
