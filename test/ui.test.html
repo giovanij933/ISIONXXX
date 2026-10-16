@@ -1,0 +1,81 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ui.js tests</title>
+<link rel="stylesheet" href="../ui.css">
+<style>body{background:#070707;color:#d9d5c8;font:13px/1.5 ui-monospace,monospace;padding:16px}.ok{color:#33ff66}.no{color:#ff5a5a}#sum{font-weight:600;margin-bottom:12px}</style>
+</head>
+<body>
+<!-- Open in a browser: every line should be green. No build step, no dependencies. -->
+<div id="sum" role="status"></div>
+<ol id="out"></ol>
+<div id="stage"></div>
+<script src="../ui.js"></script>
+<script>
+'use strict';
+const out=document.getElementById('out'),stage=document.getElementById('stage');let pass=0,fail=0;
+function t(name,fn){let ok,msg='';try{ok=fn()!==false}catch(e){ok=false;msg=' — '+e.message}ok?pass++:fail++;
+  const li=document.createElement('li');li.className=ok?'ok':'no';li.textContent=(ok?'✓ ':'✗ ')+name+msg;out.appendChild(li)}
+const html=h=>{stage.innerHTML=h;return stage};
+const key=(el,k)=>el.dispatchEvent(new KeyboardEvent('keydown',{key:k,bubbles:true}));
+const events=[];UI.mount(stage);stage.addEventListener('ui-change',e=>events.push(e.detail));
+const last=()=>events[events.length-1];
+
+// escaping
+t('text is escaped everywhere',()=>{html(UI.card({id:'x"><img',title:'<b>hi</b>',sub:['<script>'],meters:[{label:'<i>',value:1,max:2}]}));return !stage.querySelector('img,script')&&stage.querySelector('.ui-card-open').textContent==='<b>hi</b>'&&stage.textContent.includes('<script>')});
+
+// meter
+t('meter: progressbar with value text',()=>{const b=html(UI.meter({label:'Cal',value:500,max:2000,display:'500 / 2,000'})).querySelector('[role=progressbar]');return b.getAttribute('aria-valuenow')==='500'&&b.getAttribute('aria-valuemax')==='2000'&&b.getAttribute('aria-valuetext')==='500 / 2,000'});
+t('meter: labelled by its visible label',()=>{const b=html(UI.meter({label:'Protein',value:1,max:2})).querySelector('[role=progressbar]');return document.getElementById(b.getAttribute('aria-labelledby')).textContent==='Protein'});
+t('meter: missing value → "—", empty bar, "no data"',()=>{const s=html(UI.meter({label:'x',value:undefined,max:30}));return s.querySelector('b').textContent==='—'&&s.querySelector('i').getAttribute('style')==='width:0.0%'&&s.querySelector('[role=progressbar]').getAttribute('aria-valuetext')==='no data'});
+t('meter: max 0 does not divide by zero',()=>!html(UI.meter({label:'x',value:5,max:0})).innerHTML.includes('NaN')&&!stage.innerHTML.includes('Infinity'));
+t('meter: past the goal fills and says so',()=>{const s=html(UI.meter({label:'x',value:15,max:10}));return s.querySelector('.ui-done')&&s.querySelector('i').getAttribute('style')==='width:100.0%'&&/goal met/.test(s.querySelector('[role=progressbar]').getAttribute('aria-valuetext'))});
+t('meter: negative values clamp to 0',()=>html(UI.meter({label:'x',value:-5,max:10})).querySelector('i').getAttribute('style')==='width:0.0%');
+
+// week
+t('week: every day has spoken text, last is Today',()=>{const s=html(UI.week({days:[{date:'2026-10-14',state:'on'},{date:'2026-10-15',state:'neg'},{date:'2026-10-16',state:'live'}]}));const sr=[...s.querySelectorAll('.ui-sr')].map(x=>x.textContent);return sr.length===3&&sr[0]==='Wed: done'&&sr[1]==='Thu: missed'&&sr[2]==='Today: in progress'});
+t('week: custom words',()=>html(UI.week({days:[{date:'2026-10-16',state:'pos'}],words:{pos:'clean'}})).querySelector('.ui-sr').textContent==='Today: clean');
+t('week: no days renders nothing',()=>UI.week({days:[]})==='');
+
+// card
+t('card: no nested interactive controls',()=>{html(UI.card({id:'m',title:'MIND',actions:[{label:'Go',act:'go'}]}));return ![...stage.querySelectorAll('button')].some(b=>b.parentElement.closest('button'))});
+t('card: open button and action carry ids',()=>{html(UI.card({id:'m',title:'MIND',actions:[{label:'Go',act:'go'}]}));return stage.querySelector('[data-open=m]')&&stage.querySelector('[data-go=m][data-act=go]')});
+t('card: article labelled by its heading',()=>{html(UI.card({id:'m',title:'MIND'}));const a=stage.querySelector('article');return document.getElementById(a.getAttribute('aria-labelledby')).textContent==='MIND'});
+
+t('card: rows are a definition list',()=>{html(UI.card({id:'r',title:'R',rows:[['Doom','2d'],['Sugar','5h']]}));return stage.querySelectorAll('dl dt').length===2&&stage.querySelector('dd').textContent==='2d'});
+
+// segmented / rating
+t('segmented: radiogroup, one radio checked and tabbable',()=>{html(UI.segmented({name:'d',label:'Day',value:'B',options:[{value:'A',label:'A'},{value:'B',label:'B'},{value:'C',label:'C'}]}));const r=[...stage.querySelectorAll('[role=radio]')];return stage.querySelector('[role=radiogroup][aria-label=Day]')&&r[1].getAttribute('aria-checked')==='true'&&r.filter(x=>x.tabIndex===0).length===1&&r[1].tabIndex===0});
+t('segmented: no value → first option tabbable, none checked',()=>{html(UI.segmented({name:'d',label:'Day',value:'Z',options:[{value:'A',label:'A'},{value:'B',label:'B'}]}));const r=[...stage.querySelectorAll('[role=radio]')];return r[0].tabIndex===0&&!r.some(x=>x.getAttribute('aria-checked')==='true')});
+t('segmented: ArrowRight selects next and fires ui-change',()=>{html(UI.segmented({name:'d',label:'Day',value:'A',options:[{value:'A',label:'A'},{value:'B',label:'B'}]}));const r=stage.querySelectorAll('[role=radio]');r[0].focus();key(r[0],'ArrowRight');return last().name==='d'&&last().value==='B'&&r[1].getAttribute('aria-checked')==='true'&&document.activeElement===r[1]});
+t('segmented: wraps from last to first, End/Home',()=>{html(UI.segmented({name:'d',label:'Day',value:'B',options:[{value:'A',label:'A'},{value:'B',label:'B'}]}));const r=stage.querySelectorAll('[role=radio]');key(r[1],'ArrowRight');const w=last().value==='A';key(r[0],'End');return w&&last().value==='B'});
+t('rating: numeric values, word as hint',()=>{html(UI.rating({name:'q',label:'Quality',value:4,words:['','Poor','Restless','OK','Good','Great']}));const r=stage.querySelectorAll('[role=radio]');r[0].click();return last().value===1&&typeof last().value==='number'&&r[3].getAttribute('aria-label')==='4, Good'});
+
+// choice list
+t('choiceList: single = radios, click selects one',()=>{html(UI.choiceList({name:'p',label:'Protein',value:'a',options:[{value:'a',label:'A'},{value:'b',label:'B'}]}));const r=stage.querySelectorAll('[role=radio]');r[1].click();return last().value==='b'&&r[0].getAttribute('aria-checked')==='false'});
+t('choiceList: multiple = checkboxes, Space toggles, value is the array',()=>{html(UI.choiceList({name:'x',label:'Ex',multiple:true,value:['a'],options:[{value:'a',label:'A'},{value:'b',label:'B'}]}));const r=stage.querySelectorAll('[role=checkbox]');key(r[0],'ArrowDown');key(r[1],' ');return JSON.stringify(last().value)==='["a","b"]'&&stage.querySelector('[role=group]')});
+t('choiceList: arrows skip disabled options',()=>{html(UI.choiceList({name:'p',label:'P',value:'a',options:[{value:'a',label:'A'},{value:'b',label:'B',disabled:true},{value:'c',label:'C'}]}));const r=stage.querySelectorAll('[role=radio]');key(r[0],'ArrowDown');return last().value==='c'});
+t('choiceList: no options → empty text, no group',()=>{html(UI.choiceList({name:'p',label:'P',options:[],empty:'Add one'}));return stage.textContent==='Add one'&&!stage.querySelector('[role=radiogroup]')});
+
+// stepper
+t('stepper: spinbutton with limits',()=>{html(UI.stepper({name:'s',label:'Sleep',value:7.5,min:0,max:14,step:.5,unit:'h'}));const o=stage.querySelector('[role=spinbutton]');return o.getAttribute('aria-valuenow')==='7.5'&&o.getAttribute('aria-valuemax')==='14'&&o.getAttribute('aria-valuetext')==='7.5 h'});
+t('stepper: + and ArrowDown step and fire',()=>{html(UI.stepper({name:'s',label:'Sleep',value:7.5,min:0,max:14,step:.5,unit:'h'}));stage.querySelector('[data-d="1"]').click();const a=last().value===8;key(stage.querySelector('output'),'ArrowDown');return a&&last().value===7.5});
+t('stepper: no float drift (0.1 steps)',()=>{html(UI.stepper({name:'w',label:'W',value:0.2,min:0,max:1,step:.1}));stage.querySelector('[data-d="1"]').click();return last().value===0.3});
+t('stepper: steps from an off-grid value without snapping (6.75 + 0.5 = 7.25)',()=>{html(UI.stepper({name:'s',label:'S',value:6.75,min:0,max:14,step:.5}));stage.querySelector('[data-d="1"]').click();return last().value===7.25});
+t('stepper: buttons disable at the limits; End jumps to max',()=>{html(UI.stepper({name:'s',label:'Sets',value:1,min:1,max:3}));const minus=stage.querySelector('[data-d="-1"]');const a=minus.disabled;key(stage.querySelector('output'),'End');return a&&last().value===3&&stage.querySelector('[data-d="1"]').disabled});
+
+// button / loading / toast
+t('button: busy blocks clicks and sets aria-busy',()=>{html(UI.button({label:'Save',busy:true}));const b=stage.querySelector('button');let clicked=false;stage.addEventListener('click',()=>clicked=true,{once:true});b.click();return b.getAttribute('aria-busy')==='true'&&b.disabled&&!clicked});
+t('skeleton: a live status with an accessible label',()=>{html(UI.skeleton({label:'Loading MIND'}));const s=stage.querySelector('[role=status]');return s.getAttribute('aria-busy')==='true'&&s.textContent.includes('Loading MIND')});
+t('toast: one polite live region, reused',()=>{UI.toast('Saved');UI.toast('Again');const r=document.querySelectorAll('.ui-toast');return r.length===1&&r[0].getAttribute('role')==='status'&&r[0].textContent==='Again'});
+
+// keepFocus
+t('keepFocus: focus returns to the same control after a re-render',()=>{const render=v=>html(UI.segmented({name:'k',label:'K',value:v,options:[{value:1,label:'1'},{value:2,label:'2'}]}));render(1);stage.querySelectorAll('[role=radio]')[1].focus();UI.keepFocus(()=>render(2));return document.activeElement.dataset.value==='2'});
+
+document.getElementById('sum').textContent=`${pass} passed, ${fail} failed`;document.getElementById('sum').className=fail?'no':'ok';
+window.UI_TEST={pass,fail};
+</script>
+</body>
+</html>
