@@ -1,0 +1,127 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
+<meta name="theme-color" content="#070707">
+<title>ISIONXXX // UI components</title>
+<link rel="stylesheet" href="ui.css">
+<style>
+:root{color-scheme:dark}
+body{margin:0;background:var(--ui-bg);color:var(--ui-tx);font:13px/1.55 var(--ui-f);padding:24px max(16px,env(safe-area-inset-left)) 64px}
+main{max-width:1000px;margin:0 auto}
+h1{font-size:15px;letter-spacing:.14em;margin:0 0 4px}h1 b{color:var(--ui-amber)}
+h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--ui-amber);margin:36px 0 6px;padding-top:18px;border-top:1px solid var(--ui-line)}
+p.lede{color:var(--ui-dim);margin:0 0 8px;max-width:70ch}
+.demo{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin:12px 0}
+.box{background:var(--ui-panel);border:1px solid var(--ui-line);padding:16px}
+.box>.lbl{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ui-dim);margin-bottom:10px}
+pre{margin:8px 0 0;padding:12px;background:#0a0a0a;border:1px solid var(--ui-line);overflow-x:auto;font:12px/1.5 var(--ui-f);color:#cfcabd}
+table{width:100%;border-collapse:collapse;margin:8px 0;font-size:12px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--ui-line);vertical-align:top}th{color:var(--ui-dim);font-weight:500}
+code{color:var(--ui-amber)}
+#log{min-height:1.5em;color:var(--ui-green)}
+</style>
+</head>
+<body>
+<main id="root">
+<h1>ISIONXXX <b>//</b> UI components</h1>
+<p class="lede">Shared, accessible components for the ISIONXXX apps. Load <code>ui.css</code> and <code>ui.js</code>, call
+<code>UI.mount(root)</code> once, render with the functions below, and listen for <code>ui-change</code>. Components hold no state:
+your app keeps it and renders again.</p>
+<pre tabindex="0" aria-label="Setup code">&lt;link rel="stylesheet" href="ui.css"&gt;
+&lt;script src="ui.js"&gt;&lt;/script&gt;
+UI.mount(document.body);
+document.body.addEventListener('ui-change', e =&gt; { state[e.detail.name] = e.detail.value; render() });</pre>
+<p id="log" role="status" aria-live="polite">Interact with any example: its ui-change event shows here.</p>
+
+<h2>card</h2>
+<p class="lede">One app's summary. The title is a real button stretched over the card (opens the app); actions stay separate
+controls, so nothing interactive is nested. Fires a normal click on <code>[data-open]</code> / <code>[data-go][data-act]</code>.</p>
+<table><tr><th>prop</th><th>type</th><th>notes</th></tr>
+<tr><td>id</td><td>string</td><td>sent as <code>data-open</code> / <code>data-go</code></td></tr>
+<tr><td>title</td><td>string</td><td>heading and accessible name</td></tr>
+<tr><td>status</td><td>{text, tone}</td><td>tone: ok · bad · live · neutral</td></tr>
+<tr><td>big · bigTone</td><td>string · 'pos' | 'neg'</td><td>headline value</td></tr>
+<tr><td>sub</td><td>string[]</td><td>empty items skipped, joined with ·</td></tr>
+<tr><td>meters</td><td>meter props[]</td><td>see meter</td></tr>
+<tr><td>week</td><td>week props</td><td>see week</td></tr>
+<tr><td>actions</td><td>button props[]</td><td>each gets <code>data-go=id</code></td></tr></table>
+<div class="demo" id="cards"></div>
+
+<h2>meter</h2>
+<p class="lede"><code>{label, value, max, display?}</code> — a <code>progressbar</code> with its value as text. Missing or non-numeric
+values show "—" and an empty bar; past the goal it fills and turns green.</p>
+<div class="demo" id="meters"></div>
+
+<h2>week</h2>
+<p class="lede"><code>{days:[{date, state}], label?, words?}</code> — states: '' · on · half · pos · neg · live. Each day is read out
+("Tue: done"); the last day is Today.</p>
+<div class="demo" id="weeks"></div>
+
+<h2>segmented · rating</h2>
+<p class="lede"><code>segmented({name, label, options:[{value,label,hint}], value})</code> and <code>rating({name, label, min, max, value, words})</code>
+are radio groups: Tab in, arrows / Home / End to choose.</p>
+<div class="demo" id="segs"></div>
+
+<h2>choiceList</h2>
+<p class="lede"><code>{name, label, options:[{value,label,detail,disabled}], value, multiple?}</code>. One pick = radio group (dot);
+<code>multiple:true</code> = checkboxes (tick box), Space toggles. Long labels wrap; empty options show the <code>empty</code> text.</p>
+<div class="demo" id="lists"></div>
+
+<h2>stepper</h2>
+<p class="lede"><code>{name, label, value, min, max, step, unit}</code> — the value is a <code>spinbutton</code>: Up / Down, Page Up / Down
+(×5), Home / End. Buttons disable at the limits.</p>
+<div class="demo" id="steps"></div>
+
+<h2>button · loading · empty · toast</h2>
+<p class="lede"><code>button({label, act, variant, busy, disabled})</code> — busy keeps the width, shows a spinner, sets
+<code>aria-busy</code> and blocks clicks. <code>skeleton({label, lines})</code> announces loading once. <code>UI.toast(text)</code> is read
+politely by screen readers.</p>
+<div class="demo" id="misc"></div>
+</main>
+<script src="ui.js"></script>
+<script>
+'use strict';
+const $=s=>document.querySelector(s),root=UI.mount($('#root'));
+const days=s=>{const d=new Date();return s.map((st,i)=>{const x=new Date(d);x.setDate(d.getDate()-(s.length-1-i));return{date:x,state:st}})};
+const box=(label,html,code)=>`<div class="box"><span class="lbl">${UI.esc(label)}</span>${html}${code?`<pre tabindex="0" aria-label="Example code">${UI.esc(code)}</pre>`:''}</div>`;
+const S={sleep:7.5,q:4,day:'PUSH',protein:'salmon',ex:['Bench Press','Overhead Press'],energy:3};
+
+function draw(){
+  $('#cards').innerHTML=
+    UI.card({id:'mind',title:'MIND',status:{text:'✓ Done',tone:'ok'},big:'12 min',sub:['1 session','mood +2','9-day streak'],
+      meters:[{label:'Mindful minutes today',value:12,max:10}],week:{days:days(['on','on','','on','on','on','on'])},actions:[{label:'▶ Start session',act:'go'}]})+
+    UI.card({id:'training',title:'TRAIN',status:{text:'Not yet'},big:'Rest day',meters:[{label:'Workouts this week',value:2,max:4}],
+      week:{days:days(['on','','half','','on','','live'])},actions:[{label:'▶ Start workout',act:'go',variant:'primary'},{label:'+ Log',act:'add'}]})+
+    UI.card({id:'rewire',title:'REWIRE',status:{text:'Slipped',tone:'bad'},big:'2h 14m clean',bigTone:'neg',sub:['Doomscrolling','slipped today'],
+      week:{days:days(['pos','pos','neg','pos','pos','pos','neg']),words:{pos:'clean',neg:'slip'}}});
+  $('#meters').innerHTML=
+    box('In progress',UI.meter({label:'Calories',value:1420,max:2000,display:'1,420 / 2,000'}))+
+    box('Goal met',UI.meter({label:'Protein',value:112,max:100,display:'112 / 100 g'}))+
+    box('No data (edge case)',UI.meter({label:'Study minutes today',value:undefined,max:30}),"UI.meter({label:'Study', value:undefined, max:30}) // → —");
+  $('#weeks').innerHTML=box('All states',UI.week({days:days(['','on','half','pos','neg','on','live'])}));
+  $('#segs').innerHTML=
+    box('segmented',UI.segmented({name:'day',label:'Workout day',value:S.day,options:['PUSH','PULL','LEGS','CARDIO'].map(v=>({value:v,label:v}))}),
+      "UI.segmented({name:'day', label:'Workout day', value:'PUSH',\n  options:['PUSH','PULL','LEGS'].map(v=>({value:v,label:v}))})")+
+    box('rating with words',UI.rating({name:'q',label:'Sleep quality',value:S.q,words:['','Poor','Restless','OK','Good','Great']}))+
+    box('rating, nothing chosen yet (edge case)',UI.rating({name:'energy2',label:'Energy',value:null}));
+  $('#lists').innerHTML=
+    box('pick one',UI.choiceList({name:'protein',label:'Protein',value:S.protein,options:[{value:'egg',label:'Eggs'},{value:'salmon',label:'Salmon',detail:'omega-3'},{value:'chicken',label:'Chicken breast, grilled with a very long description that has to wrap',detail:"today's plan"},{value:'steak',label:'Steak',disabled:true,detail:'out of stock'}]}))+
+    box('pick several',UI.choiceList({name:'ex',label:'Exercises',multiple:true,value:S.ex,options:['Bench Press','Overhead Press','Dip','Lateral Raise'].map(v=>({value:v,label:v,detail:v==='Bench Press'?'3×5 @ 145':''}))}),
+      "UI.choiceList({name:'ex', label:'Exercises', multiple:true,\n  value:['Bench Press'], options:[{value:'Bench Press', label:'Bench Press', detail:'3×5 @ 145'}]})")+
+    box('no options (edge case)',UI.choiceList({name:'none',label:'Swaps',options:[],empty:'Add a good habit first'}));
+  $('#steps').innerHTML=
+    box('sleep',UI.stepper({name:'sleep',label:'Sleep',value:S.sleep,min:0,max:14,step:.5,unit:'h'}),"UI.stepper({name:'sleep', label:'Sleep', value:7.5, min:0, max:14, step:0.5, unit:'h'})")+
+    box('at the limit (edge case)',UI.stepper({name:'sets',label:'Sets',value:1,min:1,max:10}));
+  $('#misc').innerHTML=
+    box('buttons',`<div class="ui-actions">${UI.button({label:'Save',variant:'primary',act:'save'})}${UI.button({label:'Saving',variant:'primary',busy:true})}${UI.button({label:'Cancel',variant:'ghost'})}${UI.button({label:'Disabled',disabled:true})}</div>`)+
+    box('loading',UI.skeleton({label:'Loading TRAINING',lines:3}))+
+    box('empty',UI.emptyState({title:'Nothing logged yet',body:'Log a meal or cook today\'s bowl.',action:{label:'+ Food',act:'quick'}}))+
+    box('toast',UI.button({label:'Show a toast',act:'toast'}));
+}
+draw();
+root.addEventListener('ui-change',e=>{const{name,value}=e.detail;S[name]=value;$('#log').textContent=`ui-change → ${name} = ${JSON.stringify(value)}`;if(['q','energy2'].includes(name))UI.keepFocus(draw)});
+root.addEventListener('click',e=>{const b=e.target.closest('[data-act=toast]');if(b)UI.toast('Saved');const o=e.target.closest('[data-open],[data-go]');if(o)$('#log').textContent=o.dataset.open?`open ${o.dataset.open}`:`${o.dataset.go} → ${o.dataset.act}`});
+</script>
+</body>
+</html>

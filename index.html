@@ -14,9 +14,10 @@
 <link rel="icon" href="icon-192.png" type="image/png" sizes="192x192">
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="ui.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-:root{color-scheme:dark;--bg:#070707;--panel:#0c0c0c;--line:#1c1c1c;--line2:#2c2c2c;--green:#33ff66;--red:#ff4545;--tx:#d9d5c8;--dim:#78746a;--amber:#ffb000;--f:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--bar:58px}
+:root{color-scheme:dark;--bg:#070707;--panel:#0c0c0c;--line:#1c1c1c;--line2:#2c2c2c;--green:#33ff66;--red:#ff4545;--tx:#d9d5c8;--dim:#8f8a7e;--amber:#ffb000;--f:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--bar:58px}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:12px var(--f);overflow:hidden}
 /* the whole app is one full-screen box. --vh is the real screen height: as a home-screen app iOS reports the
@@ -46,7 +47,7 @@ nav{transition:transform .28s cubic-bezier(.2,.8,.2,1),opacity .2s}
 nav.away{transform:translateY(calc(100% + 40px));opacity:0;pointer-events:none}
 nav button.on{color:var(--amber);background:rgba(255,176,0,.16);box-shadow:inset 0 0 0 1px rgba(255,176,0,.22)}
 nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
-.ld{position:absolute;inset:0;display:grid;place-items:center;color:var(--dim);letter-spacing:.14em;pointer-events:none}
+.ld{position:absolute;inset:0;display:grid;place-items:center;pointer-events:none;background:var(--bg)}
 .ld i{display:inline-block;width:.6em;height:1.05em;margin-left:6px;background:var(--amber);vertical-align:-2px;animation:bl 1.1s steps(1) infinite}
 @keyframes bl{50%{opacity:0}}
 /* TODAY */
@@ -67,10 +68,7 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 .chips button{all:unset;cursor:pointer;font-size:10px;letter-spacing:.1em;padding:3px 7px;border:1px solid var(--line2);color:var(--dim);-webkit-tap-highlight-color:transparent}
 .chips button.ok{color:var(--green);border-color:#1d6b3f}
 .tg{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
-.tc{all:unset;box-sizing:border-box;display:flex;flex-direction:column;justify-content:flex-start;text-align:left;cursor:pointer;background:var(--panel);border:1px solid var(--line);padding:16px;min-width:0;-webkit-tap-highlight-color:transparent;transition:border-color .15s,transform .12s;animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}
-.tc:hover{border-color:var(--line2)}.tc:active{transform:scale(.98)}.tc:focus-visible,.chips button:focus-visible{outline:1px solid var(--amber)}
-.tc.none{opacity:.7}
-.qa{display:flex;gap:8px;margin-top:14px}
+.chips button:focus-visible{outline:1px solid var(--amber)}
 /* insights */
 .ins{background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin-bottom:12px;animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}
 .ins .in1{margin:8px 0 0;font-size:13px;line-height:1.5;padding-left:14px;position:relative}.ins .in1::before{content:'';position:absolute;left:0;top:.6em;width:6px;height:6px;background:var(--amber)}
@@ -82,32 +80,25 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 .ci button.st{all:unset;cursor:pointer;font-size:10px;letter-spacing:.12em;padding:2px 6px;border:1px solid #1d6b3f;color:var(--green)}
 .ci-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
 .ci-l{font-size:12px;color:var(--dim)}.ci-l em{font-style:normal;color:var(--amber);margin-left:6px}
-.ci-step{display:flex;align-items:center;gap:4px}.ci-step b{min-width:64px;text-align:center;font-size:16px}
-.ci-step button,.ci-seg button{all:unset;box-sizing:border-box;cursor:pointer;display:grid;place-items:center;width:36px;height:34px;border:1px solid var(--line2);font-size:13px;-webkit-tap-highlight-color:transparent;transition:background-color .15s,color .15s,transform .12s}
-.ci-step button:active,.ci-seg button:active{transform:scale(.94)}
-.ci-seg{display:flex}.ci-seg button+button{border-left:0}.ci-seg button.on{background:var(--amber);border-color:var(--amber);color:#000;font-weight:600}
 .ci-w{display:flex;align-items:center;gap:6px}.ci-w input{width:86px;background:#0a0a0a;border:1px solid var(--line2);color:var(--tx);font:14px var(--f);padding:7px 8px;text-align:right}.ci-w input:focus{outline:0;border-color:var(--amber)}.ci-w span{font-size:11px;color:var(--dim)}
 .ci-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:10px;margin-top:6px}
 .ci-sum b{display:block;font-size:16px;font-weight:600}.ci-sum span{font-size:10.5px;color:var(--dim);white-space:nowrap}
 #today .acts{display:flex;align-items:center;gap:10px}
+#today h1.brand,#today h2.h{margin:0;font-weight:600}#today h2.h{font-weight:400}
+#today .tg>.ui-card,#today .tg>.tc-none{animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}#today.drawn .tg>*{animation:none}
+.tc-none{opacity:.75}.tc-none .ui-card{height:100%}
+.ci-row .ui-rating{flex:1}.ci-row .ui-field-label{color:var(--dim)}
+.ld .ui-skeleton{width:min(420px,calc(100% - 32px))}
 #today .th .brand{white-space:nowrap}#today .th .dt b{font-weight:400}
 @media(max-width:420px){#today .th .dt i{display:none}.ci-sum{grid-template-columns:1fr 1fr}}
-.qa button,.nx{all:unset;box-sizing:border-box;cursor:pointer;flex:1;text-align:center;padding:11px 8px;border:1px solid var(--line2);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx);-webkit-tap-highlight-color:transparent;transition:background-color .15s,border-color .15s,transform .12s}
-.qa button:active,.nx:active{transform:scale(.97)}
-.qa button.pri{background:var(--amber);border-color:var(--amber);color:#000;font-weight:600}
-.qa button:focus-visible,.nx:focus-visible{outline:1px solid var(--amber)}
+.nx{all:unset;box-sizing:border-box;cursor:pointer;flex:1;text-align:center;padding:11px 8px;border:1px solid var(--line2);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx);-webkit-tap-highlight-color:transparent;transition:background-color .15s,border-color .15s,transform .12s}
+.nx:active{transform:scale(.97)}
+.nx:focus-visible{outline:1px solid var(--amber)}
 .nx{display:flex;justify-content:space-between;gap:10px;width:100%;margin-top:10px;text-align:left;border-color:var(--amber);color:var(--amber)}.nx b{font-weight:600;white-space:nowrap}.tc.none .sub{margin-top:4px}
 @keyframes tIn{from{opacity:0;transform:translateY(8px)}}
 #today.drawn .tc,#today.drawn .ci,#today.drawn .ins{animation:none}
 .tch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
 .st{font-size:10px;letter-spacing:.12em;color:var(--dim);border:1px solid var(--line2);padding:2px 6px}.st.ok{color:var(--green);border-color:#1d6b3f}.st.bad{color:var(--red);border-color:#6b1d1d}
-.tc .big{font-size:24px;font-weight:600;margin:2px 0 2px}
-.rws{margin-top:8px;font-size:12px}.rws div{display:flex;justify-content:space-between;gap:8px;padding:2px 0;border-top:1px solid var(--line)}.rws span{color:var(--dim);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-.mt{margin-top:10px}.mt .lb{display:flex;justify-content:space-between;gap:8px;font-size:11px;color:var(--dim);margin-bottom:4px}.mt .lb span:last-child{color:var(--tx)}
-.mt .bar{height:6px;background:#161616}.mt .bar i{display:block;height:100%;background:var(--amber);transition:width .5s cubic-bezier(.2,.8,.2,1)}.mt .bar i.full{background:var(--green)}
-.dots{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin-top:auto;padding-top:12px}
-.dots span{display:flex;flex-direction:column;align-items:center;gap:3px;font-size:9px;color:var(--dim)}.dots span.t{color:var(--amber)}
-.dots i{display:block;width:100%;height:6px;background:#161616}.dots i.on{background:var(--amber)}.dots i.half{background:rgba(255,176,0,.35)}.dots i.pos{background:var(--green)}.dots i.neg{background:var(--red)}
 /* seven labels on a small phone: NUTRITION is the longest */
 @media(max-width:400px){nav button{letter-spacing:.01em}}
 @media(min-width:900px){nav.away{transform:translate(-50%,calc(100% + 40px))}nav{left:50%;right:auto;transform:translateX(-50%);width:min(760px,calc(100% - 24px));height:56px}nav button{flex-direction:row;gap:8px;font-size:11px}}
@@ -118,6 +109,7 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 <nav id="tabs" aria-label="Apps"></nav>
 <!-- the morning check-in is the shell's own data; TODAY re-reads it, so a change from another device redraws instead of reloading -->
 <script src="sync.js" data-keys="isx.checkin.v1" data-noreload></script>
+<script src="ui.js"></script>
 <script>
 'use strict';
 // the apps live next to this one on GitHub Pages (giovanij933.github.io/<repo>/), so they share this site's storage:
@@ -232,7 +224,7 @@ function show(id,path){
   else{
     const had=document.getElementById('f-'+t.id);f=frame(t,path);
     if(had&&path)f.src=path;
-    if(!f.dataset.ready&&!document.getElementById('ld-'+t.id)){const ld=document.createElement('div');ld.className='ld';ld.id='ld-'+t.id;ld.innerHTML=`LOADING ${t.label}<i></i>`;apps.append(ld)}
+    if(!f.dataset.ready&&!document.getElementById('ld-'+t.id)){const ld=document.createElement('div');ld.className='ld';ld.id='ld-'+t.id;ld.innerHTML=UI.skeleton({label:`Loading ${t.label}`,lines:4});apps.append(ld)}
   }
   document.querySelectorAll('#apps>.pane').forEach(x=>x.classList.toggle('on',x===f));
   document.querySelectorAll('#apps>.ld').forEach(x=>x.hidden=x.id!=='ld-'+t.id);
@@ -360,24 +352,18 @@ function tRewire(t){
     dots:week7().map(d=>{const k=ymd(d);return sd.has(k)?'neg':d.getTime()>=start-864e5?'pos':''})};
 }
 
-const meter=m=>{if(!m)return'';const p=m.max?Math.min(100,m.v/m.max*100):0;
-  return `<div class="mt"><div class="lb"><span>${m.lb}</span><span>${m.val}</span></div><div class="bar"><i class="${p>=100?'full':''}" style="width:${p.toFixed(1)}%"></i></div></div>`};
-const DOW='SMTWTFS';
 // one-tap actions on each card: they open the app straight into that action (same as REWIRE's LOG IN buttons)
 const QA={mind:[['go','▶ Start session']],training:[['go','▶ Start workout'],['add','+ Log']],nutrition:[['quick','+ Food'],['cook','Cook bowl']],
   learn:[['startnext','▶ Next lesson']],journal:[['add','+ Trade']],rewire:[['urge','Urge']]};
-const qa=(id,todo)=>`<div class="qa">${(QA[id]||[]).map(([a,l],i)=>`<button type="button" data-go="${id}" data-act="${a}" class="${i===0&&todo?'pri':''}">${l}</button>`).join('')}</div>`;
+// TODAY's cards are the shared UI.card: the title opens the app, actions stay separate controls, the bars are
+// labelled progress bars and each day of the strip is read out (ui.js)
+const plain=h=>String(h??'').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&');
 function card(c){
-  const st=c.slip?'<span class="st bad">SLIPPED</span>':c.done?'<span class="st ok">✓ DONE</span>':c.rest?'<span class="st">REST</span>':c.done===false?'<span class="st">NOT YET</span>':'';
-  return `<div class="tc" role="button" tabindex="0" data-open="${c.id}" aria-label="Open ${c.label}">
-    <div class="tch"><span class="h">${c.label}</span>${st}</div>
-    <div class="big ${c.bigCls||''}">${c.big}</div>
-    <div class="sub">${c.sub.filter(Boolean).join(' · ')}</div>
-    ${c.rows?`<div class="rws">${c.rows.map(r=>`<div><span>${r[0]}</span><b>${r[1]}</b></div>`).join('')}</div>`:''}
-    ${meter(c.meter)}${meter(c.meter2)}
-    <div class="dots" aria-label="Last 7 days">${week7().map((d,i)=>`<span class="${i===6?'t':''}"><i class="${c.dots[i]}"></i>${DOW[d.getDay()]}</span>`).join('')}</div>
-    ${qa(c.id,c.done===false||c.slip)}
-  </div>`;
+  const st=c.slip?{text:'Slipped',tone:'bad'}:c.done?{text:'✓ Done',tone:'ok'}:c.rest?{text:'Rest'}:c.done===false?{text:'Not yet'}:null;
+  const m=x=>x&&{label:x.lb,value:x.v,max:x.max,display:x.val};
+  return UI.card({id:c.id,title:c.label,status:st,big:plain(c.big),bigTone:c.bigCls||null,sub:c.sub.map(plain),rows:(c.rows||[]).map(r=>r.map(plain)),
+    meters:[m(c.meter),m(c.meter2)],week:{days:week7().map((d,i)=>({date:d,state:c.dots[i]})),words:c.id==='rewire'?{pos:'clean',neg:'slip'}:c.id==='journal'?{pos:'green day',neg:'red day',on:'flat day'}:{}},
+    actions:(QA[c.id]||[]).map(([act,label],i)=>({act,label,variant:i===0&&(c.done===false||c.slip)?'primary':'secondary'}))});
 }
 const EMPTY={mind:'Meditate, breathe or journal',training:'Log a workout',nutrition:'Log a meal',learn:'Study a lesson',journal:'Import or log trades',rewire:'Name a habit to break'};
 /* ---------- morning check-in: hours slept, sleep quality, energy, weight ----------
@@ -404,7 +390,6 @@ function ciAct(k,v){
   if(k==='save')return ciSave();
   if(k==='edit'){CI=ciDraft(ymd(new Date()));return drawToday()}
   if(k==='cancel'){CI=null;return drawToday()}
-  if(k==='sleep')CI.sleep=Math.min(14,Math.max(0,CI.sleep+ +v));else CI[k]=+v;
   drawToday();
 }
 function ciHTML(){
@@ -412,18 +397,18 @@ function ciHTML(){
   if(CI&&CI.day!==t)CI=null;
   if(done&&!CI){
     const wk=L.filter(e=>e.day<t).sort((a,b)=>a.day<b.day?1:-1).slice(0,7),sl=avg(wk.map(e=>e.sleep)),wa=avg(wk.filter(e=>e.w).map(e=>e.w)),dw=done.w&&wa?r1(done.w-wa):null;
-    return `<section class="ci done"><div class="tch"><span class="h">Morning check-in</span><button type="button" class="st ok" data-ci="edit">✓ Edit</button></div>
+    return `<section class="ci done"><div class="tch"><h2 class="h">Morning check-in</h2><button type="button" class="st ok" data-ci="edit">✓ Edit</button></div>
       <div class="ci-sum"><div><b>${done.sleep} h</b><span>sleep${sl!=null?` · wk ${r1(sl)}`:''}</span></div><div><b>${QW[done.q]}</b><span>quality</span></div><div><b>${EW[done.energy]}</b><span>energy</span></div>
       ${done.w?`<div><b>${done.w}</b><span>${done.u||wUnit()}${dw!=null?` · ${dw>0?'+':''}${dw} vs wk`:''}</span></div>`:''}</div></section>`;
   }
   const d=CI||(CI=ciDraft(t));
-  const seg=(k,W)=>`<div class="ci-seg">${[1,2,3,4,5].map(v=>`<button type="button" data-ci="${k}" data-v="${v}" class="${d[k]===v?'on':''}" aria-label="${W[v]}">${v}</button>`).join('')}</div>`;
-  return `<section class="ci"><div class="tch"><span class="h">${h<12?'Good morning':h<18?'Good afternoon':'Good evening'} · check-in</span><span class="st">10 SEC</span></div>
-    <div class="ci-row"><span class="ci-l">Sleep</span><div class="ci-step"><button type="button" data-ci="sleep" data-v="-0.5" aria-label="Less sleep">−</button><b>${d.sleep} h</b><button type="button" data-ci="sleep" data-v="0.5" aria-label="More sleep">+</button></div></div>
-    <div class="ci-row"><span class="ci-l">Sleep quality <em>${QW[d.q]}</em></span>${seg('q',QW)}</div>
-    <div class="ci-row"><span class="ci-l">Energy <em>${EW[d.energy]}</em></span>${seg('energy',EW)}</div>
-    <div class="ci-row"><span class="ci-l">Weight <em>optional</em></span><div class="ci-w"><input id="ciw" type="number" inputmode="decimal" step="0.1" min="0" value="${d.w??''}" placeholder="—" aria-label="Weight"><span>${wUnit()}</span></div></div>
-    <div class="qa">${done?'<button type="button" data-ci="cancel">Cancel</button>':''}<button type="button" class="pri" data-ci="save">${done?'Update':'Save check-in'}</button></div></section>`;
+
+  return `<section class="ci"><div class="tch"><h2 class="h">${h<12?'Good morning':h<18?'Good afternoon':'Good evening'} · check-in</h2><span class="st">10 SEC</span></div>
+    <div class="ci-row"><span class="ci-l" aria-hidden="true">Sleep</span>${UI.stepper({name:'ci-sleep',label:'Hours slept',value:d.sleep,min:0,max:14,step:.5,unit:'h'})}</div>
+    <div class="ci-row">${UI.rating({name:'ci-q',label:'Sleep quality',value:d.q,words:QW})}</div>
+    <div class="ci-row">${UI.rating({name:'ci-energy',label:'Energy',value:d.energy,words:EW})}</div>
+    <div class="ci-row"><label class="ci-l" for="ciw">Weight <em>optional</em></label><div class="ci-w"><input id="ciw" type="number" inputmode="decimal" step="0.1" min="0" value="${d.w??''}" placeholder="—"><span>${wUnit()}</span></div></div>
+    <div class="ui-actions">${done?UI.button({label:'Cancel',variant:'ghost',attrs:{'data-ci':'cancel'}}):''}${UI.button({label:done?'Update':'Save check-in',variant:'primary',attrs:{'data-ci':'save'}})}</div></section>`;
 }
 const pd=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
 /* ---------- insights: what your check-ins line up with in the other apps ----------
@@ -474,10 +459,10 @@ function insights(){
 function insHTML(){
   const I=insights();
   if(!I.n)return '';
-  if(!I.list)return `<section class="ins"><div class="tch"><span class="h">Insights</span><span class="st">${I.n} / ${INS_MIN}</span></div>
+  if(!I.list)return `<section class="ins"><div class="tch"><h2 class="h">Insights</h2><span class="st">${I.n} / ${INS_MIN}</span></div>
     <div class="sub">Check in ${INS_MIN-I.n} more morning${INS_MIN-I.n===1?'':'s'} and this shows how your sleep and energy line up with your training, meditation, trading and habits.</div>
-    <div class="mt"><div class="bar"><i style="width:${(I.n/INS_MIN*100).toFixed(1)}%"></i></div></div></section>`;
-  return `<section class="ins"><div class="tch"><span class="h">Insights</span><span class="st">${I.days} DAYS</span></div>
+    ${UI.meter({label:'Check-ins',value:I.n,max:INS_MIN})}</section>`;
+  return `<section class="ins"><div class="tch"><h2 class="h">Insights</h2><span class="st">${I.days} DAYS</span></div>
     ${I.list.length?I.list.map(x=>`<p class="in1">${x.t}</p>`).join(''):'<p class="sub">No clear patterns yet. Keep checking in; they show up once there are enough days on both sides.</p>'}
     <div class="sub ft">Patterns in your own data, not proof. Short sleep = under 7 h.</div></section>`;
 }
@@ -491,15 +476,15 @@ function drawToday(){
   const d=new Date(),date=d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'}).toUpperCase();
   const top=wins.length?`<section class="wins">
       <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="${r}" class="r0"/><circle cx="32" cy="32" r="${r}" class="r1${p>=1?' full':''}" stroke-dasharray="${(L*p).toFixed(1)} ${L.toFixed(1)}"/><text x="32" y="37">${won}/${wins.length}</text></svg>
-      <div><div class="h">Daily wins</div><div class="sub">${p>=1?'Everything done today. Nice.':won?`${wins.length-won} to go today`:'Nothing logged yet today'}</div>
+      <div><h2 class="h">Daily wins</h2><div class="sub">${p>=1?'Everything done today. Nice.':won?`${wins.length-won} to go today`:'Nothing logged yet today'}</div>
       <div class="chips">${wins.map(c=>`<button type="button" data-open="${c.id}" class="${c.done?'ok':''}">${c.done?'✓ ':''}${c.label}</button>`).join('')}</div>
       ${next?`<button type="button" class="nx" data-go="${next.id}" data-act="${QA[next.id][0][0]}">Next up · ${next.label} <b>${QA[next.id][0][1]}</b></button>`:''}</div></section>`:
-    `<section class="wins solo"><div><div class="h">Welcome</div><div class="sub">Log something in any app and today's progress shows up here: minutes, workouts, calories, study streaks, P&amp;L and clean time, all on one screen.</div></div></section>`;
-  const cards=C.map((c,i)=>c?card(c):`<button type="button" class="tc none" data-open="${ids[i]}"><div class="tch"><span class="h">${TABS.find(x=>x.id===ids[i]).label}</span><span class="st">START</span></div><div class="sub">${EMPTY[ids[i]]} →</div></button>`);
+    `<section class="wins solo"><div><h2 class="h">Welcome</h2><div class="sub">Log something in any app and today's progress shows up here: minutes, workouts, calories, study streaks, P&amp;L and clean time, all on one screen.</div></div></section>`;
+  const cards=C.map((c,i)=>c?card(c):`<div class="tc-none">${UI.card({id:ids[i],title:TABS.find(x=>x.id===ids[i]).label,status:{text:'Start'},sub:[EMPTY[ids[i]]],openLabel:`Start using ${TABS.find(x=>x.id===ids[i]).label}`})}</div>`);
   // what's still to do today first, then neutral (journal, rest day), then done; apps you haven't started at the end
   const rank=c=>!c?3:c.done===false||c.slip?0:c.done?2:1;
   const order=C.map((c,i)=>[rank(c),i]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).map(x=>cards[x[1]]);
-  const html=`<div class="in"><header class="th top"><div class="brand">ISIONXXX <b>//</b> TODAY<span class="cur"></span></div><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>${ciHTML()}${top}${insHTML()}<div class="tg">${order.join('')}</div></div>`;
+  const html=`<div class="in"><header class="th top"><h1 class="brand">ISIONXXX <b>//</b> TODAY<span class="cur" aria-hidden="true"></span></h1><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>${ciHTML()}${top}${insHTML()}<div class="tg">${order.join('')}</div></div>`;
   // the minute tick and every save in any app land here: only touch the page when something changed, and play the
   // cards' entrance once, not on every refresh
   if(html!==lastToday){lastToday=html;el.innerHTML=html}
@@ -515,7 +500,8 @@ setInterval(()=>{if(todayOn()&&!document.hidden)drawToday()},60e3);
 addEventListener('isx-sync',()=>{if(todayOn())drawToday()});
 $('#today').addEventListener('input',e=>{if(e.target.id==='ciw'&&CI)CI.w=e.target.value===''?null:Math.max(0,+e.target.value)});
 $('#today').addEventListener('click',e=>{const c=e.target.closest('[data-ci]');if(c)return ciAct(c.dataset.ci,c.dataset.v);const a=e.target.closest('[data-go]');if(a)return openAct(a.dataset.go,a.dataset.act);const b=e.target.closest('[data-open]');if(b)show(b.dataset.open)});
-$('#today').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.tc')){e.preventDefault();show(e.target.dataset.open)}});
+UI.mount($('#today'));
+$('#today').addEventListener('ui-change',e=>{const k={'ci-sleep':'sleep','ci-q':'q','ci-energy':'energy'}[e.detail.name];if(k&&CI){CI[k]=e.detail.value;UI.keepFocus(drawToday)}});
 { // the bar hides on scroll here too
   const el=$('#today');let y0=0;
   el.addEventListener('scroll',()=>{const y=el.scrollTop;if(Math.abs(y-y0)<8)return;const end=y+el.clientHeight>=el.scrollHeight-4;if(todayOn())setBar(y>y0&&y>40&&!end);y0=y},{passive:true});

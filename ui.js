@@ -1,0 +1,213 @@
+/* ISIONXXX // ui — shared, accessible UI components for the ISIONXXX apps.
+
+   How it works
+   - Every component is a function: props in, an HTML string out. Text is always escaped, so props can carry user
+     data safely. Components hold no state: the app keeps it and renders again.
+   - UI.mount(root) is called once per page. It handles clicks and keys for every component under root through
+     delegation (so it survives innerHTML re-renders), keeps ARIA state in step, and fires one event:
+       root.addEventListener('ui-change', e => { e.detail.name, e.detail.value })
+   - Styles live in ui.css; tokens are --ui-* custom properties so an app can retheme without touching the file.
+
+   Components: card, meter, week, status, segmented, rating, choiceList, stepper, button, emptyState, skeleton,
+   plus UI.toast(message) for announcements. See ui.html for every component, its props and its states.
+*/
+(() => {
+  'use strict';
+  const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+  const attr = o => Object.entries(o).filter(([, v]) => v != null && v !== false).map(([k, v]) => v === true ? k : `${k}="${esc(v)}"`).join(' ');
+  const num = v => (typeof v === 'number' && isFinite(v) ? v : null);
+  let seq = 0;
+  const uid = p => `ui-${p}-${(++seq).toString(36)}`;
+  const DAY = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+  const sr = t => `<span class="ui-sr">${esc(t)}</span>`;   // read by screen readers, not shown
+
+  /* ---------- status: a small labelled badge ----------
+     { text, tone: 'ok' | 'bad' | 'live' | 'neutral' }                                                  */
+  function status({ text, tone = 'neutral' } = {}) {
+    if (!text) return '';
+    return `<span class="ui-status ui-${esc(tone)}">${tone === 'live' ? '<i aria-hidden="true"></i>' : ''}${esc(text)}</span>`;
+  }
+
+  /* ---------- meter: progress toward a goal ----------
+     { label, value, max, display?, tone? }  display = the text shown (defaults to "value / max").
+     Edge cases: missing or non-numeric value or max shows "—" and an empty bar; values past max fill the
+     bar and turn it 'done'; negatives count as 0.                                                         */
+  function meter({ label = '', value, max, display, tone } = {}) {
+    const v = num(value), m = num(max), ok = v != null && m != null && m > 0;
+    const pct = ok ? Math.min(100, Math.max(0, v / m * 100)) : 0, done = ok && v >= m;
+    const text = display ?? (ok ? `${v} / ${m}` : '—'), id = uid('m');
+    return `<div class="ui-meter${done ? ' ui-done' : ''}${tone ? ' ui-' + esc(tone) : ''}">
+      <div class="ui-meter-row"><span id="${id}">${esc(label)}</span><b aria-hidden="true">${esc(text)}</b></div>
+      <div class="ui-meter-bar" ${attr({ role: 'progressbar', 'aria-labelledby': id, 'aria-valuemin': 0, 'aria-valuemax': ok ? m : 100, 'aria-valuenow': ok ? Math.max(0, Math.min(v, m)) : 0, 'aria-valuetext': ok ? text + (done ? ', goal met' : '') : 'no data' })}><i style="width:${pct.toFixed(1)}%"></i></div></div>`;
+  }
+
+  /* ---------- week: the last N days as a strip ----------
+     { days: [{ date: Date|'YYYY-MM-DD', state: ''|'on'|'pos'|'neg'|'half'|'live' }], label?, words? }
+     words maps a state to what a screen reader hears (defaults below); the last day is marked as today.     */
+  const WORDS = { '': 'nothing', on: 'done', pos: 'good', neg: 'missed', half: 'partly', live: 'in progress' };
+  function week({ days = [], label = 'Last 7 days', words = {} } = {}) {
+    if (!days.length) return '';
+    const W = { ...WORDS, ...words };
+    return `<ol class="ui-week" aria-label="${esc(label)}">${days.map((d, i) => {
+      const dt = d.date instanceof Date ? d.date : new Date(String(d.date) + 'T12:00:00'), today = i === days.length - 1;
+      const name = isNaN(dt) ? '' : DAY[dt.getDay()];
+      return `<li class="${today ? 'ui-today' : ''}"><i class="ui-${esc(d.state || 'none')}" aria-hidden="true"></i><span aria-hidden="true">${name.charAt(0)}</span>${sr(`${today ? 'Today' : name}: ${W[d.state || ''] ?? d.state}`)}</li>`;
+    }).join('')}</ol>`;
+  }
+
+  /* ---------- button ----------
+     { label, act?, variant: 'primary'|'secondary'|'ghost', busy?, disabled?, attrs? }
+     busy shows a spinner, keeps the width, sets aria-busy and blocks clicks (loading state).               */
+  function button({ label, act, variant = 'secondary', busy = false, disabled = false, attrs = {} } = {}) {
+    return `<button type="button" class="ui-btn ui-${esc(variant)}${busy ? ' ui-busy' : ''}" ${attr({ 'data-act': act, disabled: disabled || busy, 'aria-busy': busy ? 'true' : null, ...attrs })}><span>${esc(label)}</span></button>`;
+  }
+
+  /* ---------- card: one app's summary ----------
+     { id, title, status?, big?, bigTone?, sub?: string[], rows?: [label, value][], meters?: meter props[],
+       week?: week props, actions?: button props[], openLabel? }
+     The whole card opens its app (one real button stretched over the card), while its action buttons stay
+     separate controls; nested interactive elements would confuse screen readers.                         */
+  function card({ id, title, status: st, big, bigTone, sub = [], rows = [], meters = [], week: wk, actions = [], openLabel } = {}) {
+    const h = uid('h');
+    return `<article class="ui-card" ${attr({ 'data-card': id, 'aria-labelledby': h })}>
+      <div class="ui-card-head"><h3 id="${h}"><button type="button" class="ui-card-open" data-open="${esc(id)}" aria-label="${esc(openLabel || `Open ${title}`)}">${esc(title)}</button></h3>${status(st || {})}</div>
+      ${big != null ? `<p class="ui-big${bigTone ? ' ui-' + esc(bigTone) : ''}">${esc(big)}</p>` : ''}
+      ${sub.filter(Boolean).length ? `<p class="ui-sub">${sub.filter(Boolean).map(esc).join(' · ')}</p>` : ''}
+      ${rows.length ? `<dl class="ui-rows">${rows.map(([k, v]) => `<div><dt>${esc(k)}</dt><dd>${esc(v)}</dd></div>`).join('')}</dl>` : ''}
+      ${meters.filter(Boolean).map(meter).join('')}
+      ${wk ? week(wk) : ''}
+      ${actions.length ? `<div class="ui-actions">${actions.map(a => button({ ...a, attrs: { 'data-go': id, ...(a.attrs || {}) } })).join('')}</div>` : ''}
+    </article>`;
+  }
+
+  /* ---------- segmented: pick one of a few (radio group) ----------
+     { name, label, options: [{ value, label, hint? }], value, disabled? }
+     Keyboard: arrows / Home / End move and select (standard radio-group behaviour); Tab leaves the group. */
+  function segmented({ name, label, options = [], value, disabled = false, className = 'ui-seg' } = {}) {
+    if (!options.length) return '';
+    const sel = options.findIndex(o => o.value === value), tab = sel >= 0 ? sel : 0;
+    return `<div class="${className}" role="radiogroup" ${attr({ 'aria-label': label, 'data-ui': 'radio', 'data-name': name, 'aria-disabled': disabled ? 'true' : null })}>${options.map((o, i) =>
+      `<button type="button" role="radio" ${attr({ 'aria-checked': i === sel ? 'true' : 'false', tabindex: i === tab ? 0 : -1, 'data-value': JSON.stringify(o.value), 'aria-label': o.hint ? `${o.label}, ${o.hint}` : null, disabled, title: o.hint })}>${esc(o.label)}</button>`).join('')}</div>`;
+  }
+
+  /* ---------- rating: a 1–N scale, optionally with words ----------
+     { name, label, min=1, max=5, value, words?: string[] (indexed by value) }                            */
+  function rating({ name, label, min = 1, max = 5, value, words = [] } = {}) {
+    const options = [];
+    for (let v = min; v <= max; v++) options.push({ value: v, label: String(v), hint: words[v] });
+    const w = words[value];
+    return `<div class="ui-rating"><div class="ui-field-label"><span>${esc(label)}</span>${w ? `<em aria-hidden="true">${esc(w)}</em>` : ''}</div>${segmented({ name, label, options, value })}</div>`;
+  }
+
+  /* ---------- choiceList: a vertical list of choices ----------
+     { name, label, options: [{ value, label, detail?, disabled? }], value, multiple? }
+     One pick: a radio group (dot). Several (multiple: true, value = array): checkboxes (tick box).
+     Keyboard: arrows / Home / End move; one-pick lists select as they move; Space toggles in multi lists.   */
+  function choiceList({ name, label, options = [], value, multiple = false, empty = 'Nothing to choose from' } = {}) {
+    if (!options.length) return `<p class="ui-empty-inline">${esc(empty)}</p>`;
+    const on = o => multiple ? (Array.isArray(value) && value.includes(o.value)) : o.value === value;
+    const first = Math.max(0, options.findIndex(o => on(o) && !o.disabled)), firstOk = options.findIndex(o => !o.disabled);
+    const tab = on(options[first]) ? first : firstOk;
+    return `<div class="ui-list${multiple ? ' ui-multi' : ''}" ${attr({ role: multiple ? 'group' : 'radiogroup', 'aria-label': label, 'data-ui': multiple ? 'check' : 'radio', 'data-name': name })}>${options.map((o, i) =>
+      `<button type="button" ${attr({ role: multiple ? 'checkbox' : 'radio', 'aria-checked': on(o) ? 'true' : 'false', tabindex: i === tab ? 0 : -1, 'data-value': JSON.stringify(o.value), disabled: o.disabled })}><span class="ui-list-label">${esc(o.label)}</span>${o.detail ? `<em>${esc(o.detail)}</em>` : ''}</button>`).join('')}</div>`;
+  }
+
+  /* ---------- stepper: a number with − / + ----------
+     { name, label, value, min, max, step=1, unit?, format?(v) }
+     The value itself is a spinbutton: focus it and use Up / Down (Page Up / Down = 5 steps, Home / End =
+     limits). The buttons do the same and disable at the limits.                                          */
+  function stepper({ name, label, value, min = -Infinity, max = Infinity, step = 1, unit = '', format } = {}) {
+    const v = num(value) ?? (isFinite(min) ? min : 0), txt = (format ? format(v) : String(v)) + (unit ? ' ' + unit : '');
+    return `<div class="ui-stepper" role="group" ${attr({ 'aria-label': label, 'data-ui': 'step', 'data-name': name, 'data-min': isFinite(min) ? min : null, 'data-max': isFinite(max) ? max : null, 'data-step': step, 'data-unit': unit || null })}>
+      <button type="button" data-d="-1" ${attr({ 'aria-label': `Decrease ${label}`, disabled: v - step < min - 1e-9 })}>−</button>
+      <output role="spinbutton" tabindex="0" ${attr({ 'aria-label': label, 'aria-valuenow': v, 'aria-valuemin': isFinite(min) ? min : null, 'aria-valuemax': isFinite(max) ? max : null, 'aria-valuetext': txt })}>${esc(txt)}</output>
+      <button type="button" data-d="1" ${attr({ 'aria-label': `Increase ${label}`, disabled: v + step > max + 1e-9 })}>+</button></div>`;
+  }
+
+  /* ---------- emptyState ----------
+     { title, body?, action?: button props }                                                               */
+  function emptyState({ title, body, action } = {}) {
+    return `<div class="ui-empty"><p class="ui-empty-title">${esc(title)}</p>${body ? `<p class="ui-sub">${esc(body)}</p>` : ''}${action ? button({ variant: 'primary', ...action }) : ''}</div>`;
+  }
+
+  /* ---------- skeleton: loading placeholder ----------
+     { label='Loading', lines=3 }  Announced once to screen readers; the shimmer stops under Reduce Motion.  */
+  function skeleton({ label = 'Loading', lines = 3 } = {}) {
+    return `<div class="ui-skeleton" role="status" aria-live="polite" aria-busy="true">${sr(label + '…')}${Array.from({ length: Math.max(1, lines) }, (_, i) => `<i aria-hidden="true" style="width:${[92, 70, 84, 60][i % 4]}%"></i>`).join('')}</div>`;
+  }
+
+  /* ---------- toast: a short announcement ----------
+     UI.toast('Saved') — shown for 3 s and read by screen readers (polite).                                 */
+  let toastEl, toastT;
+  function toast(msg, { tone } = {}) {
+    if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'ui-toast'; toastEl.setAttribute('role', 'status'); toastEl.setAttribute('aria-live', 'polite'); document.body.appendChild(toastEl) }
+    toastEl.textContent = msg; toastEl.className = 'ui-toast ui-on' + (tone ? ' ui-' + tone : '');
+    clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('ui-on'), 3000);
+  }
+
+  /* ---------- behaviour ---------- */
+  const fire = (el, name, value) => el.dispatchEvent(new CustomEvent('ui-change', { bubbles: true, detail: { name, value } }));
+  const val = b => { try { return JSON.parse(b.dataset.value) } catch (e) { return b.dataset.value } };
+  const items = g => [...g.querySelectorAll(':scope > [role=radio], :scope > [role=checkbox]')].filter(b => !b.disabled);
+  function pick(g, b, focus) {
+    if (!b || b.disabled || g.getAttribute('aria-disabled') === 'true') return;
+    const multi = g.dataset.ui === 'check';
+    if (multi) b.setAttribute('aria-checked', b.getAttribute('aria-checked') === 'true' ? 'false' : 'true');
+    else items(g).forEach(x => x.setAttribute('aria-checked', x === b ? 'true' : 'false'));
+    roam(g, b, focus);
+    fire(g, g.dataset.name, multi ? items(g).filter(x => x.getAttribute('aria-checked') === 'true').map(val) : val(b));
+  }
+  function roam(g, b, focus) { items(g).forEach(x => x.tabIndex = x === b ? 0 : -1); if (focus) b.focus() }
+  function stepBy(g, dir, big) {
+    const out = g.querySelector('output'), step = +g.dataset.step || 1, min = g.dataset.min != null ? +g.dataset.min : -Infinity, max = g.dataset.max != null ? +g.dataset.max : Infinity;
+    const cur = +out.getAttribute('aria-valuenow'), dec = n => (String(n).split('.')[1] || '').length;
+    // add exactly one step to whatever value is there (6.75 + 0.5 = 7.25, no snapping to the step grid), then round to
+    // the decimals in play so 0.2 + 0.1 is 0.3, not 0.30000000000000004
+    const next = dir === 'min' ? min : dir === 'max' ? max : +Math.min(max, Math.max(min, cur + dir * step * (big ? 5 : 1))).toFixed(Math.max(dec(step), dec(cur)));
+    if (!isFinite(next) || next === cur) return;
+    const txt = String(+next.toFixed(6)) + (g.dataset.unit ? ' ' + g.dataset.unit : '');
+    out.setAttribute('aria-valuenow', next); out.setAttribute('aria-valuetext', txt); out.textContent = txt;
+    g.querySelector('[data-d="-1"]').disabled = next - step < min - 1e-9; g.querySelector('[data-d="1"]').disabled = next + step > max + 1e-9;
+    fire(g, g.dataset.name, next);
+  }
+  function mount(root = document) {
+    if (root.__ui) return root; root.__ui = true;
+    root.addEventListener('click', e => {
+      const s = e.target.closest('[data-ui=step] [data-d]'); if (s) return stepBy(s.parentElement, +s.dataset.d);
+      const b = e.target.closest('[data-ui=radio] > [role=radio], [data-ui=check] > [role=checkbox]'); if (b) pick(b.parentElement, b, false);
+      const busy = e.target.closest('.ui-busy'); if (busy) { e.preventDefault(); e.stopImmediatePropagation() }
+    }, true);
+    root.addEventListener('keydown', e => {
+      const out = e.target.closest('[data-ui=step] > output');
+      if (out) {
+        const k = { ArrowUp: 1, ArrowRight: 1, ArrowDown: -1, ArrowLeft: -1, PageUp: 1, PageDown: -1, Home: 'min', End: 'max' }[e.key];
+        if (k != null) { e.preventDefault(); stepBy(out.parentElement, k, e.key.startsWith('Page')) }
+        return;
+      }
+      const b = e.target.closest('[data-ui] > [role=radio], [data-ui] > [role=checkbox]'); if (!b) return;
+      const g = b.parentElement, L = items(g), i = L.indexOf(b), multi = g.dataset.ui === 'check';
+      const to = { ArrowRight: i + 1, ArrowDown: i + 1, ArrowLeft: i - 1, ArrowUp: i - 1, Home: 0, End: L.length - 1 }[e.key];
+      if (to != null) { e.preventDefault(); const n = L[(to + L.length) % L.length]; multi ? roam(g, n, true) : pick(g, n, true); return }
+      if (multi && e.key === ' ') { e.preventDefault(); pick(g, b, true) }
+    });
+    return root;
+  }
+
+  /* ---------- keepFocus: re-render without losing the keyboard user's place ----------
+     UI.keepFocus(render) — apps re-render with innerHTML after a change, which drops focus to <body>. This puts it
+     back on the same control (same group name and value, the same stepper part, or the same id).            */
+  function keepFocus(render) {
+    const a = document.activeElement, g = a && a.closest && a.closest('[data-name]');
+    const key = a && a !== document.body ? { id: a.id, n: g && g.dataset.name, v: a.dataset && a.dataset.value, d: a.dataset && a.dataset.d, out: a.tagName === 'OUTPUT' } : null;
+    render();
+    if (!key) return;
+    let t = key.id ? document.getElementById(key.id) : null;
+    if (!t && key.n) {
+      const g2 = [...document.querySelectorAll('[data-name]')].find(x => x.dataset.name === key.n);
+      if (g2) t = key.out ? g2.querySelector('output') : key.d ? g2.querySelector(`[data-d="${key.d}"]`) : [...g2.children].find(x => x.dataset.value === key.v);
+    }
+    if (t && t.isConnected) t.focus({ preventScroll: true });
+  }
+
+  window.UI = { keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, mount, version: '1.0.0' };
+})();

@@ -228,14 +228,14 @@
   /* ---------- ui: a small badge, and a dialog ---------- */
   const css = document.createElement('style');
   css.textContent = `#isx-sync{position:fixed;left:max(10px,env(safe-area-inset-left));bottom:calc(10px + env(safe-area-inset-bottom));z-index:8;
-    font:11px/1 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.08em;background:#0c0c0c;color:#78746a;border:1px solid #2c2c2c;padding:6px 8px;cursor:pointer;border-radius:0}
+    font:11px/1 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.08em;background:#0c0c0c;color:#8f8a7e;border:1px solid #2c2c2c;padding:6px 8px;cursor:pointer;border-radius:0}
   #isx-sync.inl{position:static;flex:none;font-size:12px;padding:7px 10px;background:#070707}
   #isx-sync:hover{border-color:#ffb000;color:#ffb000}#isx-sync i{display:inline-block;width:7px;height:7px;margin-right:6px;background:#3a3a3a;vertical-align:0}
   #isx-sync.ok i{background:#33ff66}#isx-sync.busy i{background:#ffb000}#isx-sync.error i{background:#ff4545}#isx-sync.error{color:#ff4545}
   #isx-sd{margin:auto;max-height:calc(100% - 24px);overflow:auto;background:#0c0c0c;color:#d9d5c8;border:1px solid #ffb000;padding:20px;width:min(520px,calc(100vw - 24px));font:13px/1.5 'IBM Plex Mono',ui-monospace,monospace;border-radius:0}
   #isx-sd::backdrop{background:rgba(0,0,0,.78)}#isx-sd h3{margin:0 0 12px;font-size:13px;letter-spacing:.14em;color:#ffb000;font-weight:500}
-  #isx-sd p{margin:0 0 10px;color:#78746a}#isx-sd b{color:#d9d5c8;font-weight:500}#isx-sd a{color:#ffb000}
-  #isx-sd label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#78746a;margin:10px 0 4px}
+  #isx-sd p{margin:0 0 10px;color:#8f8a7e}#isx-sd b{color:#d9d5c8;font-weight:500}#isx-sd a{color:#ffb000}
+  #isx-sd label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8f8a7e;margin:10px 0 4px}
   #isx-sd input,#isx-sd textarea{width:100%;box-sizing:border-box;background:#070707;color:#d9d5c8;border:1px solid #2c2c2c;padding:8px 10px;font:inherit;border-radius:0}
   #isx-sd input:focus,#isx-sd textarea:focus{border-color:#ffb000;outline:0}
   #isx-sd .row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px}
