@@ -71,6 +71,22 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 .tc:hover{border-color:var(--line2)}.tc:active{transform:scale(.98)}.tc:focus-visible,.chips button:focus-visible{outline:1px solid var(--amber)}
 .tc.none{opacity:.7}
 .qa{display:flex;gap:8px;margin-top:14px}
+/* morning check-in */
+.ci{background:var(--panel);border:1px solid var(--amber);padding:14px 16px 16px;margin-bottom:12px;animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}
+.ci.done{border-color:var(--line);padding-bottom:14px}
+.ci button.st{all:unset;cursor:pointer;font-size:10px;letter-spacing:.12em;padding:2px 6px;border:1px solid #1d6b3f;color:var(--green)}
+.ci-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
+.ci-l{font-size:12px;color:var(--dim)}.ci-l em{font-style:normal;color:var(--amber);margin-left:6px}
+.ci-step{display:flex;align-items:center;gap:4px}.ci-step b{min-width:64px;text-align:center;font-size:16px}
+.ci-step button,.ci-seg button{all:unset;box-sizing:border-box;cursor:pointer;display:grid;place-items:center;width:36px;height:34px;border:1px solid var(--line2);font-size:13px;-webkit-tap-highlight-color:transparent;transition:background-color .15s,color .15s,transform .12s}
+.ci-step button:active,.ci-seg button:active{transform:scale(.94)}
+.ci-seg{display:flex}.ci-seg button+button{border-left:0}.ci-seg button.on{background:var(--amber);border-color:var(--amber);color:#000;font-weight:600}
+.ci-w{display:flex;align-items:center;gap:6px}.ci-w input{width:86px;background:#0a0a0a;border:1px solid var(--line2);color:var(--tx);font:14px var(--f);padding:7px 8px;text-align:right}.ci-w input:focus{outline:0;border-color:var(--amber)}.ci-w span{font-size:11px;color:var(--dim)}
+.ci-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:10px;margin-top:6px}
+.ci-sum b{display:block;font-size:16px;font-weight:600}.ci-sum span{font-size:10.5px;color:var(--dim);white-space:nowrap}
+#today .acts{display:flex;align-items:center;gap:10px}
+#today .th .brand{white-space:nowrap}#today .th .dt b{font-weight:400}
+@media(max-width:420px){#today .th .dt i{display:none}.ci-sum{grid-template-columns:1fr 1fr}}
 .qa button,.nx{all:unset;box-sizing:border-box;cursor:pointer;flex:1;text-align:center;padding:11px 8px;border:1px solid var(--line2);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx);-webkit-tap-highlight-color:transparent;transition:background-color .15s,border-color .15s,transform .12s}
 .qa button:active,.nx:active{transform:scale(.97)}
 .qa button.pri{background:var(--amber);border-color:var(--amber);color:#000;font-weight:600}
@@ -94,6 +110,8 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 <body>
 <main id="apps"><section id="today" class="pane" aria-label="Today"></section></main>
 <nav id="tabs" aria-label="Apps"></nav>
+<!-- the morning check-in is the shell's own data; TODAY re-reads it, so a change from another device redraws instead of reloading -->
+<script src="sync.js" data-keys="isx.checkin.v1" data-noreload></script>
 <script>
 'use strict';
 // the apps live next to this one on GitHub Pages (giovanij933.github.io/<repo>/), so they share this site's storage:
@@ -179,6 +197,7 @@ function watch(f){
 const modalOpen=f=>{try{return !!f.contentDocument.querySelector('dialog[open], .modal:not(.hidden), .po:not(.hidden)')}catch(e){return false}};
 let wasModal=false;
 setInterval(()=>{
+  if(document.querySelector('body>dialog[open]')){setBar(true);wasModal=true;return}   // the shell's own sync dialog
   const f=document.querySelector('#apps iframe.on');if(!f)return;
   const m=modalOpen(f);
   if(m)setBar(true);else if(wasModal)setBar(false);
@@ -346,8 +365,54 @@ function card(c){
   </div>`;
 }
 const EMPTY={mind:'Meditate, breathe or journal',training:'Log a workout',nutrition:'Log a meal',learn:'Study a lesson',journal:'Import or log trades',rewire:'Name a habit to break'};
+/* ---------- morning check-in: hours slept, sleep quality, energy, weight ----------
+   One entry a day under isx.checkin.v1 (synced like the apps). It starts from your last answers, so most mornings it's
+   a tap or two and Save; once saved it folds into a one-line summary with the week's trend. */
+const CIK='isx.checkin.v1',QW=['','Poor','Restless','OK','Good','Great'],EW=['','Drained','Low','Steady','Good','Charged'];
+const ciLog=()=>arr(read(CIK)?.log);
+const wUnit=()=>read('isx.training.v1')?.wu||(/-US$/.test(navigator.language||'')?'lb':'kg');
+const r1=v=>Math.round(v*10)/10,avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+let CI=null;   // the answers being filled in; null when not editing
+function ciDraft(t){
+  const L=ciLog(),b=L.find(e=>e.day===t)||L.filter(e=>e.day<t).sort((a,c)=>a.day<c.day?1:-1)[0]||{};
+  return {day:t,sleep:b.sleep??7.5,q:b.q??3,energy:b.energy??3,w:b.w??null};
+}
+function ciSave(){
+  let s=read(CIK);if(!s||!Array.isArray(s.log))s={log:[]};
+  const i=s.log.findIndex(e=>e.day===CI.day);
+  // one id per day, so the same day checked in on two devices merges instead of doubling
+  const e={id:'ci-'+CI.day,day:CI.day,at:Date.now(),sleep:CI.sleep,q:CI.q,energy:CI.energy,w:CI.w,u:wUnit()};
+  if(i>=0)s.log[i]=e;else s.log.push(e);
+  localStorage.setItem(CIK,JSON.stringify(s));CI=null;drawToday();
+}
+function ciAct(k,v){
+  if(k==='save')return ciSave();
+  if(k==='edit'){CI=ciDraft(ymd(new Date()));return drawToday()}
+  if(k==='cancel'){CI=null;return drawToday()}
+  if(k==='sleep')CI.sleep=Math.min(14,Math.max(0,CI.sleep+ +v));else CI[k]=+v;
+  drawToday();
+}
+function ciHTML(){
+  const t=ymd(new Date()),L=ciLog(),done=L.find(e=>e.day===t),h=new Date().getHours();
+  if(CI&&CI.day!==t)CI=null;
+  if(done&&!CI){
+    const wk=L.filter(e=>e.day<t).sort((a,b)=>a.day<b.day?1:-1).slice(0,7),sl=avg(wk.map(e=>e.sleep)),wa=avg(wk.filter(e=>e.w).map(e=>e.w)),dw=done.w&&wa?r1(done.w-wa):null;
+    return `<section class="ci done"><div class="tch"><span class="h">Morning check-in</span><button type="button" class="st ok" data-ci="edit">✓ Edit</button></div>
+      <div class="ci-sum"><div><b>${done.sleep} h</b><span>sleep${sl!=null?` · wk ${r1(sl)}`:''}</span></div><div><b>${QW[done.q]}</b><span>quality</span></div><div><b>${EW[done.energy]}</b><span>energy</span></div>
+      ${done.w?`<div><b>${done.w}</b><span>${done.u||wUnit()}${dw!=null?` · ${dw>0?'+':''}${dw} vs wk`:''}</span></div>`:''}</div></section>`;
+  }
+  const d=CI||(CI=ciDraft(t));
+  const seg=(k,W)=>`<div class="ci-seg">${[1,2,3,4,5].map(v=>`<button type="button" data-ci="${k}" data-v="${v}" class="${d[k]===v?'on':''}" aria-label="${W[v]}">${v}</button>`).join('')}</div>`;
+  return `<section class="ci"><div class="tch"><span class="h">${h<12?'Good morning':h<18?'Good afternoon':'Good evening'} · check-in</span><span class="st">10 SEC</span></div>
+    <div class="ci-row"><span class="ci-l">Sleep</span><div class="ci-step"><button type="button" data-ci="sleep" data-v="-0.5" aria-label="Less sleep">−</button><b>${d.sleep} h</b><button type="button" data-ci="sleep" data-v="0.5" aria-label="More sleep">+</button></div></div>
+    <div class="ci-row"><span class="ci-l">Sleep quality <em>${QW[d.q]}</em></span>${seg('q',QW)}</div>
+    <div class="ci-row"><span class="ci-l">Energy <em>${EW[d.energy]}</em></span>${seg('energy',EW)}</div>
+    <div class="ci-row"><span class="ci-l">Weight <em>optional</em></span><div class="ci-w"><input id="ciw" type="number" inputmode="decimal" step="0.1" min="0" value="${d.w??''}" placeholder="—" aria-label="Weight"><span>${wUnit()}</span></div></div>
+    <div class="qa">${done?'<button type="button" data-ci="cancel">Cancel</button>':''}<button type="button" class="pri" data-ci="save">${done?'Update':'Save check-in'}</button></div></section>`;
+}
 function drawToday(){
   const el=$('#today');if(!el)return;
+  if(document.activeElement?.id==='ciw')return;   // don't redraw under you while you type your weight
   const t=ymd(new Date()),C=[tMind(t),tTrain(t),tFuel(t),tExtract(t),tJournal(),tRewire(t)];
   const ids=['mind','training','nutrition','learn','journal','rewire'],used=C.filter(Boolean),wins=used.filter(c=>c.done!=null),won=wins.filter(c=>c.done).length;
   const r=26,L=2*Math.PI*r,p=wins.length?won/wins.length:0,next=wins.find(c=>!c.done&&!c.rest);
@@ -362,7 +427,7 @@ function drawToday(){
   // what's still to do today first, then neutral (journal, rest day), then done; apps you haven't started at the end
   const rank=c=>!c?3:c.done===false||c.slip?0:c.done?2:1;
   const order=C.map((c,i)=>[rank(c),i]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).map(x=>cards[x[1]]);
-  el.innerHTML=`<div class="in"><header class="th"><div class="brand">ISIONXXX <b>//</b> TODAY<span class="cur"></span></div><div class="dt">${date}</div></header>${top}<div class="tg">${order.join('')}</div></div>`;
+  el.innerHTML=`<div class="in"><header class="th top"><div class="brand">ISIONXXX <b>//</b> TODAY<span class="cur"></span></div><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>${ciHTML()}${top}<div class="tg">${order.join('')}</div></div>`;
   if(fuelStale)preload('nutrition');
 }
 
@@ -371,7 +436,9 @@ const todayOn=()=>$('#today').classList.contains('on');
 let tdT=0;addEventListener('storage',()=>{if(todayOn()){clearTimeout(tdT);tdT=setTimeout(drawToday,250)}});
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&todayOn())drawToday()});
 setInterval(()=>{if(todayOn()&&!document.hidden)drawToday()},60e3);
-$('#today').addEventListener('click',e=>{const a=e.target.closest('[data-go]');if(a)return openAct(a.dataset.go,a.dataset.act);const b=e.target.closest('[data-open]');if(b)show(b.dataset.open)});
+addEventListener('isx-sync',()=>{if(todayOn())drawToday()});
+$('#today').addEventListener('input',e=>{if(e.target.id==='ciw'&&CI)CI.w=e.target.value===''?null:Math.max(0,+e.target.value)});
+$('#today').addEventListener('click',e=>{const c=e.target.closest('[data-ci]');if(c)return ciAct(c.dataset.ci,c.dataset.v);const a=e.target.closest('[data-go]');if(a)return openAct(a.dataset.go,a.dataset.act);const b=e.target.closest('[data-open]');if(b)show(b.dataset.open)});
 $('#today').addEventListener('keydown',e=>{if((e.key==='Enter'||e.key===' ')&&e.target.matches('.tc')){e.preventDefault();show(e.target.dataset.open)}});
 { // the bar hides on scroll here too
   const el=$('#today');let y0=0;
