@@ -71,6 +71,11 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 .tc:hover{border-color:var(--line2)}.tc:active{transform:scale(.98)}.tc:focus-visible,.chips button:focus-visible{outline:1px solid var(--amber)}
 .tc.none{opacity:.7}
 .qa{display:flex;gap:8px;margin-top:14px}
+/* insights */
+.ins{background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin-bottom:12px;animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}
+.ins .in1{margin:8px 0 0;font-size:13px;line-height:1.5;padding-left:14px;position:relative}.ins .in1::before{content:'';position:absolute;left:0;top:.6em;width:6px;height:6px;background:var(--amber)}
+.ins .in1 b{color:var(--amber);font-weight:600}.ins .in1 b.pos{color:var(--green)}.ins .in1 b.neg{color:var(--red)}
+.ins .ft{margin-top:10px;font-size:10.5px}
 /* morning check-in */
 .ci{background:var(--panel);border:1px solid var(--amber);padding:14px 16px 16px;margin-bottom:12px;animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}
 .ci.done{border-color:var(--line);padding-bottom:14px}
@@ -410,6 +415,62 @@ function ciHTML(){
     <div class="ci-row"><span class="ci-l">Weight <em>optional</em></span><div class="ci-w"><input id="ciw" type="number" inputmode="decimal" step="0.1" min="0" value="${d.w??''}" placeholder="—" aria-label="Weight"><span>${wUnit()}</span></div></div>
     <div class="qa">${done?'<button type="button" data-ci="cancel">Cancel</button>':''}<button type="button" class="pri" data-ci="save">${done?'Update':'Save check-in'}</button></div></section>`;
 }
+const pd=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
+/* ---------- insights: what your check-ins line up with in the other apps ----------
+   Compares days after 7+ h of sleep with shorter nights (and high- vs low-energy days). Each comparison needs at
+   least 4 days on both sides and a real gap before it's shown; they're patterns in your own data, not proof. */
+const INS_MIN=14;
+function insights(){
+  const C=ciLog();if(C.length<INS_MIN)return{n:C.length,list:null};
+  const day=ms=>dayAt(ms);
+  const tr=arr(read('isx.training.v1')?.log),wd={},vol={};
+  tr.filter(e=>e.type!=='S').forEach(e=>{const d=day(e.at);wd[d]=1;if(e.type==='W')vol[d]=(vol[d]||0)+(+e.sets||0)*(+e.reps||0)*(+e.load||0)});
+  const md={};arr(read('isx.mind.v1')?.log).forEach(e=>{const d=day(e.at);md[d]=(md[d]||0)+(+e.mins||0)});
+  const js=read('isx.journal.v1'),roll=js?.roll??18,tday=ms=>{const d=new Date(ms);if(roll&&d.getHours()>=roll)d.setDate(d.getDate()+1);return ymd(d)};
+  const pnl={};arr(js?.trades).forEach(x=>{const d=tday(x.close);pnl[d]=(pnl[d]||0)+(x.exit-x.entry)*(x.side==='Short'?-1:1)*x.qty*x.mult-(+x.fee||0)-(+x.comm||0)});
+  const rw=read('isx.rewire.v1'),slip={};arr(rw?.log).filter(e=>e.t==='slip').forEach(e=>{slip[day(e.at)]=1});const rwStart=Math.min(...arr(rw?.bad).map(b=>b.start||Infinity));
+  const today=ymd(new Date()),past=C.filter(e=>e.day<today);   // today isn't over yet
+  const good=past.filter(e=>e.sleep>=7),short=past.filter(e=>e.sleep<7),hi=past.filter(e=>e.energy>=4),lo=past.filter(e=>e.energy<=2);
+  const mean=(a,f)=>{const v=a.map(f).filter(x=>x!=null);return v.length?{v:v.reduce((s,x)=>s+x,0)/v.length,n:v.length}:{v:null,n:0}};
+  const out=[],ok=(a,b)=>a.n>=4&&b.n>=4;
+  const pc=v=>Math.round(v*100)+'%';
+  let a=mean(good,e=>e.energy),b=mean(short,e=>e.energy);
+  if(ok(a,b)&&Math.abs(a.v-b.v)>=.5)out.push({s:Math.abs(a.v-b.v)/2,t:`Energy averages <b>${r1(a.v)}</b> after 7+ h of sleep vs <b>${r1(b.v)}</b> after less.`});
+  if(tr.length){
+    a=mean(good,e=>wd[e.day]?1:0);b=mean(short,e=>wd[e.day]?1:0);
+    if(ok(a,b)&&Math.abs(a.v-b.v)>=.15)out.push({s:Math.abs(a.v-b.v),t:`You train on <b>${pc(a.v)}</b> of days after 7+ h of sleep vs <b>${pc(b.v)}</b> after less.`});
+    a=mean(good,e=>vol[e.day]||null);b=mean(short,e=>vol[e.day]||null);
+    if(ok(a,b)&&b.v&&Math.abs(a.v/b.v-1)>=.1)out.push({s:Math.abs(a.v/b.v-1),t:`Lifting volume is <b>${pc(Math.abs(a.v/b.v-1))} ${a.v>b.v?'higher':'lower'}</b> on days after 7+ h of sleep.`});
+    a=mean(hi,e=>wd[e.day]?1:0);b=mean(lo,e=>wd[e.day]?1:0);
+    if(ok(a,b)&&Math.abs(a.v-b.v)>=.15)out.push({s:Math.abs(a.v-b.v),t:`On high-energy mornings you train <b>${pc(a.v)}</b> of the time vs <b>${pc(b.v)}</b> on low-energy ones.`});
+  }
+  if(Object.keys(md).length){
+    a=mean(good,e=>md[e.day]?1:0);b=mean(short,e=>md[e.day]?1:0);
+    if(ok(a,b)&&Math.abs(a.v-b.v)>=.15)out.push({s:Math.abs(a.v-b.v),t:`You meditate on <b>${pc(a.v)}</b> of days after 7+ h of sleep vs <b>${pc(b.v)}</b> after less.`});
+  }
+  if(Object.keys(pnl).length){
+    a=mean(good,e=>pnl[e.day]??null);b=mean(short,e=>pnl[e.day]??null);
+    if(ok(a,b)&&Math.abs(a.v-b.v)>=25)out.push({s:.5+Math.min(.5,Math.abs(a.v-b.v)/1000),t:`Trading days after 7+ h of sleep average <b class="${a.v>=0?'pos':'neg'}">${money(a.v)}</b> vs <b class="${b.v>=0?'pos':'neg'}">${money(b.v)}</b> after less.`});
+    a=mean(hi,e=>pnl[e.day]??null);b=mean(lo,e=>pnl[e.day]??null);
+    if(ok(a,b)&&Math.abs(a.v-b.v)>=25)out.push({s:.4+Math.min(.5,Math.abs(a.v-b.v)/1000),t:`High-energy trading days average <b class="${a.v>=0?'pos':'neg'}">${money(a.v)}</b> vs <b class="${b.v>=0?'pos':'neg'}">${money(b.v)}</b> on low-energy ones.`});
+  }
+  if(isFinite(rwStart)){
+    const since=e=>pd(e.day).getTime()+864e5>rwStart;
+    a=mean(good.filter(since),e=>slip[e.day]?1:0);b=mean(short.filter(since),e=>slip[e.day]?1:0);
+    if(ok(a,b)&&Math.abs(a.v-b.v)>=.1)out.push({s:Math.abs(a.v-b.v)+.1,t:`You slip on <b>${pc(b.v)}</b> of days after short sleep vs <b>${pc(a.v)}</b> after 7+ h.`});
+  }
+  return {n:C.length,days:past.length,list:out.sort((x,y)=>y.s-x.s).slice(0,3)};
+}
+function insHTML(){
+  const I=insights();
+  if(!I.n)return '';
+  if(!I.list)return `<section class="ins"><div class="tch"><span class="h">Insights</span><span class="st">${I.n} / ${INS_MIN}</span></div>
+    <div class="sub">Check in ${INS_MIN-I.n} more morning${INS_MIN-I.n===1?'':'s'} and this shows how your sleep and energy line up with your training, meditation, trading and habits.</div>
+    <div class="mt"><div class="bar"><i style="width:${(I.n/INS_MIN*100).toFixed(1)}%"></i></div></div></section>`;
+  return `<section class="ins"><div class="tch"><span class="h">Insights</span><span class="st">${I.days} DAYS</span></div>
+    ${I.list.length?I.list.map(x=>`<p class="in1">${x.t}</p>`).join(''):'<p class="sub">No clear patterns yet. Keep checking in; they show up once there are enough days on both sides.</p>'}
+    <div class="sub ft">Patterns in your own data, not proof. Short sleep = under 7 h.</div></section>`;
+}
 function drawToday(){
   const el=$('#today');if(!el)return;
   if(document.activeElement?.id==='ciw')return;   // don't redraw under you while you type your weight
@@ -427,7 +488,7 @@ function drawToday(){
   // what's still to do today first, then neutral (journal, rest day), then done; apps you haven't started at the end
   const rank=c=>!c?3:c.done===false||c.slip?0:c.done?2:1;
   const order=C.map((c,i)=>[rank(c),i]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).map(x=>cards[x[1]]);
-  el.innerHTML=`<div class="in"><header class="th top"><div class="brand">ISIONXXX <b>//</b> TODAY<span class="cur"></span></div><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>${ciHTML()}${top}<div class="tg">${order.join('')}</div></div>`;
+  el.innerHTML=`<div class="in"><header class="th top"><div class="brand">ISIONXXX <b>//</b> TODAY<span class="cur"></span></div><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>${ciHTML()}${top}${insHTML()}<div class="tg">${order.join('')}</div></div>`;
   if(fuelStale)preload('nutrition');
 }
 
