@@ -117,6 +117,7 @@
 .ui-ring svg{width:56px;height:56px;transform:rotate(-90deg);overflow:visible}
 .ui-ring circle{fill:none;stroke-width:4.5}.ui-rt{stroke:#1d1d1d}
 .ui-rf{stroke:var(--ui-amber);stroke-linecap:round;transition:stroke-dasharray 1s var(--ui-ease)}
+.ui-rf[data-to="0.0"]{stroke:transparent}   /* empty: a round cap on a zero-length arc would draw a dot */
 .ui-ring.ui-done .ui-rf{stroke:var(--ui-green)}
 .ui-ck{fill:none;stroke:var(--ui-green);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transform:rotate(90deg);transform-origin:22px 22px;stroke-dasharray:20;animation:ui-ck .5s .5s var(--ui-ease) both}
 @keyframes ui-ck{from{stroke-dashoffset:20}}
