@@ -294,11 +294,20 @@
 
   /* ---------- ui: a small badge, and a dialog ---------- */
   const css = document.createElement('style');
-  css.textContent = `#isx-sync{position:fixed;left:max(10px,env(safe-area-inset-left));bottom:calc(10px + env(safe-area-inset-bottom));z-index:8;
-    font:11px/1 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.08em;background:#0c0c0c;color:#8f8a7e;border:1px solid #2c2c2c;padding:6px 8px;cursor:pointer;border-radius:0}
-  #isx-sync.inl{position:static;flex:none;font-size:12px;padding:7px 10px;background:#070707;margin-left:auto}
-  #isx-sync:hover{border-color:#ffb000;color:#ffb000}#isx-sync i{display:inline-block;width:7px;height:7px;margin-right:6px;background:#3a3a3a;vertical-align:0}
-  #isx-sync.ok i{background:#33ff66}#isx-sync.busy i{background:#ffb000}#isx-sync.error i{background:#ff4545}#isx-sync.error{color:#ff4545}
+  /* the sync status is one dot, top right: green synced · amber pulsing syncing · red error · hollow grey off or offline.
+     The button around it is a full-size tap target, and its label says the status in words. */
+  css.textContent = `#isx-sync{position:fixed;top:calc(8px + env(safe-area-inset-top));right:max(8px,env(safe-area-inset-right));z-index:8;
+    width:36px;height:36px;display:grid;place-items:center;padding:0;margin:0;background:none;border:0;border-radius:50%;cursor:pointer;flex:none}
+  #isx-sync.inl{position:static;margin:-4px -8px -4px 2px;order:9}header.top>.acts{margin-left:auto}
+  #isx-sync i{width:10px;height:10px;border-radius:50%;box-sizing:border-box;border:1.5px solid #8f8a7e;background:none;transition:background-color .3s,border-color .3s}
+  #isx-sync:hover i{box-shadow:0 0 0 4px rgba(255,176,0,.18)}#isx-sync:focus-visible{outline:2px solid #ffb000;outline-offset:-2px}
+  #isx-sync.ok i{background:#33ff66;border-color:#33ff66;box-shadow:0 0 8px rgba(51,255,102,.45)}
+  #isx-sync.busy i{background:#ffb000;border-color:#ffb000;animation:isx-pulse 1s ease-in-out infinite alternate}
+  #isx-sync.error i{background:#ff4545;border-color:#ff4545;box-shadow:0 0 8px rgba(255,69,69,.5)}
+  @keyframes isx-pulse{from{opacity:1;transform:scale(1)}to{opacity:.35;transform:scale(.7)}}
+  @media(prefers-reduced-motion:reduce){#isx-sync.busy i{animation:none}}
+  /* phones: the app's buttons wrap to their own row, so the dot sits at the end of the name row (top right) */
+  @media(max-width:640px){header.top:not(.th) #isx-sync.inl{order:0;margin-left:auto}}
   #isx-sd{margin:auto;max-height:calc(100% - 24px);overflow:auto;background:#0c0c0c;color:#d9d5c8;border:1px solid #ffb000;padding:20px;width:min(520px,calc(100vw - 24px));font:13px/1.5 'IBM Plex Mono',ui-monospace,monospace;border-radius:0}
   #isx-sd::backdrop{background:rgba(0,0,0,.78)}#isx-sd h3{margin:0 0 12px;font-size:13px;letter-spacing:.14em;color:#ffb000;font-weight:500}
   #isx-sd p{margin:0 0 10px;color:#8f8a7e}#isx-sd b{color:#d9d5c8;font-weight:500}#isx-sd a{color:#ffb000}
@@ -319,8 +328,10 @@
   const ago = t => { const s = Math.round((Date.now() - t) / 1000); return s < 60 ? 'now' : s < 3600 ? Math.round(s / 60) + 'm' : Math.round(s / 3600) + 'h' };
   function paint() {
     badge.className = (state === 'ok' ? 'ok' : state === 'busy' ? 'busy' : state === 'error' ? 'error' : '') + (badge.parentNode?.matches?.('header.top, .acts') ? ' inl' : '');
-    badge.innerHTML = '<i></i>' + ({ off: 'SYNC OFF', busy: 'SYNCING', ok: 'SYNCED ' + ago(last), error: 'SYNC ERROR', offline: 'OFFLINE', idle: 'SYNC' }[state] || 'SYNC');
-    badge.title = msg || '';
+    if (!badge.firstChild) badge.innerHTML = '<i aria-hidden="true"></i>';
+    const said = { off: 'Sync is off', busy: 'Syncing', ok: ago(last) === 'now' ? 'Synced just now' : 'Synced ' + ago(last) + ' ago', error: 'Sync error', offline: 'Offline, will sync when back online', idle: 'Sync' }[state] || 'Sync';
+    badge.setAttribute('aria-label', said + (msg ? ': ' + msg : '') + '. Sync settings');
+    badge.title = said + (msg ? ': ' + msg : '');
   }
   const esc = s => String(s ?? '').replace(/[&<>"']/g, c => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
   function dialog() {
