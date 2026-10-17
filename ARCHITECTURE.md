@@ -73,6 +73,11 @@ The fix is to handle it at the one write path every app already goes through. `s
   rethrows, so an app's own `catch` keeps working;
 - sends a warning at 80% of the budget, which the shell's TODAY turns into a notice with the per-app breakdown.
 
+The device limit is learned. A failed write stores the size that failed, capped at the 5 M default, so one huge
+import can't push the warnings past the real limit. A later write that fits beyond the learned value proves it
+wrong, and it is dropped; a device that really has less room learns it again on its next failed write. The banner
+only speaks for the app's own data keys; a background cache that fails raises the event without a banner.
+
 Apps also wrap their own `save()`, so a full disk never aborts a click handler half way.
 
 *Not done, on purpose:* moving app data to IndexedDB. It is the real long-term fix (quota in the hundreds of MB),
@@ -90,6 +95,24 @@ It is replaced by a `ResizeObserver` and a `MutationObserver`:
 - The `MutationObserver` watches only the `.modal` elements themselves, not every class change in the document.
 
 The same work now happens only when something actually opens, resizes or closes.
+
+The rect is measured at open, when the entrance animation ends (a transform doesn't trigger `ResizeObserver`), on
+resize and on scroll.
+
+Measured with the shell open, all 6 apps loaded and 10 s of idle time:
+
+| | Before | After |
+|---|---|---|
+| Timer wakeups | 354 | 74 |
+| CPU | 41 ms | 8–11 ms |
+
+The 74 that remain are three cheap polls:
+- the shell checks every 300 ms whether the visible app has a dialog open, to hide the tab bar;
+- NUTRITION's cooking timers and LEARN's study clock each check a few times a second whether one is running.
+
+Together they cost about 1 ms of CPU a second, and browsers throttle them in the background. Making them
+event-driven would need a new frame → shell message covering every kind of dialog. They are left as they are on
+purpose.
 
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL

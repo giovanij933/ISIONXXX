@@ -304,6 +304,8 @@
     document.querySelectorAll('.modal').forEach(m => {
       watch(m); keep(m);
       m.addEventListener('scroll', () => keep(m), { passive: true });
+      // the entrance animation moves the box without resizing it: measure again once it has landed
+      m.addEventListener('animationend', () => keep(m)); m.addEventListener('transitionend', () => keep(m));
       new MutationObserver(ms => {
         for (const r of ms) {
           if (r.type === 'childList') { watch(m); continue }

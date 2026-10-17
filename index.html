@@ -492,7 +492,7 @@ function insights(){
 // all apps share one storage quota (sync.js keeps count); speak up well before a save can fail
 function stoHTML(){
   const s=window.ISXSync?.storage?.();if(!s||s.ratio<.8)return'';
-  const kb=n=>(n*=2)<1048576?Math.round(n/1024)+' KB':(n/1048576).toFixed(1)+' MB',top=s.apps.filter(a=>!['Sync','Other'].includes(a.app)).slice(0,3),full=s.ratio>=.97;
+  const kb=n=>n<1048576?Math.round(n/1024)+' KB':(n/1048576).toFixed(1)+' MB',top=s.apps.filter(a=>!['Sync','Other'].includes(a.app)).slice(0,3),full=s.ratio>=.97;
   return `<section class="ins sto${full?' bad':''}" role="${full?'alert':'status'}"><div class="tch"><h2 class="h">Storage ${Math.min(100,Math.round(s.ratio*100))}% full</h2><span class="st">${kb(s.used)} of ${kb(s.budget)}</span></div>
     <p class="in1">All apps share this space on this device. ${full?'New entries may not save until you make room.':'When it fills up, new entries can’t be saved.'}
     Biggest: ${top.map(a=>`<b>${esc(a.app)}</b> ${kb(a.chars)}`).join(' · ')}.</p>
