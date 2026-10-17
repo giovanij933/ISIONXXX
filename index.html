@@ -70,7 +70,8 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 .hero-sub{margin:4px 0 0;color:var(--dim);font-size:12px}
 .hero-n{margin:0;font-size:12px;color:var(--dim)}.hero-n b{font-size:30px;color:var(--amber);font-weight:600;margin-right:2px}
 .hero.perfect .hero-n b{color:var(--green)}
-.rings{display:grid;grid-template-columns:repeat(auto-fit,minmax(56px,1fr));gap:6px;margin:16px 0 4px;padding:0;list-style:none}
+.rings{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px;margin:16px 0 4px;padding:0;list-style:none}   /* one equal share each, edge to edge */
+.rings>li{display:flex;justify-content:center}
 .ring{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 0;font-size:9.5px;letter-spacing:.08em;color:var(--dim);-webkit-tap-highlight-color:transparent;transition:transform .15s}
 .ring:active{transform:scale(.94)}.ring:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 .ring svg{width:52px;height:52px;transform:rotate(-90deg);overflow:visible}
@@ -118,7 +119,6 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 @media(min-width:900px){
   #today .ci:not(.done){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:40px;align-items:center}
   #today .ci:not(.done)>.tch,#today .ci:not(.done)>.ui-actions{grid-column:1/-1}
-  #today .hero .rings{max-width:640px}
 }
 .ci-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:10px;margin-top:6px}
 .ci-sum b{display:block;font-size:16px;font-weight:600}.ci-sum span{font-size:10.5px;color:var(--dim);white-space:nowrap}
@@ -134,7 +134,20 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 .nx{all:unset;box-sizing:border-box;cursor:pointer;flex:1;text-align:center;padding:11px 8px;border:1px solid var(--line2);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx);-webkit-tap-highlight-color:transparent;transition:background-color .15s,border-color .15s,transform .12s}
 .nx:active{transform:scale(.97)}
 .nx:focus-visible{outline:1px solid var(--amber)}
-.nx{display:flex;justify-content:space-between;gap:10px;width:100%;margin-top:10px;text-align:left;border-color:var(--amber);color:var(--amber)}.nx b{font-weight:600;white-space:nowrap}.tc.none .sub{margin-top:4px}
+.nx{display:flex;justify-content:space-between;gap:10px;width:100%;margin-top:10px;text-align:left;border-color:var(--amber);color:var(--amber)}.nx b{font-weight:600;white-space:nowrap}
+/* wide screens: the hero like the apps' Today cards. Left (at most 520 px): greeting and count on one line, the rings
+   spread evenly under them. Right: Next up as a panel with its button, or a note when nothing else is due */
+.nx-none{display:none}
+@media(min-width:700px){
+  #today .hero{display:grid;grid-template-columns:minmax(0,520px) minmax(240px,1fr);column-gap:40px;align-items:start}
+  #today .hero>*{grid-column:1}
+  #today .hero>.nx,#today .hero>.nx-none{grid-column:2;grid-row:1/span 2;align-self:stretch;margin:0;display:flex;flex-direction:column;justify-content:center;
+    align-items:flex-start;gap:12px;padding:16px 20px;background:rgba(0,0,0,.22)}
+  #today .hero>.nx span{font-size:11px;letter-spacing:.14em}
+  #today .hero>.nx b{font-size:13px;padding:10px 16px;background:var(--amber);color:#000;letter-spacing:.1em}
+  #today .hero>.nx:hover b{filter:brightness(1.08)}
+  #today .hero>.nx-none{border:1px solid var(--line);color:var(--green);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+}.tc.none .sub{margin-top:4px}
 @keyframes tIn{from{opacity:0;transform:translateY(8px)}}
 #today.drawn .tc,#today.drawn .ci,#today.drawn .ins{animation:none}
 .tch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
@@ -531,7 +544,8 @@ function heroHTML(wins,next){
     ${wins.length?`<ul class="rings" aria-label="Today's progress">${wins.map(c=>{const f=ringOf(c),from=PREV.ring[c.id]??0;
       return `<li><button type="button" class="ring${c.done?' done':''}${c.rest?' rest':''}" data-jump="${c.id}" aria-label="${c.label}: ${c.done?'done, open it':c.rest?'rest day':Math.round(f*100)+'%'}">
         <svg viewBox="0 0 44 44" aria-hidden="true"><circle class="rt" cx="22" cy="22" r="18"/><circle class="rf" cx="22" cy="22" r="18" pathLength="100" stroke-dasharray="${(from*100).toFixed(1)} 100" data-to="${(f*100).toFixed(1)}"/>${c.done?'<path class="ck" d="M15.5 22.5l4.5 4.5 8.5-9"/>':''}</svg><span>${c.label}</span></button></li>`}).join('')}</ul>`:''}
-    ${next?`<button type="button" class="nx" data-go="${next.id}" data-act="${QA[next.id][0][0]}"><span>Next up · ${next.label}</span><b>${QA[next.id][0][1]}</b></button>`:''}
+    ${next?`<button type="button" class="nx" data-go="${next.id}" data-act="${QA[next.id][0][0]}"><span>Next up · ${next.label}</span><b>${QA[next.id][0][1]}</b></button>`
+      :wins.length?`<p class="nx-none">${all?'Everything done today ✓':'Nothing else due today'}</p>`:''}
   </section>`;
 }
 /* everything logged today across the apps, oldest first */
