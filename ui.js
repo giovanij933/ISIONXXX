@@ -214,7 +214,7 @@
         ${big ? `<p class="ui-hero-big"><b data-count="${esc(key)}:big">${esc(big.value)}</b>${big.label ? `<span>${esc(big.label)}</span>` : ''}</p>` : ''}</div>
       ${rings.length ? `<ul class="ui-rings">${rings.map(ring).join('')}</ul>` : ''}
       ${action ? `<div class="ui-actions">${button({ variant: 'primary', ...action })}</div>` : ''}
-      ${(log = tlRows(log)) ? `<ol class="ui-tl ui-hero-log" aria-label="Logged ${esc(String(title).toLowerCase())}">${log}</ol>` : ''}</section>`;
+      ${(log = tlRows(log)) ? `<ol class="ui-tl ui-hero-log" aria-label="Logged ${esc(String(title).toLowerCase())}">${log}</ol>` : `<p class="ui-hero-none">Nothing logged yet ${esc(String(title).toLowerCase())}. It shows up here as you go.</p>`}</section>`;
   }
 
   /* ---------- timeline: what happened today, in order ----------
