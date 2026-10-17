@@ -186,7 +186,7 @@ html.isx-embed .po:not(.hidden){animation:isxUp .3s cubic-bezier(.2,.8,.2,1)}
 @keyframes isxFade{from{opacity:0}}
 @keyframes isxUp{from{opacity:0;transform:translateY(28px)}}
 @media(prefers-reduced-motion:reduce){html.isx-embed *{animation:none!important;transition:none!important}}
-@media(max-width:560px){html.isx-embed header.top{flex-direction:column;align-items:stretch}html.isx-embed header.top .acts{justify-content:flex-start}}`;
+`;   // phone header layout (name + sync on one row, buttons swipe below) comes from ui.css
 function embed(f){
   try{
     const d=f.contentDocument;if(!d||d.getElementById('isx-embed'))return;

@@ -158,3 +158,11 @@ svg.ui-draw polygon,svg.ui-draw path:not(.ui-trace){animation:ui-fade .8s ease b
 
 /* hero log: today's entries inside the Today card, under the rings */
 .ui-hero-log{margin:14px 0 0;padding-top:8px;border-top:1px solid var(--ui-line)}.ui-hero-log::before{top:16px}.ui-hero .ui-tl i{box-shadow:0 0 0 3px #0e0d0a}
+
+/* app header on phones: name and sync status on one row, the buttons in one swipeable row under it */
+@media (max-width:640px){
+  header.top:not(.th){flex-wrap:wrap;row-gap:10px}
+  header.top:not(.th) .acts{flex:1 0 100%;flex-wrap:nowrap;overflow-x:auto;justify-content:flex-start;scrollbar-width:none;-webkit-overflow-scrolling:touch;padding-bottom:2px}
+  header.top:not(.th) .acts::-webkit-scrollbar{display:none}
+  header.top:not(.th) .acts>*{flex:none}
+}
