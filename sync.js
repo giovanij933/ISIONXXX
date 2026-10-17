@@ -13,7 +13,13 @@
    - Runs on open, after every save (debounced), when the app comes back to the foreground and
      every few minutes. When another device changed something, the page reloads to show it, but
      never while a dialog is open.
-   - Setup is shared by every app on the same site: set it up once per browser. */
+   - Setup is shared by every app on the same site: set it up once per browser.
+
+   Storage budget
+   - Every app on the site shares one localStorage quota (about 5 M characters). Every write goes through here, so
+     this file tracks usage per key, warns when it passes 80% and, if a write does not fit, says so plainly
+     (instead of the change vanishing) and fires an 'isx-storage' event: {used, budget, ratio, failed, key}.
+     The error is still thrown, so an app's own catch keeps working. ISXSync.storage() reports usage per app. */
 (() => {
   const KEYS = (document.currentScript?.dataset.keys || '').split(/\s+/).filter(Boolean);
   // data-noreload: the page re-reads its data itself (the ISIONXXX shell, whose reload would restart every app in it),
@@ -23,7 +29,65 @@
   const API = 'https://api.github.com/gists', EVERY = 5 * 60e3, DEBOUNCE = 2500;
   const ls = window.localStorage, setRaw = Storage.prototype.setItem;
   const get = (k, d = null) => { try { const v = ls.getItem(k); return v == null ? d : JSON.parse(v) } catch (e) { return d } };
-  const put = (k, v) => { try { setRaw.call(ls, k, JSON.stringify(v)) } catch (e) {} };
+  /* ---------- storage budget ---------- */
+  // lengths per key, measured once and then kept current by our own writes and other pages' 'storage' events,
+  // so a save never has to re-read everything to know how full storage is
+  const QUOTA = 'isx.quota', WARN = .8, LEN = new Map(); let used = 0, warned = false;
+  const track = (k, v) => { const n = v == null ? 0 : k.length + v.length; used += n - (LEN.get(k) || 0); if (n) LEN.set(k, n); else LEN.delete(k) };
+  const scan = () => { LEN.clear(); used = 0; for (let i = 0; i < ls.length; i++) { const k = ls.key(i); track(k, ls.getItem(k)) } };
+  try { scan() } catch (e) {}
+  // ~5 M characters in Safari and Chrome; once a write fails here, the size it failed at is this device's real limit
+  const DEF = 5 * 1024 * 1024, budget = () => { const q = +ls.getItem(QUOTA); return q > 1e5 ? q : DEF };
+  const learn = n => { const v = String(n); try { setRaw.call(ls, QUOTA, v); track(QUOTA, v) } catch (e) {} };
+  const isFull = e => e && (e.name === 'QuotaExceededError' || e.name === 'NS_ERROR_DOM_QUOTA_REACHED' || e.code === 22 || e.code === 1014);
+  const APPS = [['isx.mind', 'MIND'], ['isx.training', 'TRAINING'], ['nj.', 'NUTRITION'], ['xl.', 'LEARN'], ['isx.journal', 'JOURNAL'],
+    ['isx.rewire', 'REWIRE'], ['isx.checkin', 'Check-in'], ['isx.sync', 'Sync']];
+  function storage() {
+    const by = {};
+    LEN.forEach((n, k) => { const a = (APPS.find(([p]) => k.startsWith(p)) || [, 'Other'])[1]; by[a] = (by[a] || 0) + n });
+    const b = budget();
+    return { used, budget: b, ratio: used / b, apps: Object.entries(by).map(([app, chars]) => ({ app, chars })).sort((x, y) => y.chars - x.chars) };
+  }
+  // sizes in characters, the unit browsers count this quota in ("5 MB" = 5 M characters)
+  const kb = n => n < 1048576 ? Math.round(n / 1024) + ' KB' : (n / 1048576).toFixed(1) + ' MB';
+  function tell(failed, key) {
+    const s = storage();
+    dispatchEvent(new CustomEvent('isx-storage', { detail: { used: s.used, budget: s.budget, ratio: s.ratio, failed, key } }));
+    // the banner speaks for the user's own changes; background caches failing only raise the event
+    if (!failed || !document.body || (KEYS.length && !KEYS.includes(key))) return;
+    let n = document.getElementById('isx-full');
+    if (!n) {
+      n = document.createElement('div'); n.id = 'isx-full'; n.setAttribute('role', 'alert');
+      n.addEventListener('click', e => { if (e.target.closest('button')) n.remove() });
+      document.body.appendChild(n);
+    }
+    const top = s.apps.find(a => a.app !== 'Other' && a.app !== 'Sync' && a.chars >= s.used * .05);
+    n.innerHTML = `<b>Storage is full: that change was not saved.</b> All ISIONXXX apps share this space${top ? `; ${esc(top.app)} uses the most (${kb(top.chars)})` : ''}.
+      Take a backup, then delete old or sample data to make room.<button type="button" aria-label="Dismiss">✕</button>`;
+  }
+  function wrote(k, v) {
+    track(k, v);
+    // a write that fit past the learned limit proves it wrong (e.g. the disk had room again): forget it and go back
+    // to the default; a device that really has less room learns it again on its next failed write
+    const q = +ls.getItem(QUOTA); if (q > 1e5 && used > q) { try { rm.call(ls, QUOTA); track(QUOTA, null) } catch (e) {} }
+    const r = used / budget();
+    if (r >= WARN && !warned) { warned = true; tell(false, k) } else if (r < WARN - .05) warned = false;
+  }
+  function failed(k, v) {
+    // remember where this device's limit is, so the warning level matches it from now on. The size that failed is an
+    // upper bound on the limit, so keep the lowest one seen
+    // capped at the default: one oversized import must not move the warnings past the real limit
+    const at = Math.min(DEF, used - (LEN.get(k) || 0) + k.length + String(v).length), q = +ls.getItem(QUOTA);
+    if (!(q > 1e5 && q <= at)) learn(Math.max(1e5, at));
+    tell(true, k);
+  }
+  addEventListener('storage', e => { if (e.storageArea !== ls) return; if (e.key == null) { try { scan() } catch (x) {} } else track(e.key, e.newValue) });
+  const rm = Storage.prototype.removeItem;
+  Storage.prototype.removeItem = function (k) { rm.call(this, k); if (this === ls) track(String(k), null) };
+  const clr = Storage.prototype.clear;
+  Storage.prototype.clear = function () { clr.call(this); if (this === ls) { LEN.clear(); used = 0 } };
+
+  const put = (k, v) => { const s = JSON.stringify(v); try { setRaw.call(ls, k, s); wrote(k, s) } catch (e) { if (isFull(e)) failed(k, s) } };
   let cfg = get(CFG), state = cfg ? 'idle' : 'off', msg = '', last = 0, timer = 0, busy = false, again = false, pending = false;
   // after a sync changed a key, the app's in-memory copy is stale until the page reloads: pre[k] is what it last knew
   const pre = {};
@@ -200,8 +264,11 @@
         put(DEL(k), [...del]); pre[k] = w;
       } catch (e) {}
     }
-    setRaw.call(this, k, v);
-    if (this === ls && cfg && KEYS.includes(k)) schedule();
+    if (this !== ls) return setRaw.call(this, k, v);
+    k = String(k); v = String(v);
+    try { setRaw.call(this, k, v) } catch (e) { if (isFull(e)) failed(k, v); throw e }
+    wrote(k, v);
+    if (cfg && KEYS.includes(k)) schedule();
   };
 
   /* ---------- setup ---------- */
@@ -242,7 +309,11 @@
   #isx-sd button{background:#070707;color:#d9d5c8;border:1px solid #2c2c2c;padding:7px 10px;font:12px 'IBM Plex Mono',monospace;letter-spacing:.06em;cursor:pointer;border-radius:0}
   #isx-sd button:hover{border-color:#ffb000;color:#ffb000}#isx-sd .pri{background:#ffb000;border-color:#ffb000;color:#000;font-weight:600}
   #isx-sd .tabs{display:flex;gap:6px;margin-bottom:6px}#isx-sd .tabs .on{background:#ffb000;border-color:#ffb000;color:#000}
-  #isx-sd .err{color:#ff4545}#isx-sd .ok{color:#33ff66}`;
+  #isx-sd .err{color:#ff4545}#isx-sd .ok{color:#33ff66}
+  #isx-full{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:2147483647;background:#1a0b0b;border:1px solid #ff4545;color:#f1ece0;
+    padding:12px 40px 12px 14px;font:12px/1.5 'IBM Plex Mono',monospace;box-shadow:0 10px 30px rgba(0,0,0,.6)}
+  #isx-full b{color:#ff6b6b;display:block;margin-bottom:2px}
+  #isx-full button{position:absolute;top:6px;right:6px;width:32px;height:32px;background:none;border:0;color:#f1ece0;font-size:14px;cursor:pointer}`;
   const badge = document.createElement('button');
   badge.id = 'isx-sync'; badge.type = 'button'; badge.setAttribute('aria-label', 'Sync settings');
   const ago = t => { const s = Math.round((Date.now() - t) / 1000); return s < 60 ? 'now' : s < 3600 ? Math.round(s / 60) + 'm' : Math.round(s / 3600) + 'h' };
@@ -311,5 +382,5 @@
     setInterval(paint, 30e3);
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', start); else start();
-  window.ISXSync = { sync, merge, dedupe, get state() { return state } };   // for debugging and tests
+  window.ISXSync = { sync, merge, dedupe, storage, get state() { return state } };   // for debugging and tests
 })();

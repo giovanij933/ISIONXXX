@@ -269,14 +269,14 @@
        sheets (.ss: a live session), never once you've typed in it, and never if the app cancels it ('cancel' event).
      All of it is skipped under Reduce Motion.                                                                      */
   const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-  function ghost(el, rect, { sheet, dy = 0 } = {}) {
+  function ghost(el, rect, { sheet, dy = 0, cls = '' } = {}) {
     if (calm() || !rect.width || !rect.height) return;
     const g = el.cloneNode(true), cs = getComputedStyle(el);
     g.querySelectorAll('[id]').forEach(x => x.removeAttribute('id')); g.removeAttribute('id');
     g.setAttribute('aria-hidden', 'true'); g.inert = true;
     if (g.tagName === 'DIALOG') g.setAttribute('open', '');
-    Object.assign(g.style, { position: 'fixed', left: rect.left + 'px', top: rect.top + 'px', width: rect.width + 'px', height: rect.height + 'px', margin: '0', maxHeight: 'none', maxWidth: 'none', inset: 'auto', zIndex: 2147483646, pointerEvents: 'none', background: cs.backgroundColor, overflow: 'hidden', transform: `translateY(${dy}px)`, animation: 'none' });
-    g.classList.add('ui-ghost', sheet ? 'ui-ghost-sheet' : 'ui-ghost-box');
+    Object.assign(g.style, { position: 'fixed', inset: 'auto', left: rect.left + 'px', top: rect.top + 'px', width: rect.width + 'px', height: rect.height + 'px', margin: '0', maxHeight: 'none', maxWidth: 'none', zIndex: 2147483646, pointerEvents: 'none', background: cs.backgroundColor, overflow: 'hidden', transform: `translateY(${dy}px)`, animation: 'none' });
+    g.classList.add('ui-ghost', sheet ? 'ui-ghost-sheet' : 'ui-ghost-box'); if (cls) g.classList.add(cls);
     const bd = document.createElement('div'); bd.className = 'ui-ghost-bd'; bd.setAttribute('aria-hidden', 'true');
     document.body.append(bd, g); g.scrollTop = el.scrollTop;
     setTimeout(() => { g.remove(); bd.remove() }, 320);
@@ -288,15 +288,34 @@
       if (this.open) { const r = this.getBoundingClientRect(), dy = this.__dy || 0; this.__dy = 0; this.style.transform = ''; close.call(this, v); ghost(this, r, { sheet: this.classList.contains('ss'), dy }) }
       else close.call(this, v);
     };
-    // the apps' .modal overlays (NUTRITION, LEARN) close by gaining .hidden
-    new MutationObserver(ms => ms.forEach(m => {
-      const el = m.target;
-      if (m.oldValue && !/\bhidden\b/.test(m.oldValue) && el.classList.contains('hidden') && el.classList.contains('modal')) {
-        const box = el.querySelector('.box'); if (box && el.__rect) ghost(box, el.__rect, { sheet: box.classList.contains('ss') });
-      }
-    })).observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ['class'], attributeOldValue: true });
-    // remember where an open .modal box sits, so its exit can start from there
-    setInterval(() => document.querySelectorAll('.modal:not(.hidden)').forEach(m => { const b = m.querySelector('.box'); if (b) m.__rect = b.getBoundingClientRect() }), 250);
+    // the apps' .modal overlays (NUTRITION, LEARN) close by gaining .hidden. The exit copy needs the box's last
+    // on-screen rect, and by the time the class changes it is display:none, so the rect is kept while it is open:
+    // measured on open, then again only when the box resizes, the overlay scrolls or the window resizes. No polling.
+    const RO = typeof ResizeObserver === 'function' ? new ResizeObserver(es => es.forEach(e => keep(e.target.parentElement))) : null;
+    const keep = m => {
+      const b = m && m.__box;
+      if (!b || m.classList.contains('hidden')) return;
+      const r = b.getBoundingClientRect(); if (r.width) { m.__rect = r; m.__sheet = b.classList.contains('ss') }
+    };
+    const watch = m => {
+      const b = m.querySelector(':scope > .box'); if (b === m.__box) return;
+      if (m.__box) RO?.unobserve(m.__box); m.__box = b; if (b) RO?.observe(b);
+    };
+    document.querySelectorAll('.modal').forEach(m => {
+      watch(m); keep(m);
+      m.addEventListener('scroll', () => keep(m), { passive: true });
+      // the entrance animation moves the box without resizing it: measure again once it has landed
+      m.addEventListener('animationend', () => keep(m)); m.addEventListener('transitionend', () => keep(m));
+      new MutationObserver(ms => {
+        for (const r of ms) {
+          if (r.type === 'childList') { watch(m); continue }
+          const was = /\bhidden\b/.test(r.oldValue || ''), now = m.classList.contains('hidden');
+          if (!was && now && m.__box && m.__rect) { ghost(m.__box, m.__rect, { sheet: m.__sheet, cls: m.__sheet ? 'ss' : '' }); m.__rect = null }
+          else if (was && !now) requestAnimationFrame(() => keep(m));
+        }
+      }).observe(m, { attributes: true, attributeFilter: ['class'], attributeOldValue: true, childList: true });
+    });
+    addEventListener('resize', () => document.querySelectorAll('.modal:not(.hidden)').forEach(keep), { passive: true });
     // swipe down to dismiss
     let drag = null;
     document.addEventListener('input', e => { const d = e.target.closest && e.target.closest('dialog'); if (d) d.__dirty = true }, true);
