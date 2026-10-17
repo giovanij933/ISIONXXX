@@ -105,6 +105,7 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 .ins .in1{margin:8px 0 0;font-size:13px;line-height:1.5;padding-left:14px;position:relative}.ins .in1::before{content:'';position:absolute;left:0;top:.6em;width:6px;height:6px;background:var(--amber)}
 .ins .in1 b{color:var(--amber);font-weight:600}.ins .in1 b.pos{color:var(--green)}.ins .in1 b.neg{color:var(--red)}
 .ins .ft{margin-top:10px;font-size:10.5px}
+.ins.sto{border-color:rgba(255,176,0,.45)}.ins.sto.bad{border-color:var(--red)}.ins.sto.bad .h{color:var(--red)}
 /* morning check-in */
 .ci{background:var(--panel);border:1px solid var(--amber);padding:14px 16px 16px;margin-bottom:12px;animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}
 .ci.done{border-color:var(--line);padding-bottom:14px}
@@ -488,6 +489,15 @@ function insights(){
   }
   return {n:C.length,days:past.length,list:out.sort((x,y)=>y.s-x.s).slice(0,3)};
 }
+// all apps share one storage quota (sync.js keeps count); speak up well before a save can fail
+function stoHTML(){
+  const s=window.ISXSync?.storage?.();if(!s||s.ratio<.8)return'';
+  const kb=n=>(n*=2)<1048576?Math.round(n/1024)+' KB':(n/1048576).toFixed(1)+' MB',top=s.apps.filter(a=>!['Sync','Other'].includes(a.app)).slice(0,3),full=s.ratio>=.97;
+  return `<section class="ins sto${full?' bad':''}" role="${full?'alert':'status'}"><div class="tch"><h2 class="h">Storage ${Math.min(100,Math.round(s.ratio*100))}% full</h2><span class="st">${kb(s.used)} of ${kb(s.budget)}</span></div>
+    <p class="in1">All apps share this space on this device. ${full?'New entries may not save until you make room.':'When it fills up, new entries can’t be saved.'}
+    Biggest: ${top.map(a=>`<b>${esc(a.app)}</b> ${kb(a.chars)}`).join(' · ')}.</p>
+    <p class="in1">Take a backup in that app, then delete old or sample data.</p></section>`;
+}
 function insHTML(){
   const I=insights();
   if(!I.n)return '';
@@ -589,7 +599,7 @@ function drawToday(){
   const group=r=>idx.filter(x=>x[0]===r||(r===0&&x[0]===1)).map(x=>card0(C[x[1]],x[1])).join('');
   const ciDone=ciLog().some(e=>e.day===t)&&!CI,ci=ciHTML(),todo=group(0),done=group(2),unused=group(3);
   const html=`<div class="in"><header class="th top"><h1 class="brand">ISIONXXX <b>//</b> TODAY<span class="cur" aria-hidden="true"></span></h1><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>
-    ${ciDone?'':ci}${heroHTML(wins,next)}
+    ${stoHTML()}${ciDone?'':ci}${heroHTML(wins,next)}
     ${todo?`<div class="tg">${todo}</div>`:''}
     ${timelineHTML(t)}
     ${done||ciDone?`<section class="done-wrap" aria-labelledby="dn-h"><div class="tch"><h2 class="h" id="dn-h">Done today</h2><span class="st ok">${(done.match(/data-card=/g)||[]).length+(ciDone?1:0)} ✓</span></div>${ciDone?ci:''}<div class="tg done-list">${done}</div></section>`:''}
