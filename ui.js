@@ -194,7 +194,7 @@
   }
 
   /* ---------- hero: an app's day at a glance ----------
-     { key, title, sub?, big?: {value, label?}, rings: [{ key, label, value, max, display?, done? }], action?: button props,
+     { key, title, sub?, big?: {value, label?, tone?: 'pos'|'neg'}, rings: [{ key, label, value, max, display?, done? }], action?: button props,
        log?: today's entries, listed in the card in time order ({ at, tag?, text, tone? }, as in timeline) }
      Rings fill toward each goal (done = full + tick). key makes UI.animate fill them from where they were and notice a
      ring that just completed. Rings are read as "Calories: 1,420 of 2,000".                                    */
@@ -211,7 +211,7 @@
     };
     return `<section class="ui-hero" aria-label="${esc(title)}">
       <div class="ui-hero-top"><div><h2>${esc(title)}</h2>${sub ? `<p class="ui-sub">${esc(sub)}</p>` : ''}</div>
-        ${big ? `<p class="ui-hero-big"><b data-count="${esc(key)}:big">${esc(big.value)}</b>${big.label ? `<span>${esc(big.label)}</span>` : ''}</p>` : ''}</div>
+        ${big ? `<p class="ui-hero-big"><b data-count="${esc(key)}:big"${big.tone === 'pos' || big.tone === 'neg' ? ` class="ui-${big.tone}"` : ''}>${esc(big.value)}</b>${big.label ? `<span>${esc(big.label)}</span>` : ''}</p>` : ''}</div>
       ${rings.length ? `<ul class="ui-rings">${rings.map(ring).join('')}</ul>` : ''}
       ${action ? `<div class="ui-actions">${button({ variant: 'primary', ...action })}</div>` : ''}
       ${(() => {
