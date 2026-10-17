@@ -60,15 +60,46 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 #today .h{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber)}#today .h::before{content:'> ';color:var(--dim)}
 #today .sub{color:var(--dim);font-size:12px}#today .sub b{font-weight:600}
 #today .pos{color:var(--green)}#today .neg{color:var(--red)}#today .amb{color:var(--amber)}
-.wins{display:flex;align-items:center;gap:16px;background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin-bottom:12px}
-.wins svg{width:64px;height:64px;flex:none}.wins circle{fill:none;stroke-width:6}.wins .r0{stroke:#1a1a1a}
-.wins .r1{stroke:var(--amber);transform:rotate(-90deg);transform-origin:50% 50%;transition:stroke-dasharray .5s cubic-bezier(.2,.8,.2,1)}.wins .r1.full{stroke:var(--green)}
-.wins text{fill:var(--tx);font:600 14px var(--f);text-anchor:middle}
-.chips{display:flex;flex-wrap:wrap;gap:6px;margin-top:8px}
-.chips button{all:unset;cursor:pointer;font-size:10px;letter-spacing:.1em;padding:3px 7px;border:1px solid var(--line2);color:var(--dim);-webkit-tap-highlight-color:transparent}
-.chips button.ok{color:var(--green);border-color:#1d6b3f}
 .tg{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
-.chips button:focus-visible{outline:1px solid var(--amber)}
+/* hero: greeting, one ring per app, next up */
+.hero{position:relative;overflow:hidden;background:radial-gradient(120% 90% at 0% 0%,rgba(255,176,0,.10),transparent 60%),var(--panel);border:1px solid var(--line);padding:18px 16px 16px;margin-bottom:12px;animation:tIn .4s cubic-bezier(.2,.8,.2,1) both}
+.hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
+.hero h2{margin:0;font-size:20px;font-weight:600;letter-spacing:.02em}
+.hero-sub{margin:4px 0 0;color:var(--dim);font-size:12px}
+.hero-n{margin:0;font-size:12px;color:var(--dim)}.hero-n b{font-size:30px;color:var(--amber);font-weight:600;margin-right:2px}
+.hero.perfect .hero-n b{color:var(--green)}
+.rings{display:grid;grid-template-columns:repeat(auto-fit,minmax(56px,1fr));gap:6px;margin:16px 0 4px;padding:0;list-style:none}
+.ring{all:unset;box-sizing:border-box;cursor:pointer;display:flex;flex-direction:column;align-items:center;gap:6px;padding:4px 0;font-size:9.5px;letter-spacing:.08em;color:var(--dim);-webkit-tap-highlight-color:transparent;transition:transform .15s}
+.ring:active{transform:scale(.94)}.ring:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.ring svg{width:52px;height:52px;transform:rotate(-90deg);overflow:visible}
+.ring circle{fill:none;stroke-width:4.5}.ring .rt{stroke:#1d1d1d}
+.ring .rf{stroke:var(--amber);stroke-linecap:round;transition:stroke-dasharray 1s cubic-bezier(.2,.8,.2,1),stroke .3s}
+.ring.done .rf{stroke:var(--green)}.ring.done{color:var(--tx)}.ring.rest .rf{stroke:#5a5a5a}
+.ring .ck{fill:none;stroke:var(--green);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transform:rotate(90deg);transform-origin:22px 22px;stroke-dasharray:20;stroke-dashoffset:0;animation:ck .5s .5s cubic-bezier(.2,.8,.2,1) both}
+@keyframes ck{from{stroke-dashoffset:20}}
+.ring.pop svg{animation:pop .6s cubic-bezier(.2,1.6,.4,1)}@keyframes pop{40%{transform:rotate(-90deg) scale(1.22)}}
+.hero.burst::after{content:'';position:absolute;inset:-40%;background:radial-gradient(circle,rgba(51,255,102,.22),transparent 55%);animation:burst 1.4s ease-out forwards;pointer-events:none}
+@keyframes burst{from{opacity:0;transform:scale(.4)}25%{opacity:1}to{opacity:0;transform:scale(1.4)}}
+.hero .nx{margin-top:12px}
+/* timeline */
+.tl-wrap,.done-wrap{background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin:12px 0}
+.tl{list-style:none;margin:6px 0 0;padding:0;position:relative}
+.tl::before{content:'';position:absolute;left:72px;top:8px;bottom:8px;width:1px;background:var(--line2)}
+.tl li{display:grid;grid-template-columns:64px 17px 1fr;align-items:baseline;gap:0;padding:6px 0;font-size:12.5px;animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}
+.tl time{color:var(--dim);font-size:11px;text-align:right;padding-right:4px;white-space:nowrap}
+.tl i{width:9px;height:9px;border-radius:50%;background:var(--amber);justify-self:center;align-self:center;position:relative;z-index:1;box-shadow:0 0 0 3px var(--panel)}
+.tl b{font-size:10px;letter-spacing:.12em;color:var(--dim);font-weight:600;margin-right:6px}
+.tl-training i{background:var(--green)}.tl-nutrition i{background:#7f9cb0}.tl-learn i{background:#c8b38a}.tl-journal i{background:#9c8aa5}.tl-rewire i{background:#ff7a33}.tl-checkin i{background:var(--dim)}
+#today.drawn .tl li,#today.drawn .hero{animation:none}
+/* done today: finished cards fold into compact rows */
+.done-wrap .ci{border:0;padding:0;margin:8px 0 10px;background:none}
+.done-list{margin-top:6px;gap:8px}
+.done-list .ui-card{display:grid;grid-template-columns:1fr auto;align-items:center;column-gap:12px;padding:12px 14px;background:#0a0a0a}
+.done-list .ui-card-head{margin:0;grid-column:1}.done-list .ui-big{grid-column:2;grid-row:1;font-size:15px;margin:0;color:var(--tx)}
+.done-list .ui-status{display:none}
+.done-list .ui-sub,.done-list .ui-meter,.done-list .ui-week,.done-list .ui-actions,.done-list .ui-rows{display:none}
+.ui-card.flash{animation:flash 1.1s ease-out}@keyframes flash{0%,30%{box-shadow:0 0 0 2px var(--amber)}to{box-shadow:0 0 0 2px transparent}}
+@media(prefers-reduced-motion:reduce){.ring .rf,.ring .ck,.ring.pop svg,.hero.burst::after,.ui-card.flash,.tl li,.hero{animation:none!important;transition:none!important}}
 /* insights */
 .ins{background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin-bottom:12px;animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}
 .ins .in1{margin:8px 0 0;font-size:13px;line-height:1.5;padding-left:14px;position:relative}.ins .in1::before{content:'';position:absolute;left:0;top:.6em;width:6px;height:6px;background:var(--amber)}
@@ -86,7 +117,8 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 #today .acts{display:flex;align-items:center;gap:10px}
 #today h1.brand,#today h2.h{margin:0;font-weight:600}#today h2.h{font-weight:400}
 #today .tg>.ui-card,#today .tg>.tc-none{animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}#today.drawn .tg>*{animation:none}
-.tc-none{opacity:.75}.tc-none .ui-card{height:100%}
+/* apps you haven't started: outlined, not faded (fading pushed their text under readable contrast) */
+.tc-none .ui-card{border-style:dashed;background:none}.tc-none .ui-card{height:100%}
 .ci-row .ui-rating{flex:1}.ci-row .ui-field-label{color:var(--dim)}
 .ld .ui-skeleton{width:min(420px,calc(100% - 32px))}
 #today .th .brand{white-space:nowrap}#today .th .dt b{font-weight:400}
@@ -466,28 +498,110 @@ function insHTML(){
     ${I.list.length?I.list.map(x=>`<p class="in1">${x.t}</p>`).join(''):'<p class="sub">No clear patterns yet. Keep checking in; they show up once there are enough days on both sides.</p>'}
     <div class="sub ft">Patterns in your own data, not proof. Short sleep = under 7 h.</div></section>`;
 }
+/* ---------- TODAY, fluid: rings, a timeline of the day, done cards folding away, motion with meaning ---------- */
+const TF=new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit'});
+const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
+// how far each app is today, 0–1, for its ring: done = full; otherwise its goal bar
+const ringOf=c=>c.done||c.rest?1:c.meter&&c.meter.max>0?Math.max(0,Math.min(1,c.meter.v/c.meter.max)):0;
+const PREV={ring:{},big:{},done:{}};let firstDraw=true;
+function heroHTML(wins,next){
+  const won=wins.filter(c=>c.done).length,all=wins.length&&won===wins.length,h=new Date().getHours();
+  const hello=h<5?'Still up':h<12?'Good morning':h<18?'Good afternoon':'Good evening';
+  return `<section class="hero${all?' perfect':''}" aria-labelledby="hero-h">
+    <div class="hero-top"><div><h2 id="hero-h">${hello}</h2><p class="hero-sub">${!wins.length?'Log something in any app to start your day.':all?'Everything done today. Perfect day.':won?`${won} of ${wins.length} done · ${wins.length-won} to go`:`${wins.length} to do today`}</p></div>
+      ${wins.length?`<p class="hero-n" aria-hidden="true"><b>${won}</b>/${wins.length}</p>`:''}</div>
+    ${wins.length?`<ul class="rings" aria-label="Today's progress">${wins.map(c=>{const f=ringOf(c),from=PREV.ring[c.id]??0;
+      return `<li><button type="button" class="ring${c.done?' done':''}${c.rest?' rest':''}" data-jump="${c.id}" aria-label="${c.label}: ${c.done?'done':c.rest?'rest day':Math.round(f*100)+'%'}">
+        <svg viewBox="0 0 44 44" aria-hidden="true"><circle class="rt" cx="22" cy="22" r="18"/><circle class="rf" cx="22" cy="22" r="18" pathLength="100" stroke-dasharray="${(from*100).toFixed(1)} 100" data-to="${(f*100).toFixed(1)}"/>${c.done?'<path class="ck" d="M15.5 22.5l4.5 4.5 8.5-9"/>':''}</svg><span>${c.label}</span></button></li>`}).join('')}</ul>`:''}
+    ${next?`<button type="button" class="nx" data-go="${next.id}" data-act="${QA[next.id][0][0]}"><span>Next up · ${next.label}</span><b>${QA[next.id][0][1]}</b></button>`:''}
+  </section>`;
+}
+/* everything logged today across the apps, oldest first */
+const KN={M:'Meditation',B:'Breathwork',S:'Body scan',V:'Visualization',F:'Focus',J:'Journaling'};
+function timeline(t){
+  const out=[],add=(at,app,text)=>{if(isFinite(at))out.push({at,app,text})};
+  arr(read('isx.mind.v1')?.log).filter(e=>dayAt(e.at)===t).forEach(e=>add(e.at,'mind',`${KN[e.kind]||'Session'} · ${Math.round(+e.mins||0)} min`));
+  // a workout is entries less than 90 min apart
+  let w=null;arr(read('isx.training.v1')?.log).filter(e=>dayAt(e.at)===t).sort((a,b)=>a.at-b.at).forEach(e=>{
+    if(!w||e.at-w.last>90*6e4){w={at:e.at,last:e.at,n:0,s:0,str:0};out.push(w)}w.last=e.at;e.type==='S'?w.str++:w.n++;w.s+=(+e.sets||0)*(+e.reps||0)*(+e.load||0)});
+  out.forEach(x=>{if(x.n!=null&&!x.app){x.app='training';x.text=x.n?`Workout · ${plural(x.n,'exercise')}${x.s?` · ${fi(x.s)} ${wUnit()}`:''}`:`Stretch · ${plural(x.str,'hold')}`}});
+  arr(read('nj.meals.v1')).filter(m=>dayAt(Date.parse(m.time))===t).forEach(m=>add(Date.parse(m.time),'nutrition',m.kind==='bowl'?`Balanced bowl${m.protein?' · '+m.protein:''}`:`${m.name||'Food'}${+m.kcal?` · ${fi(+m.kcal)} kcal`:''}`));
+  arr(read('xl.sessions.v1')).filter(x=>dayAt(Date.parse(x.time))===t).forEach(x=>add(Date.parse(x.time),'learn',`Study · ${Math.round(+x.min||0)} min`));
+  const js=read('isx.journal.v1'),roll=js?.roll??18,tday=ms=>{const d=new Date(ms);if(roll&&d.getHours()>=roll)d.setDate(d.getDate()+1);return ymd(d)};
+  const tr=arr(js?.trades).filter(x=>tday(x.close)===t);
+  if(tr.length){const pnl=tr.reduce((a,x)=>a+(x.exit-x.entry)*(x.side==='Short'?-1:1)*x.qty*x.mult-(+x.fee||0)-(+x.comm||0),0);add(Math.max(...tr.map(x=>x.close)),'journal',`${plural(tr.length,'trade')} · ${money(pnl)}`)}
+  const rw=read('isx.rewire.v1'),bn=id=>arr(rw?.bad).find(b=>b.id===id)?.name||'';
+  arr(rw?.log).filter(e=>dayAt(e.at)===t).forEach(e=>add(e.at,'rewire',e.t==='slip'?`Slipped · ${bn(e.b)}`:e.t==='resist'?`Beat an urge · ${bn(e.b)}`:`${e.g||'Good habit'} ✓`));
+  const ci=ciLog().find(e=>e.day===t);if(ci)add(ci.at,'checkin',`Checked in · ${ci.sleep} h sleep`);
+  return out.filter(x=>x.app).sort((a,b)=>a.at-b.at);
+}
+const TL={mind:'MIND',training:'TRAIN',nutrition:'NUTRITION',learn:'LEARN',journal:'JOURNAL',rewire:'REWIRE',checkin:'CHECK-IN'};
+function timelineHTML(t){
+  const T=timeline(t);
+  return `<section class="tl-wrap" aria-labelledby="tl-h"><div class="tch"><h2 class="h" id="tl-h">Today so far</h2><span class="st">${T.length?plural(T.length,'entry').replace('entrys','entries'):'—'}</span></div>
+    ${T.length?`<ol class="tl">${T.map(x=>`<li class="tl-${x.app}"><time>${TF.format(x.at)}</time><i aria-hidden="true"></i><span><b>${TL[x.app]}</b> ${esc(x.text)}</span></li>`).join('')}</ol>`
+      :'<p class="sub">Your day shows up here as you log: sessions, workouts, meals, study, trades and habits, in order.</p>'}</section>`;
+}
+/* after a redraw: rings fill from where they were, numbers count up, finished things celebrate, cards glide to their
+   new place (FLIP). All skipped under Reduce Motion. */
+function animateToday(el,rects){
+  const calm=reduced();
+  el.querySelectorAll('.rf[data-to]').forEach(r=>{const to=r.dataset.to;calm?r.setAttribute('stroke-dasharray',`${to} 100`):requestAnimationFrame(()=>requestAnimationFrame(()=>r.setAttribute('stroke-dasharray',`${to} 100`)))});
+  el.querySelectorAll('[data-card]').forEach(c=>{
+    const id=c.dataset.card,big=c.querySelector('.ui-big');
+    if(big){const now=big.textContent,was=PREV.big[id];PREV.big[id]=now;if(!calm&&was!==now)countUp(big,was??null,now)}
+    const r=rects[id];if(!r||calm)return;const n=c.getBoundingClientRect(),dy=r.top-n.top;
+    if(Math.abs(dy)>2){c.style.transform=`translateY(${dy}px)`;c.style.transition='none';requestAnimationFrame(()=>{c.style.transition='transform .5s cubic-bezier(.2,.8,.2,1)';c.style.transform=''})}
+  });
+}
+// counts the first number in a value up from its old value (or 0): "1,420 kcal", "12 min", "+$340"
+function countUp(node,from,to){
+  const re=/-?\d[\d,]*(\.\d+)?/,m=to.match(re);if(!m)return;
+  const end=+m[0].replace(/,/g,''),fm=from&&from.match(re),start=fm?+fm[0].replace(/,/g,''):0,dp=(m[1]||'').length-(m[1]?1:0);
+  if(start===end)return;
+  const fmt=v=>{const s=Math.abs(v).toFixed(dp),[i,f]=s.split('.');return (v<0?'-':'')+(m[0].includes(',')||Math.abs(end)>=1000?Number(i).toLocaleString('en-US'):i)+(f?'.'+f:'')};
+  const t0=performance.now(),D=650;
+  const step=now=>{const k=Math.min(1,(now-t0)/D),e=1-Math.pow(1-k,3);node.textContent=to.replace(re,fmt(start+(end-start)*e));if(k<1&&node.isConnected)requestAnimationFrame(step);else node.textContent=to};
+  requestAnimationFrame(step);
+}
+// something just got done: its ring and card pop, and the whole day gets a moment when it's complete
+function celebrate(el,wins){
+  if(firstDraw){wins.forEach(c=>PREV.done[c.id]=!!c.done);return}
+  const fresh=wins.filter(c=>c.done&&PREV.done[c.id]===false);wins.forEach(c=>PREV.done[c.id]=!!c.done);
+  if(!fresh.length)return;
+  fresh.forEach(c=>{el.querySelector(`.ring[data-jump="${c.id}"]`)?.classList.add('pop')});
+  const all=wins.length&&wins.every(c=>c.done);
+  UI.toast(all?'Perfect day: everything done ✓':`${fresh.map(c=>c.label).join(' + ')} done ✓`);
+  if(all)el.querySelector('.hero')?.classList.add('burst');
+}
 let lastToday='';
 function drawToday(){
   const el=$('#today');if(!el)return;
   if(document.activeElement?.id==='ciw')return;   // don't redraw under you while you type your weight
   const t=ymd(new Date()),C=[tMind(t),tTrain(t),tFuel(t),tExtract(t),tJournal(),tRewire(t)];
   const ids=['mind','training','nutrition','learn','journal','rewire'],used=C.filter(Boolean),wins=used.filter(c=>c.done!=null),won=wins.filter(c=>c.done).length;
-  const r=26,L=2*Math.PI*r,p=wins.length?won/wins.length:0,next=wins.find(c=>!c.done&&!c.rest);
+  const next=wins.find(c=>!c.done&&!c.rest);
   const d=new Date(),date=d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'}).toUpperCase();
-  const top=wins.length?`<section class="wins">
-      <svg viewBox="0 0 64 64" aria-hidden="true"><circle cx="32" cy="32" r="${r}" class="r0"/><circle cx="32" cy="32" r="${r}" class="r1${p>=1?' full':''}" stroke-dasharray="${(L*p).toFixed(1)} ${L.toFixed(1)}"/><text x="32" y="37">${won}/${wins.length}</text></svg>
-      <div><h2 class="h">Daily wins</h2><div class="sub">${p>=1?'Everything done today. Nice.':won?`${wins.length-won} to go today`:'Nothing logged yet today'}</div>
-      <div class="chips">${wins.map(c=>`<button type="button" data-open="${c.id}" class="${c.done?'ok':''}">${c.done?'✓ ':''}${c.label}</button>`).join('')}</div>
-      ${next?`<button type="button" class="nx" data-go="${next.id}" data-act="${QA[next.id][0][0]}">Next up · ${next.label} <b>${QA[next.id][0][1]}</b></button>`:''}</div></section>`:
-    `<section class="wins solo"><div><h2 class="h">Welcome</h2><div class="sub">Log something in any app and today's progress shows up here: minutes, workouts, calories, study streaks, P&amp;L and clean time, all on one screen.</div></div></section>`;
-  const cards=C.map((c,i)=>c?card(c):`<div class="tc-none">${UI.card({id:ids[i],title:TABS.find(x=>x.id===ids[i]).label,status:{text:'Start'},sub:[EMPTY[ids[i]]],openLabel:`Start using ${TABS.find(x=>x.id===ids[i]).label}`})}</div>`);
-  // what's still to do today first, then neutral (journal, rest day), then done; apps you haven't started at the end
-  const rank=c=>!c?3:c.done===false||c.slip?0:c.done?2:1;
-  const order=C.map((c,i)=>[rank(c),i]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]).map(x=>cards[x[1]]);
-  const html=`<div class="in"><header class="th top"><h1 class="brand">ISIONXXX <b>//</b> TODAY<span class="cur" aria-hidden="true"></span></h1><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>${ciHTML()}${top}${insHTML()}<div class="tg">${order.join('')}</div></div>`;
-  // the minute tick and every save in any app land here: only touch the page when something changed, and play the
-  // cards' entrance once, not on every refresh
-  if(html!==lastToday){lastToday=html;el.innerHTML=html}
+  const card0=(c,i)=>c?card(c):`<div class="tc-none">${UI.card({id:ids[i],title:TABS.find(x=>x.id===ids[i]).label,status:{text:'Start'},sub:[EMPTY[ids[i]]],openLabel:`Start using ${TABS.find(x=>x.id===ids[i]).label}`})}</div>`;
+  // still to do (and neutral: journal, rest day) on top; done folds into a compact list below the timeline; apps you
+  // haven't started at the very end
+  const rank=c=>!c?3:c.done===false||c.slip?0:c.done?2:1,idx=C.map((c,i)=>[rank(c),i]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
+  const group=r=>idx.filter(x=>x[0]===r||(r===0&&x[0]===1)).map(x=>card0(C[x[1]],x[1])).join('');
+  const ciDone=ciLog().some(e=>e.day===t)&&!CI,ci=ciHTML(),todo=group(0),done=group(2),unused=group(3);
+  const html=`<div class="in"><header class="th top"><h1 class="brand">ISIONXXX <b>//</b> TODAY<span class="cur" aria-hidden="true"></span></h1><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>
+    ${ciDone?'':ci}${heroHTML(wins,next)}
+    ${todo?`<div class="tg">${todo}</div>`:''}
+    ${timelineHTML(t)}
+    ${done||ciDone?`<section class="done-wrap" aria-labelledby="dn-h"><div class="tch"><h2 class="h" id="dn-h">Done today</h2><span class="st ok">${(done.match(/data-card=/g)||[]).length+(ciDone?1:0)} ✓</span></div>${ciDone?ci:''}<div class="tg done-list">${done}</div></section>`:''}
+    ${insHTML()}
+    ${unused?`<div class="tg">${unused}</div>`:''}</div>`;
+  // only touch the page when something changed; then animate from the old layout to the new one
+  if(html!==lastToday){
+    const rects={};el.querySelectorAll('[data-card]').forEach(c=>rects[c.dataset.card]=c.getBoundingClientRect());
+    lastToday=html;el.innerHTML=html;
+    animateToday(el,rects);celebrate(el,wins);firstDraw=false;
+  }
+  wins.forEach(c=>PREV.ring[c.id]=ringOf(c));
   if(!el.classList.contains('drawn'))requestAnimationFrame(()=>setTimeout(()=>el.classList.add('drawn'),400));
   if(fuelStale)preload('nutrition');
 }
@@ -499,7 +613,8 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&todayOn()
 setInterval(()=>{if(todayOn()&&!document.hidden)drawToday()},60e3);
 addEventListener('isx-sync',()=>{if(todayOn())drawToday()});
 $('#today').addEventListener('input',e=>{if(e.target.id==='ciw'&&CI)CI.w=e.target.value===''?null:Math.max(0,+e.target.value)});
-$('#today').addEventListener('click',e=>{const c=e.target.closest('[data-ci]');if(c)return ciAct(c.dataset.ci,c.dataset.v);const a=e.target.closest('[data-go]');if(a)return openAct(a.dataset.go,a.dataset.act);const b=e.target.closest('[data-open]');if(b)show(b.dataset.open)});
+$('#today').addEventListener('click',e=>{const j=e.target.closest('[data-jump]');if(j){const k=$(`#today [data-card="${j.dataset.jump}"]`);if(k){k.scrollIntoView({behavior:reduced()?'auto':'smooth',block:'center'});k.classList.remove('flash');void k.offsetWidth;k.classList.add('flash');k.querySelector('.ui-card-open')?.focus({preventScroll:true})}return}
+  const c=e.target.closest('[data-ci]');if(c)return ciAct(c.dataset.ci,c.dataset.v);const a=e.target.closest('[data-go]');if(a)return openAct(a.dataset.go,a.dataset.act);const b=e.target.closest('[data-open]');if(b)show(b.dataset.open)});
 UI.mount($('#today'));
 $('#today').addEventListener('ui-change',e=>{const k={'ci-sleep':'sleep','ci-q':'q','ci-energy':'energy'}[e.detail.name];if(k&&CI){CI[k]=e.detail.value;UI.keepFocus(drawToday)}});
 { // the bar hides on scroll here too
