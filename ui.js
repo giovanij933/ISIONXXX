@@ -193,6 +193,63 @@
     return root;
   }
 
+  /* ---------- hero: an app's day at a glance ----------
+     { key, title, sub?, big?: {value, label?}, rings: [{ key, label, value, max, display?, done? }], action?: button props }
+     Rings fill toward each goal (done = full + tick). key makes UI.animate fill them from where they were and notice a
+     ring that just completed. Rings are read as "Calories: 1,420 of 2,000".                                    */
+  function hero({ key = 'hero', title, sub, big, rings = [], action } = {}) {
+    const ring = r => {
+      const v = num(r.value), m = num(r.max), f = r.done ? 1 : v != null && m > 0 ? Math.max(0, Math.min(1, v / m)) : 0, done = r.done ?? (v != null && m > 0 && v >= m);
+      const said = r.display ?? (v != null && m != null ? `${v} of ${m}` : 'no data');
+      return `<li class="ui-ring${done ? ' ui-done' : ''}" data-ring="${esc(key + ':' + r.key)}" data-done="${done ? 1 : 0}" data-label="${esc(r.label)}">
+        <svg viewBox="0 0 44 44" aria-hidden="true"><circle class="ui-rt" cx="22" cy="22" r="18"/><circle class="ui-rf" cx="22" cy="22" r="18" pathLength="100" stroke-dasharray="0 100" data-to="${(f * 100).toFixed(1)}"/>${done ? '<path class="ui-ck" d="M15.5 22.5l4.5 4.5 8.5-9"/>' : ''}</svg>
+        <span class="ui-ring-l" aria-hidden="true">${esc(r.label)}</span><b aria-hidden="true">${esc(r.display ?? (v != null ? v : '—'))}</b>${sr(`${r.label}: ${said}${done ? ', done' : ''}`)}</li>`;
+    };
+    return `<section class="ui-hero" aria-label="${esc(title)}">
+      <div class="ui-hero-top"><div><h2>${esc(title)}</h2>${sub ? `<p class="ui-sub">${esc(sub)}</p>` : ''}</div>
+        ${big ? `<p class="ui-hero-big"><b data-count="${esc(key)}:big">${esc(big.value)}</b>${big.label ? `<span>${esc(big.label)}</span>` : ''}</p>` : ''}</div>
+      ${rings.length ? `<ul class="ui-rings">${rings.map(ring).join('')}</ul>` : ''}
+      ${action ? `<div class="ui-actions">${button({ variant: 'primary', ...action })}</div>` : ''}</section>`;
+  }
+
+  /* ---------- timeline: what happened today, in order ----------
+     { title='Today so far', items: [{ at (ms), tag?, text, tone?: 'pos'|'neg' }], empty, color? }            */
+  const TFMT = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
+  function timeline({ title = 'Today so far', items = [], empty = 'Nothing logged yet today.' } = {}) {
+    const L = items.filter(x => x && isFinite(x.at)).sort((a, b) => a.at - b.at), id = uid('tl');
+    return `<section class="ui-tl-wrap" aria-labelledby="${id}"><div class="ui-card-head"><h2 id="${id}" class="ui-tl-h">${esc(title)}</h2>${status({ text: L.length ? `${L.length} ${L.length === 1 ? 'entry' : 'entries'}` : '—' })}</div>
+      ${L.length ? `<ol class="ui-tl">${L.map(x => `<li${x.tone ? ` class="ui-${esc(x.tone)}"` : ''}><time>${TFMT.format(x.at)}</time><i aria-hidden="true"></i><span>${x.tag ? `<b>${esc(x.tag)}</b> ` : ''}${esc(x.text)}</span></li>`).join('')}</ol>` : `<p class="ui-sub">${esc(empty)}</p>`}</section>`;
+  }
+
+  /* ---------- animate: motion after a render ----------
+     UI.animate(root, { onDone(labels) }) — call after each render. Rings fill from where they were last time (from 0
+     the first time), [data-count] numbers count up from their last value, and rings that turned done since the last
+     render pop and are passed to onDone (not on the first render). Nothing moves under Reduce Motion.          */
+  const MEM = { ring: new Map(), count: new Map(), done: new Map() };
+  function countUp(node, from, to) {
+    const re = /-?\d[\d,]*(\.\d+)?/, m = to.match(re); if (!m) return;
+    const end = +m[0].replace(/,/g, ''), fm = from && from.match(re), start = fm ? +fm[0].replace(/,/g, '') : 0, dp = m[1] ? m[1].length - 1 : 0;
+    if (start === end) return;
+    const fmt = v => { const s = Math.abs(v).toFixed(dp), [i, f] = s.split('.'); return (v < 0 ? '-' : '') + (m[0].includes(',') ? Number(i).toLocaleString('en-US') : i) + (f ? '.' + f : '') };
+    const t0 = performance.now(), D = 650;
+    const step = now => { const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3); node.textContent = to.replace(re, fmt(start + (end - start) * e)); if (k < 1 && node.isConnected) requestAnimationFrame(step); else node.textContent = to };
+    requestAnimationFrame(step);
+  }
+  function animate(root = document, { onDone } = {}) {
+    const calm = matchMedia('(prefers-reduced-motion: reduce)').matches, fresh = [];
+    root.querySelectorAll('[data-ring]').forEach(li => {
+      const k = li.dataset.ring, rf = li.querySelector('.ui-rf'), to = rf.dataset.to, from = MEM.ring.get(k), wasDone = MEM.done.get(k), done = li.dataset.done === '1';
+      MEM.ring.set(k, to); MEM.done.set(k, done);
+      if (calm) { rf.setAttribute('stroke-dasharray', `${to} 100`); return }
+      rf.setAttribute('stroke-dasharray', `${from ?? 0} 100`);
+      requestAnimationFrame(() => requestAnimationFrame(() => rf.setAttribute('stroke-dasharray', `${to} 100`)));
+      if (done && wasDone === false) { li.classList.add('ui-pop'); fresh.push(li.dataset.label) }
+    });
+    root.querySelectorAll('[data-count]').forEach(n => { const k = n.dataset.count, now = n.textContent, was = MEM.count.get(k); MEM.count.set(k, now); if (!calm && was !== now) countUp(n, was ?? null, now) });
+    if (fresh.length && onDone) onDone(fresh);
+    return fresh;
+  }
+
   /* ---------- keepFocus: re-render without losing the keyboard user's place ----------
      UI.keepFocus(render) — apps re-render with innerHTML after a change, which drops focus to <body>. This puts it
      back on the same control (same group name and value, the same stepper part, or the same id).            */
@@ -209,5 +266,5 @@
     if (t && t.isConnected) t.focus({ preventScroll: true });
   }
 
-  window.UI = { keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, mount, version: '1.0.0' };
+  window.UI = { hero, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, mount, version: '1.0.0' };
 })();
