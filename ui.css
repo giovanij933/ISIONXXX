@@ -178,3 +178,13 @@ svg.ui-draw polygon,svg.ui-draw path:not(.ui-trace){animation:ui-fade .8s ease b
   .ui-hero:has(.ui-hero-log)>.ui-hero-log::before{top:8px}
   .ui-hero:not(:has(.ui-hero-log))>.ui-rings,.ui-hero:not(:has(.ui-hero-log))>.ui-actions{max-width:640px}
 }
+
+/* settings dialog rows: label and hint on the left, the control on the right */
+.ui-set{margin:6px 0 4px;min-width:min(440px,calc(100vw - 72px))}
+.ui-set>div{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-top:1px solid var(--ui-line)}
+.ui-set>div:first-child{border-top:0}
+.ui-set b{display:block;font-weight:500;font-size:13px;color:var(--ui-tx);letter-spacing:.02em}
+.ui-set small{display:block;margin-top:2px;font-size:11px;color:var(--ui-dim);line-height:1.4}
+.ui-set-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;flex:none}
+.ui-set select{flex:none}
+button.ui-danger{color:var(--ui-red);border-color:rgba(255,69,69,.45)}button.ui-danger:hover{background:rgba(255,69,69,.1);border-color:var(--ui-red);color:var(--ui-red)}
