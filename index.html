@@ -599,7 +599,7 @@ function drawToday(){
   if(html!==lastToday){
     const rects={};el.querySelectorAll('[data-card]').forEach(c=>rects[c.dataset.card]=c.getBoundingClientRect());
     lastToday=html;el.innerHTML=html;
-    animateToday(el,rects);celebrate(el,wins);firstDraw=false;
+    animateToday(el,rects);celebrate(el,wins);UI.animate(el);firstDraw=false;
   }
   wins.forEach(c=>PREV.ring[c.id]=ringOf(c));
   if(!el.classList.contains('drawn'))requestAnimationFrame(()=>setTimeout(()=>el.classList.add('drawn'),400));
@@ -621,7 +621,11 @@ $('#today').addEventListener('ui-change',e=>{const k={'ci-sleep':'sleep','ci-q':
   const el=$('#today');let y0=0;
   el.addEventListener('scroll',()=>{const y=el.scrollTop;if(Math.abs(y-y0)<8)return;const end=y+el.clientHeight>=el.scrollHeight-4;if(todayOn())setBar(y>y0&&y>40&&!end);y0=y},{passive:true});
 }
-$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(b)show(b.dataset.t)});
+// tapping the tab you're already on scrolls it back to the top, like iOS
+$('#tabs').addEventListener('click',e=>{const b=e.target.closest('[data-t]');if(!b)return;
+  if(b.dataset.t===cur){const beh=matchMedia('(prefers-reduced-motion: reduce)').matches?'auto':'smooth';
+    if(cur==='today')$('#today').scrollTo({top:0,behavior:beh});else try{document.getElementById('f-'+cur).contentWindow.scrollTo({top:0,behavior:beh})}catch(x){}return}
+  show(b.dataset.t)});
 // an app asks to open another one (e.g. REWIRE's OPEN buttons): switch tabs instead of opening a new window
 addEventListener('message',e=>{
   if(e.origin!==location.origin||!e.data||e.data.isx!=='open')return;
