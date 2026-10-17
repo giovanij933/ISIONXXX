@@ -155,3 +155,6 @@ svg.ui-draw .ui-grow{transform-box:fill-box;transform-origin:50% 100%;animation:
 svg.ui-draw polygon,svg.ui-draw path:not(.ui-trace){animation:ui-fade .8s ease both}
 @keyframes ui-fade{from{opacity:0}}
 @media(prefers-reduced-motion:reduce){.ui-ghost-bd,.ui-ghost-box,.ui-ghost-sheet,.ui-new,svg.ui-draw *{animation:none!important}}
+
+/* hero log: today's entries inside the Today card, under the rings */
+.ui-hero-log{margin:14px 0 0;padding-top:8px;border-top:1px solid var(--ui-line)}.ui-hero-log::before{top:16px}.ui-hero .ui-tl i{box-shadow:0 0 0 3px #0e0d0a}
