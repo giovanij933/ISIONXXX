@@ -258,7 +258,7 @@
     root.querySelectorAll('svg.chart').forEach((c, i) => {
       const sig = c.innerHTML.length + ':' + c.innerHTML.slice(0, 160), k = (root.id || 'r') + i;
       if (MEM.chart.get(k) === sig) return; MEM.chart.set(k, sig); if (calm) return;
-      c.querySelectorAll('polyline, path').forEach(l => { const f = l.getAttribute('fill'); if (l.tagName === 'polyline' || f === 'none') { l.setAttribute('pathLength', '1'); l.classList.add('ui-trace') } });
+      c.querySelectorAll('polyline, path').forEach(l => { const f = l.getAttribute('fill'); if (l.tagName === 'polyline' || f === 'none') l.classList.add('ui-trace') });
       const bars = c.querySelectorAll('rect'); bars.forEach((r, j) => { r.classList.add('ui-grow'); r.style.animationDelay = Math.min(j * 18, 400) + 'ms' });
       c.classList.remove('ui-draw'); void c.getBoundingClientRect(); c.classList.add('ui-draw');
     });
