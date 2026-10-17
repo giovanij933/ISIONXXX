@@ -194,7 +194,7 @@
   }
 
   /* ---------- hero: an app's day at a glance ----------
-     { key, title, sub?, big?: {value, label?}, rings: [{ key, label, value, max, display?, done? }], action?: button props,
+     { key, title, sub?, big?: {value, label?, tone?: 'pos'|'neg'}, rings: [{ key, label, value, max, display?, done? }], action?: button props,
        log?: today's entries, listed in the card in time order ({ at, tag?, text, tone? }, as in timeline) }
      Rings fill toward each goal (done = full + tick). key makes UI.animate fill them from where they were and notice a
      ring that just completed. Rings are read as "Calories: 1,420 of 2,000".                                    */
@@ -211,10 +211,15 @@
     };
     return `<section class="ui-hero" aria-label="${esc(title)}">
       <div class="ui-hero-top"><div><h2>${esc(title)}</h2>${sub ? `<p class="ui-sub">${esc(sub)}</p>` : ''}</div>
-        ${big ? `<p class="ui-hero-big"><b data-count="${esc(key)}:big">${esc(big.value)}</b>${big.label ? `<span>${esc(big.label)}</span>` : ''}</p>` : ''}</div>
+        ${big ? `<p class="ui-hero-big"><b data-count="${esc(key)}:big"${big.tone === 'pos' || big.tone === 'neg' ? ` class="ui-${big.tone}"` : ''}>${esc(big.value)}</b>${big.label ? `<span>${esc(big.label)}</span>` : ''}</p>` : ''}</div>
       ${rings.length ? `<ul class="ui-rings">${rings.map(ring).join('')}</ul>` : ''}
       ${action ? `<div class="ui-actions">${button({ variant: 'primary', ...action })}</div>` : ''}
-      ${(log = tlRows(log)) ? `<ol class="ui-tl ui-hero-log" aria-label="Logged ${esc(String(title).toLowerCase())}">${log}</ol>` : `<p class="ui-hero-none">Nothing logged yet ${esc(String(title).toLowerCase())}. It shows up here as you go.</p>`}</section>`;
+      ${(() => {
+        // today's entries, in a side panel on wide screens (header + count, or a placeholder until there are some)
+        const n = log.filter(x => x && isFinite(x.at)).length, rows = tlRows(log), when = esc(String(title).toLowerCase()), hid = uid('hl');
+        return `<div class="ui-hero-side${n ? '' : ' ui-empty'}"><div class="ui-hero-side-h"><span id="${hid}">Logged ${when}</span>${n ? `<span>${n} ${n === 1 ? 'entry' : 'entries'}</span>` : ''}</div>
+          ${n ? `<ol class="ui-tl ui-hero-log" aria-labelledby="${hid}">${rows}</ol>` : `<p class="ui-hero-none">Nothing logged yet ${when}. It shows up here as you go.</p>`}</div>`;
+      })()}</section>`;
   }
 
   /* ---------- timeline: what happened today, in order ----------

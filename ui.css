@@ -111,7 +111,7 @@
 .ui-hero{position:relative;overflow:hidden;background:radial-gradient(120% 90% at 0% 0%,rgba(255,176,0,.10),transparent 60%),var(--ui-panel);border:1px solid var(--ui-line);padding:18px 16px 16px;margin-bottom:12px;color:var(--ui-tx);font-family:var(--ui-f)}
 .ui-hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .ui-hero h2{margin:0;font:600 18px var(--ui-f);letter-spacing:.02em}.ui-hero .ui-sub{margin-top:4px}
-.ui-hero-big{margin:0;text-align:right;font-size:11px;color:var(--ui-dim)}.ui-hero-big b{display:block;font-size:26px;line-height:1.1;color:var(--ui-amber);font-weight:600}.ui-hero-big span{display:block;margin-top:2px}
+.ui-hero-big{margin:0;text-align:right;font-size:11px;color:var(--ui-dim)}.ui-hero-big b{display:block;font-size:26px;line-height:1.1;color:var(--ui-amber);font-weight:600}.ui-hero-big span{display:block;margin-top:2px}.ui-hero-big b.ui-pos{color:var(--ui-green)}.ui-hero-big b.ui-neg{color:var(--ui-red)}
 /* rings sit in three fixed slots under the title: the same spacing at every width and in every app (an app with two
    rings fills the first two), instead of spreading across whatever width the card has */
 .ui-rings{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px;margin:16px 0 2px;padding:0;list-style:none}
@@ -162,7 +162,8 @@ svg.ui-draw polygon,svg.ui-draw path:not(.ui-trace){animation:ui-fade .8s ease b
 @media(prefers-reduced-motion:reduce){.ui-ghost-bd,.ui-ghost-box,.ui-ghost-sheet,.ui-new,svg.ui-draw *{animation:none!important}}
 
 /* hero log: today's entries inside the Today card, under the rings */
-.ui-hero-log{margin:14px 0 0;padding-top:8px;border-top:1px solid var(--ui-line)}.ui-hero-log::before{top:16px}.ui-hero .ui-tl i{box-shadow:0 0 0 3px #0e0d0a}
+.ui-hero-side{margin:14px 0 0;padding-top:8px;border-top:1px solid var(--ui-line)}.ui-hero-side.ui-empty{display:none}
+.ui-hero-side-h{display:none}.ui-hero-log{margin:0}.ui-hero-log::before{top:8px}.ui-hero .ui-tl i{box-shadow:0 0 0 3px #0e0d0a}
 
 /* app header on phones: name and sync status on one row, the buttons in one swipeable row under it */
 @media (max-width:640px){
@@ -175,15 +176,16 @@ svg.ui-draw polygon,svg.ui-draw path:not(.ui-trace){animation:ui-fade .8s ease b
 /* wide screens: the Today card in two columns. Left (at most 520 px): title and big number, the rings spread evenly
    across that width and the button the same width under them. Right: today's entries, or a quiet placeholder until
    there are some, so the card never has a hole in the middle. On phones it stays one column and the placeholder hides. */
-.ui-hero-none{display:none}
+.ui-hero-none{margin:0;color:var(--ui-dim);font-size:12px}
 @media (min-width:700px){
   .ui-hero{display:grid;grid-template-columns:minmax(0,520px) minmax(240px,1fr);column-gap:40px;align-items:start}
   .ui-hero>*{grid-column:1}
-  .ui-hero>.ui-hero-log,.ui-hero>.ui-hero-none{grid-column:2;grid-row:1/span 3;margin:0;align-self:stretch}
-  .ui-hero>.ui-hero-log{padding-top:0;border-top:0;align-self:start}
-  .ui-hero>.ui-hero-log::before{top:8px}
-  .ui-hero-none{display:flex;align-items:center;justify-content:center;text-align:center;border:1px dashed var(--ui-line2);color:var(--ui-dim);font-size:12px;padding:16px;margin:0}
-}
+  .ui-hero>.ui-hero-side,.ui-hero>.ui-hero-side.ui-empty{grid-column:2;grid-row:1/span 3;align-self:stretch;display:flex;flex-direction:column;margin:0;
+    padding:12px 16px 10px;border:1px solid var(--ui-line);background:rgba(0,0,0,.22)}
+  .ui-hero-side-h{display:flex;justify-content:space-between;gap:12px;margin-bottom:6px;font:600 10.5px var(--ui-f);letter-spacing:.14em;text-transform:uppercase;color:var(--ui-amber)}
+  .ui-hero-side-h span+span{color:var(--ui-dim);font-weight:500;letter-spacing:.08em}
+  .ui-hero .ui-tl i{box-shadow:0 0 0 3px #090908}
+  .ui-hero-none{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px}
 }
 
 /* settings dialog rows: label and hint on the left, the control on the right */
