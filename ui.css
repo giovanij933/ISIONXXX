@@ -112,7 +112,10 @@
 .ui-hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .ui-hero h2{margin:0;font:600 18px var(--ui-f);letter-spacing:.02em}.ui-hero .ui-sub{margin-top:4px}
 .ui-hero-big{margin:0;text-align:right;font-size:11px;color:var(--ui-dim)}.ui-hero-big b{display:block;font-size:26px;line-height:1.1;color:var(--ui-amber);font-weight:600}.ui-hero-big span{display:block;margin-top:2px}
-.ui-rings{display:grid;grid-template-columns:repeat(auto-fit,minmax(78px,1fr));gap:8px;margin:16px 0 2px;padding:0;list-style:none}
+/* rings sit in three fixed slots under the title: the same spacing at every width and in every app (an app with two
+   rings fills the first two), instead of spreading across whatever width the card has */
+.ui-rings{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px;margin:16px 0 2px;padding:0;list-style:none;max-width:380px}
+.ui-rings:has(>:nth-child(4)){grid-template-columns:repeat(4,minmax(0,1fr));max-width:500px}
 .ui-ring{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
 .ui-ring svg{width:56px;height:56px;transform:rotate(-90deg);overflow:visible}
 .ui-ring circle{fill:none;stroke-width:4.5}.ui-rt{stroke:#1d1d1d}
@@ -177,7 +180,7 @@ svg.ui-draw polygon,svg.ui-draw path:not(.ui-trace){animation:ui-fade .8s ease b
   .ui-hero:has(.ui-hero-log)>*{grid-column:1}
   .ui-hero:has(.ui-hero-log)>.ui-hero-log{grid-column:2;grid-row:1/span 3;margin:0;padding-top:0;border-top:0;align-self:start}
   .ui-hero:has(.ui-hero-log)>.ui-hero-log::before{top:8px}
-  .ui-hero:not(:has(.ui-hero-log))>.ui-rings,.ui-hero:not(:has(.ui-hero-log))>.ui-actions{max-width:640px}
+  .ui-hero:not(:has(.ui-hero-log))>.ui-actions{max-width:640px}
 }
 
 /* settings dialog rows: label and hint on the left, the control on the right */
