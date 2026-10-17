@@ -194,10 +194,14 @@
   }
 
   /* ---------- hero: an app's day at a glance ----------
-     { key, title, sub?, big?: {value, label?}, rings: [{ key, label, value, max, display?, done? }], action?: button props }
+     { key, title, sub?, big?: {value, label?}, rings: [{ key, label, value, max, display?, done? }], action?: button props,
+       log?: today's entries, listed in the card in time order ({ at, tag?, text, tone? }, as in timeline) }
      Rings fill toward each goal (done = full + tick). key makes UI.animate fill them from where they were and notice a
      ring that just completed. Rings are read as "Calories: 1,420 of 2,000".                                    */
-  function hero({ key = 'hero', title, sub, big, rings = [], action } = {}) {
+  // timeline rows, shared by hero's log and timeline()
+  const tlRows = items => items.filter(x => x && isFinite(x.at)).sort((a, b) => a.at - b.at)
+    .map(x => `<li${x.tone ? ` class="ui-${esc(x.tone)}"` : ''}><time>${TFMT.format(x.at)}</time><i aria-hidden="true"></i><span>${x.tag ? `<b>${esc(x.tag)}</b> ` : ''}${esc(x.text)}</span></li>`).join('');
+  function hero({ key = 'hero', title, sub, big, rings = [], action, log = [] } = {}) {
     const ring = r => {
       const v = num(r.value), m = num(r.max), f = r.done ? 1 : v != null && m > 0 ? Math.max(0, Math.min(1, v / m)) : 0, done = r.done ?? (v != null && m > 0 && v >= m);
       const said = r.display ?? (v != null && m != null ? `${v} of ${m}` : 'no data');
@@ -209,16 +213,17 @@
       <div class="ui-hero-top"><div><h2>${esc(title)}</h2>${sub ? `<p class="ui-sub">${esc(sub)}</p>` : ''}</div>
         ${big ? `<p class="ui-hero-big"><b data-count="${esc(key)}:big">${esc(big.value)}</b>${big.label ? `<span>${esc(big.label)}</span>` : ''}</p>` : ''}</div>
       ${rings.length ? `<ul class="ui-rings">${rings.map(ring).join('')}</ul>` : ''}
-      ${action ? `<div class="ui-actions">${button({ variant: 'primary', ...action })}</div>` : ''}</section>`;
+      ${action ? `<div class="ui-actions">${button({ variant: 'primary', ...action })}</div>` : ''}
+      ${(log = tlRows(log)) ? `<ol class="ui-tl ui-hero-log" aria-label="Logged ${esc(String(title).toLowerCase())}">${log}</ol>` : ''}</section>`;
   }
 
   /* ---------- timeline: what happened today, in order ----------
      { title='Today so far', items: [{ at (ms), tag?, text, tone?: 'pos'|'neg' }], empty, color? }            */
   const TFMT = new Intl.DateTimeFormat('en-US', { hour: 'numeric', minute: '2-digit' });
   function timeline({ title = 'Today so far', items = [], empty = 'Nothing logged yet today.' } = {}) {
-    const L = items.filter(x => x && isFinite(x.at)).sort((a, b) => a.at - b.at), id = uid('tl');
+    const L = items.filter(x => x && isFinite(x.at)), id = uid('tl');
     return `<section class="ui-tl-wrap" aria-labelledby="${id}"><div class="ui-card-head"><h2 id="${id}" class="ui-tl-h">${esc(title)}</h2>${status({ text: L.length ? `${L.length} ${L.length === 1 ? 'entry' : 'entries'}` : '—' })}</div>
-      ${L.length ? `<ol class="ui-tl">${L.map(x => `<li${x.tone ? ` class="ui-${esc(x.tone)}"` : ''}><time>${TFMT.format(x.at)}</time><i aria-hidden="true"></i><span>${x.tag ? `<b>${esc(x.tag)}</b> ` : ''}${esc(x.text)}</span></li>`).join('')}</ol>` : `<p class="ui-sub">${esc(empty)}</p>`}</section>`;
+      ${L.length ? `<ol class="ui-tl">${tlRows(L)}</ol>` : `<p class="ui-sub">${esc(empty)}</p>`}</section>`;
   }
 
   /* ---------- animate: motion after a render ----------
