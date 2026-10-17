@@ -296,7 +296,7 @@
   const css = document.createElement('style');
   css.textContent = `#isx-sync{position:fixed;left:max(10px,env(safe-area-inset-left));bottom:calc(10px + env(safe-area-inset-bottom));z-index:8;
     font:11px/1 'IBM Plex Mono',ui-monospace,monospace;letter-spacing:.08em;background:#0c0c0c;color:#8f8a7e;border:1px solid #2c2c2c;padding:6px 8px;cursor:pointer;border-radius:0}
-  #isx-sync.inl{position:static;flex:none;font-size:12px;padding:7px 10px;background:#070707}
+  #isx-sync.inl{position:static;flex:none;font-size:12px;padding:7px 10px;background:#070707;margin-left:auto}
   #isx-sync:hover{border-color:#ffb000;color:#ffb000}#isx-sync i{display:inline-block;width:7px;height:7px;margin-right:6px;background:#3a3a3a;vertical-align:0}
   #isx-sync.ok i{background:#33ff66}#isx-sync.busy i{background:#ffb000}#isx-sync.error i{background:#ff4545}#isx-sync.error{color:#ff4545}
   #isx-sd{margin:auto;max-height:calc(100% - 24px);overflow:auto;background:#0c0c0c;color:#d9d5c8;border:1px solid #ffb000;padding:20px;width:min(520px,calc(100vw - 24px));font:13px/1.5 'IBM Plex Mono',ui-monospace,monospace;border-radius:0}
@@ -318,7 +318,7 @@
   badge.id = 'isx-sync'; badge.type = 'button'; badge.setAttribute('aria-label', 'Sync settings');
   const ago = t => { const s = Math.round((Date.now() - t) / 1000); return s < 60 ? 'now' : s < 3600 ? Math.round(s / 60) + 'm' : Math.round(s / 3600) + 'h' };
   function paint() {
-    badge.className = (state === 'ok' ? 'ok' : state === 'busy' ? 'busy' : state === 'error' ? 'error' : '') + (badge.parentNode?.matches?.('.acts') ? ' inl' : '');
+    badge.className = (state === 'ok' ? 'ok' : state === 'busy' ? 'busy' : state === 'error' ? 'error' : '') + (badge.parentNode?.matches?.('header.top, .acts') ? ' inl' : '');
     badge.innerHTML = '<i></i>' + ({ off: 'SYNC OFF', busy: 'SYNCING', ok: 'SYNCED ' + ago(last), error: 'SYNC ERROR', offline: 'OFFLINE', idle: 'SYNC' }[state] || 'SYNC');
     badge.title = msg || '';
   }
@@ -366,10 +366,11 @@
   }
   badge.onclick = dialog;
 
-  // the badge sits in the app's header with its other buttons; floating bottom-left only if there is no header
+  // the badge sits in the app's header; floating bottom-left only if there is no header
   function place() {
+    // next to the app's name, just before its buttons, so sync status stays visible when the buttons scroll
     const acts = document.querySelector('header.top .acts');
-    if (acts) { badge.classList.add('inl'); acts.appendChild(badge) } else { badge.classList.remove('inl'); document.body.appendChild(badge) }
+    if (acts) { badge.classList.add('inl'); acts.before(badge) } else { badge.classList.remove('inl'); document.body.appendChild(badge) }
   }
   function start() {
     document.head.appendChild(css); place(); paint();
