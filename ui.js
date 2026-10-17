@@ -214,7 +214,12 @@
         ${big ? `<p class="ui-hero-big"><b data-count="${esc(key)}:big">${esc(big.value)}</b>${big.label ? `<span>${esc(big.label)}</span>` : ''}</p>` : ''}</div>
       ${rings.length ? `<ul class="ui-rings">${rings.map(ring).join('')}</ul>` : ''}
       ${action ? `<div class="ui-actions">${button({ variant: 'primary', ...action })}</div>` : ''}
-      ${(log = tlRows(log)) ? `<ol class="ui-tl ui-hero-log" aria-label="Logged ${esc(String(title).toLowerCase())}">${log}</ol>` : `<p class="ui-hero-none">Nothing logged yet ${esc(String(title).toLowerCase())}. It shows up here as you go.</p>`}</section>`;
+      ${(() => {
+        // today's entries, in a side panel on wide screens (header + count, or a placeholder until there are some)
+        const n = log.filter(x => x && isFinite(x.at)).length, rows = tlRows(log), when = esc(String(title).toLowerCase()), hid = uid('hl');
+        return `<div class="ui-hero-side${n ? '' : ' ui-empty'}"><div class="ui-hero-side-h"><span id="${hid}">Logged ${when}</span>${n ? `<span>${n} ${n === 1 ? 'entry' : 'entries'}</span>` : ''}</div>
+          ${n ? `<ol class="ui-tl ui-hero-log" aria-labelledby="${hid}">${rows}</ol>` : `<p class="ui-hero-none">Nothing logged yet ${when}. It shows up here as you go.</p>`}</div>`;
+      })()}</section>`;
   }
 
   /* ---------- timeline: what happened today, in order ----------
