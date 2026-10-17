@@ -74,6 +74,7 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 .ring svg{width:52px;height:52px;transform:rotate(-90deg);overflow:visible}
 .ring circle{fill:none;stroke-width:4.5}.ring .rt{stroke:#1d1d1d}
 .ring .rf{stroke:var(--amber);stroke-linecap:round;transition:stroke-dasharray 1s cubic-bezier(.2,.8,.2,1),stroke .3s}
+.ring .rf[data-to="0.0"]{stroke:transparent}
 .ring.done .rf{stroke:var(--green)}.ring.done{color:var(--tx)}.ring.rest .rf{stroke:#5a5a5a}
 .ring .ck{fill:none;stroke:var(--green);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transform:rotate(90deg);transform-origin:22px 22px;stroke-dasharray:20;stroke-dashoffset:0;animation:ck .5s .5s cubic-bezier(.2,.8,.2,1) both}
 @keyframes ck{from{stroke-dashoffset:20}}
@@ -348,7 +349,8 @@ function tJournal(){
   const net=x=>(x.exit-x.entry)*(x.side==='Short'?-1:1)*x.qty*x.mult-(+x.fee||0)-(+x.comm||0);
   const now=tday(Date.now()),D={};T.forEach(x=>{D[tday(x.close)]=(D[tday(x.close)]||0)+net(x)});
   const N=T.filter(x=>tday(x.close)===now),pnl=N.reduce((a,x)=>a+net(x),0),w=N.filter(x=>net(x)>0).length;
-  const nd=new Date(now+'T12:00:00');nd.setDate(nd.getDate()-nd.getDay());const ws=ymd(nd);
+  // trading weeks run Monday to Friday; the weekend still shows the week that just ended (same as JOURNAL)
+  const nd=new Date(now+'T12:00:00');nd.setDate(nd.getDate()-(nd.getDay()+6)%7);const ws=ymd(nd);
   const wk=Object.entries(D).filter(([d])=>d>=ws&&d<=now).reduce((a,[,v])=>a+v,0);
   return {id:'journal',label:'JOURNAL',done:null,big:N.length?money(pnl):'No trades',bigCls:N.length?(pnl>0?'pos':pnl<0?'neg':''):'',
     sub:[N.length?`${plural(N.length,'trade')} · ${w} won`:'',`week <b class="${wk>0?'pos':wk<0?'neg':''}">${money(wk)}</b>`],
