@@ -134,3 +134,24 @@
 .ui-tl li.ui-pos i{background:var(--ui-green)}.ui-tl li.ui-neg i{background:var(--ui-red)}
 .ui-tl b{font-size:10px;letter-spacing:.12em;color:var(--ui-dim);font-weight:600;margin-right:4px;text-transform:uppercase}
 @media(prefers-reduced-motion:reduce){.ui-rf,.ui-ck,.ui-ring.ui-pop svg{animation:none!important;transition:none!important}}
+
+/* fluid: exits, new entries, charts */
+.ui-ghost-bd{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2147483645;pointer-events:none;animation:ui-out .26s ease forwards}
+/* the exit copy outranks the dialogs' own entrance rules, and its insides don't replay their fade-in */
+.ui-ghost.ui-ghost-box{animation:ui-box-out .22s cubic-bezier(.4,0,1,1) forwards!important}
+.ui-ghost.ui-ghost-sheet{animation:ui-sheet-out .3s cubic-bezier(.4,0,1,1) forwards!important}
+.ui-ghost *{animation:none!important;transition:none!important}
+@keyframes ui-out{to{opacity:0}}
+@keyframes ui-box-out{to{opacity:0;transform:translateY(14px) scale(.98)}}
+@keyframes ui-sheet-out{to{opacity:0;transform:translateY(40%)}}
+.ui-tl li.ui-new{animation:ui-new 1.6s var(--ui-ease)}
+.ui-tl li.ui-new i,.tl li.ui-new i{animation:ui-dot 1.6s ease}
+@keyframes ui-new{from{opacity:0;transform:translateX(-10px);background:rgba(255,176,0,.14)}30%{opacity:1;transform:none;background:rgba(255,176,0,.10)}to{background:transparent}}
+@keyframes ui-dot{0%,40%{box-shadow:0 0 0 3px var(--ui-panel),0 0 12px 3px var(--ui-amber)}}
+svg.ui-draw .ui-trace{stroke-dasharray:1;stroke-dashoffset:1;animation:ui-trace .9s var(--ui-ease) forwards}
+@keyframes ui-trace{to{stroke-dashoffset:0}}
+svg.ui-draw .ui-grow{transform-box:fill-box;transform-origin:50% 100%;animation:ui-grow .55s var(--ui-ease) both}
+@keyframes ui-grow{from{transform:scaleY(0)}}
+svg.ui-draw polygon,svg.ui-draw path:not(.ui-trace){animation:ui-fade .8s ease both}
+@keyframes ui-fade{from{opacity:0}}
+@media(prefers-reduced-motion:reduce){.ui-ghost-bd,.ui-ghost-box,.ui-ghost-sheet,.ui-new,svg.ui-draw *{animation:none!important}}

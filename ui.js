@@ -225,7 +225,7 @@
      UI.animate(root, { onDone(labels) }) — call after each render. Rings fill from where they were last time (from 0
      the first time), [data-count] numbers count up from their last value, and rings that turned done since the last
      render pop and are passed to onDone (not on the first render). Nothing moves under Reduce Motion.          */
-  const MEM = { ring: new Map(), count: new Map(), done: new Map() };
+  const MEM = { ring: new Map(), count: new Map(), done: new Map(), tl: new Set(), tlInit: false, chart: new Map() };
   function countUp(node, from, to) {
     const re = /-?\d[\d,]*(\.\d+)?/, m = to.match(re); if (!m) return;
     const end = +m[0].replace(/,/g, ''), fm = from && from.match(re), start = fm ? +fm[0].replace(/,/g, '') : 0, dp = m[1] ? m[1].length - 1 : 0;
@@ -245,10 +245,87 @@
       requestAnimationFrame(() => requestAnimationFrame(() => rf.setAttribute('stroke-dasharray', `${to} 100`)));
       if (done && wasDone === false) { li.classList.add('ui-pop'); fresh.push(li.dataset.label) }
     });
+    // timeline entries that weren't there last render slide in with a glow (never on the first render)
+    root.querySelectorAll('.ui-tl li, .tl li').forEach(li => {
+      const k = li.textContent; if (MEM.tlInit && !MEM.tl.has(k) && !calm) li.classList.add('ui-new'); MEM.tl.add(k);
+    }); MEM.tlInit = true;
+    // charts draw themselves in when they first appear or their data changes: lines trace, bars grow, areas fade
+    root.querySelectorAll('svg.chart').forEach((c, i) => {
+      const sig = c.innerHTML.length + ':' + c.innerHTML.slice(0, 160), k = (root.id || 'r') + i;
+      if (MEM.chart.get(k) === sig) return; MEM.chart.set(k, sig); if (calm) return;
+      c.querySelectorAll('polyline, path').forEach(l => { const f = l.getAttribute('fill'); if (l.tagName === 'polyline' || f === 'none') { l.setAttribute('pathLength', '1'); l.classList.add('ui-trace') } });
+      const bars = c.querySelectorAll('rect'); bars.forEach((r, j) => { r.classList.add('ui-grow'); r.style.animationDelay = Math.min(j * 18, 400) + 'ms' });
+      c.classList.remove('ui-draw'); void c.getBoundingClientRect(); c.classList.add('ui-draw');
+    });
     root.querySelectorAll('[data-count]').forEach(n => { const k = n.dataset.count, now = n.textContent, was = MEM.count.get(k); MEM.count.set(k, now); if (!calm && was !== now) countUp(n, was ?? null, now) });
     if (fresh.length && onDone) onDone(fresh);
     return fresh;
   }
+
+  /* ---------- fluid: installed once when ui.js loads, for every page that uses it ----------
+     - Dialogs and the apps' .modal boxes animate out when they close instead of vanishing. The real element closes
+       at once (so app code that reopens or checks .open keeps working) and a short-lived copy plays the exit.
+     - Swipe down on a dialog to dismiss it, like an iOS sheet: only when it is scrolled to the top, never for session
+       sheets (.ss: a live session), never once you've typed in it, and never if the app cancels it ('cancel' event).
+     All of it is skipped under Reduce Motion.                                                                      */
+  const calm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  function ghost(el, rect, { sheet, dy = 0 } = {}) {
+    if (calm() || !rect.width || !rect.height) return;
+    const g = el.cloneNode(true), cs = getComputedStyle(el);
+    g.querySelectorAll('[id]').forEach(x => x.removeAttribute('id')); g.removeAttribute('id');
+    g.setAttribute('aria-hidden', 'true'); g.inert = true;
+    if (g.tagName === 'DIALOG') g.setAttribute('open', '');
+    Object.assign(g.style, { position: 'fixed', left: rect.left + 'px', top: rect.top + 'px', width: rect.width + 'px', height: rect.height + 'px', margin: '0', maxHeight: 'none', maxWidth: 'none', inset: 'auto', zIndex: 2147483646, pointerEvents: 'none', background: cs.backgroundColor, overflow: 'hidden', transform: `translateY(${dy}px)`, animation: 'none' });
+    g.classList.add('ui-ghost', sheet ? 'ui-ghost-sheet' : 'ui-ghost-box');
+    const bd = document.createElement('div'); bd.className = 'ui-ghost-bd'; bd.setAttribute('aria-hidden', 'true');
+    document.body.append(bd, g); g.scrollTop = el.scrollTop;
+    setTimeout(() => { g.remove(); bd.remove() }, 320);
+  }
+  function installFluid() {
+    if (window.__uiFluid || typeof HTMLDialogElement === 'undefined') return; window.__uiFluid = true;
+    const close = HTMLDialogElement.prototype.close;
+    HTMLDialogElement.prototype.close = function (v) {
+      if (this.open) { const r = this.getBoundingClientRect(), dy = this.__dy || 0; this.__dy = 0; this.style.transform = ''; close.call(this, v); ghost(this, r, { sheet: this.classList.contains('ss'), dy }) }
+      else close.call(this, v);
+    };
+    // the apps' .modal overlays (NUTRITION, LEARN) close by gaining .hidden
+    new MutationObserver(ms => ms.forEach(m => {
+      const el = m.target;
+      if (m.oldValue && !/\bhidden\b/.test(m.oldValue) && el.classList.contains('hidden') && el.classList.contains('modal')) {
+        const box = el.querySelector('.box'); if (box && el.__rect) ghost(box, el.__rect, { sheet: box.classList.contains('ss') });
+      }
+    })).observe(document.documentElement, { subtree: true, attributes: true, attributeFilter: ['class'], attributeOldValue: true });
+    // remember where an open .modal box sits, so its exit can start from there
+    setInterval(() => document.querySelectorAll('.modal:not(.hidden)').forEach(m => { const b = m.querySelector('.box'); if (b) m.__rect = b.getBoundingClientRect() }), 250);
+    // swipe down to dismiss
+    let drag = null;
+    document.addEventListener('input', e => { const d = e.target.closest && e.target.closest('dialog'); if (d) d.__dirty = true }, true);
+    document.addEventListener('touchstart', e => {
+      const d = e.target.closest && e.target.closest('dialog[open]');
+      if (!d || d.classList.contains('ss') || d.__dirty || d.scrollTop > 0 || e.touches.length > 1) return;
+      if (e.target.closest('input,textarea,select,[contenteditable],.tw,pre')) return;
+      drag = { d, y0: e.touches[0].clientY, t0: Date.now(), dy: 0 };
+    }, { passive: true });
+    document.addEventListener('touchmove', e => {
+      if (!drag) return; const dy = e.touches[0].clientY - drag.y0;
+      if (dy < 0 || drag.d.scrollTop > 0) { drag.d.style.transform = ''; return }
+      drag.dy = dy; drag.d.style.transition = 'none'; drag.d.style.transform = `translateY(${dy * .85}px)`;
+    }, { passive: true });
+    document.addEventListener('touchend', () => {
+      if (!drag) return; const { d, dy, t0 } = drag; drag = null;
+      const fast = dy > 60 && dy / (Date.now() - t0) > .6;
+      if (dy > 140 || fast) {
+        const ev = new Event('cancel', { cancelable: true });
+        if (d.dispatchEvent(ev)) { d.__dy = dy * .85; d.close(); return }
+      }
+      d.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1)'; d.style.transform = '';
+      setTimeout(() => { d.style.transition = '' }, 260);
+    });
+    // a fresh open starts clean
+    const show = HTMLDialogElement.prototype.showModal;
+    HTMLDialogElement.prototype.showModal = function () { this.__dirty = false; this.style.transform = ''; return show.call(this) };
+  }
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installFluid); else installFluid();
 
   /* ---------- keepFocus: re-render without losing the keyboard user's place ----------
      UI.keepFocus(render) — apps re-render with innerHTML after a change, which drops focus to <body>. This puts it
