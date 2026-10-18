@@ -217,3 +217,35 @@ button.ui-danger{color:var(--ui-red);border-color:rgba(255,69,69,.45)}button.ui-
 @media (min-width:1280px){:is(#app,#top) .g21>:first-child,:is(#app,#top) .gm>:first-child{grid-column:span 3}}
 /* label · value rows in narrow side panels: the value stays on one line, the label wraps if it must */
 @media (min-width:1280px){#app .ev>b{white-space:nowrap}}
+
+/* column filters: the header button and its menu */
+.ui-lf{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:5px;cursor:pointer;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;min-height:24px;white-space:nowrap}
+.ui-lf i{font-style:normal;font-size:9px;color:var(--ui-line2);transition:color .15s}
+.ui-lf:hover,.ui-lf:hover i,.ui-lf[aria-expanded=true] i{color:var(--ui-amber)}
+.ui-lf.ui-on,.ui-lf.ui-on i{color:var(--ui-amber)}
+.ui-lf:focus-visible{outline:1px solid var(--ui-amber);outline-offset:2px}
+.ui-lf-clear{all:unset;cursor:pointer;color:var(--ui-amber);font:inherit;margin-left:10px;text-decoration:underline;text-underline-offset:3px}
+.ui-lf-clear:focus-visible{outline:1px solid var(--ui-amber);outline-offset:2px}
+.ui-lf-pop{position:fixed;z-index:60;width:min(260px,calc(100vw - 16px));max-height:min(440px,calc(100vh - 16px));display:flex;flex-direction:column;background:var(--ui-panel);border:1px solid var(--ui-line2);box-shadow:0 12px 32px rgba(0,0,0,.6);font:12px var(--ui-f);color:var(--ui-tx);text-transform:none;letter-spacing:0;animation:ui-lf-in .14s var(--ui-ease)}
+@keyframes ui-lf-in{from{opacity:0;transform:translateY(-4px)}}
+.ui-lf-pop button{all:unset;box-sizing:border-box;cursor:pointer;text-align:center;padding:8px 10px;border:1px solid var(--ui-line2);font:inherit;color:var(--ui-tx)}
+.ui-lf-pop button:hover,.ui-lf-pop button:focus-visible{border-color:var(--ui-amber);color:var(--ui-amber)}
+.ui-lf-pop button[aria-pressed=true]{background:var(--ui-amber);border-color:var(--ui-amber);color:var(--ui-on-amber)}
+.ui-lf-s{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px;border-bottom:1px solid var(--ui-line)}
+.ui-lf-q{margin:10px 10px 4px;padding:7px 9px;background:var(--ui-bg);border:1px solid var(--ui-line2);color:var(--ui-tx);font:inherit;outline:0}
+.ui-lf-q:focus{border-color:var(--ui-amber)}
+.ui-lf-vals{overflow:auto;flex:1 1 auto;min-height:0;padding:0 0 4px}
+.ui-lf-pop label.ui-lf-v{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;margin:0;padding:6px 10px;cursor:pointer;min-height:30px;box-sizing:border-box;text-align:left;text-transform:none;letter-spacing:0;font:12px var(--ui-f);color:var(--ui-tx)}
+.ui-lf-v[hidden]{display:none}
+.ui-lf-v:hover{background:#111}
+.ui-lf-v span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.ui-lf-v em{color:var(--ui-dim)}.ui-lf-v small{color:var(--ui-dim);font-size:11px}
+.ui-lf-pop .ui-lf-allv{border-bottom:1px solid var(--ui-line);color:var(--ui-dim);margin-top:4px}
+.ui-lf-pop .ui-lf-v input{accent-color:var(--ui-amber);margin:0;padding:0;width:14px;height:14px;min-height:0;flex:none;appearance:auto;-webkit-appearance:checkbox}
+.ui-lf-rng{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px}
+.ui-lf-pop .ui-lf-rng label{display:flex;flex-direction:column;align-items:stretch;gap:4px;margin:0;color:var(--ui-dim);font:11px var(--ui-f);text-align:left;text-transform:none;letter-spacing:0}
+.ui-lf-rng input{padding:7px 9px;background:var(--ui-bg);border:1px solid var(--ui-line2);color:var(--ui-tx);font:inherit;outline:0;width:100%;box-sizing:border-box}
+.ui-lf-rng input:focus{border-color:var(--ui-amber)}
+.ui-lf-ft{display:flex;justify-content:space-between;gap:6px;padding:10px;border-top:1px solid var(--ui-line)}
+.ui-lf-ft button{flex:1}
+@media (pointer:coarse){.ui-lf{min-height:32px}.ui-lf-v{min-height:40px}}

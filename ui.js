@@ -372,5 +372,129 @@
     if (t && t.isConnected) t.focus({ preventScroll: true });
   }
 
-  window.UI = { hero, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, mount, version: '1.0.0' };
+  /* ---------- column filters: sort and filter a log's columns, like a spreadsheet ----------
+     const F = UI.filter('log', cols, onChange)   cols[i] describes the table's i-th column: { label, get: row => value,
+       type?: 'text' | 'num' | 'time' }, or null when it can't be filtered. get returns plain text or a number.
+     rows = F.apply(rows)   filters and sorts. Call it before paging; unsorted rows keep the order they came in.
+     (A number column can name its unit, unit: 'min', for its Min / Max boxes.)
+     F.th(i)                the i-th header's contents: a button that opens that column's menu.
+     F.clear()              a "Clear filters" button while any filter or sort is on, else ''.
+     onChange() runs after every change: re-render, back on the first page. Filters last while the page is open.  */
+  const FILT = new Map();
+  let lfPop = null, lfAt = null;
+  const lfKey = v => v == null || v === '' ? '' : String(v);
+  const lfOn = (f, i) => { const b = f.by[i]; return !!b && (b.hide ? b.hide.size > 0 : b.min != null || b.max != null) };
+  function lfRun(f, rows, skip) {
+    let out = rows.filter(r => f.cols.every((c, i) => {
+      const b = f.by[i]; if (!c || !b || i === skip) return true;
+      const v = c.get(r);
+      if (b.hide) return !b.hide.has(lfKey(v));
+      return (b.min == null || (v != null && v >= b.min)) && (b.max == null || (v != null && v <= b.max));
+    }));
+    const s = f.s, c = s && f.cols[s.i];
+    if (c) {
+      const txt = (c.type || 'text') === 'text';
+      out = out.map((r, k) => [c.get(r), k, r]).sort((a, b) => {
+        if (a[0] == null || a[0] === '') return b[0] == null || b[0] === '' ? a[1] - b[1] : 1;   // empty cells last
+        if (b[0] == null || b[0] === '') return -1;
+        return (txt ? String(a[0]).localeCompare(String(b[0]), undefined, { numeric: true }) : a[0] - b[0]) * s.dir || a[1] - b[1];
+      }).map(x => x[2]);
+    }
+    return out;
+  }
+  function filter(key, cols, onChange) {
+    const f = FILT.get(key) || { s: null, by: {}, all: [] };
+    Object.assign(f, { key, cols, onChange }); FILT.set(key, f);
+    if (lfPop && lfAt && lfAt.key === key) requestAnimationFrame(lfPlace);
+    return {
+      apply(rows) { f.all = rows; return lfRun(f, rows) },
+      th(i) {
+        const c = cols[i], s = f.s && f.s.i === i ? f.s.dir : 0, on = lfOn(f, i);
+        const state = [on && 'filtered', s && (s > 0 ? 'sorted ascending' : 'sorted descending')].filter(Boolean).join(', ');
+        return `<button type="button" class="ui-lf${on || s ? ' ui-on' : ''}" data-lf="${esc(key)}" data-i="${i}" aria-haspopup="dialog" aria-expanded="${!!lfAt && lfAt.key === key && lfAt.i === i}" aria-label="${esc(c.label)}: sort and filter${state ? ' (' + state + ')' : ''}">${esc(c.label)}<i aria-hidden="true">${s ? (s > 0 ? '▲' : '▼') : on ? '◆' : '▾'}</i></button>`;
+      },
+      clear() { return f.s || cols.some((c, i) => c && lfOn(f, i)) ? `<button type="button" class="ui-lf-clear" data-lf-clear="${esc(key)}">Clear filters</button>` : '' },
+    };
+  }
+  function lfClose(focus) {
+    if (!lfPop) return; const at = lfAt; lfPop.remove(); lfPop = lfAt = null;
+    const b = at && document.querySelector(`.ui-lf[data-lf="${CSS.escape(at.key)}"][data-i="${at.i}"]`);
+    if (b) { b.setAttribute('aria-expanded', 'false'); if (focus) b.focus() }
+  }
+  function lfPlace() {
+    if (!lfPop) return;
+    const b = document.querySelector(`.ui-lf[data-lf="${CSS.escape(lfAt.key)}"][data-i="${lfAt.i}"]`); if (!b) return lfClose();
+    b.setAttribute('aria-expanded', 'true');
+    const r = b.getBoundingClientRect(), w = lfPop.offsetWidth, h = lfPop.offsetHeight, W = innerWidth, H = innerHeight;
+    lfPop.style.left = Math.max(8, Math.min(r.left, W - w - 8)) + 'px';
+    lfPop.style.top = (r.bottom + 4 + h > H - 8 && r.top - 4 - h > 8 ? r.top - 4 - h : Math.min(r.bottom + 4, Math.max(8, H - h - 8))) + 'px';
+  }
+  function lfChanged(f) { f.onChange && f.onChange(); lfSync(f) }
+  // refresh the open menu's checkboxes after a change, keeping focus and the search text
+  function lfSync(f) {
+    if (!lfPop) return;
+    const b = f.by[lfAt.i], boxes = [...lfPop.querySelectorAll('[data-v]')];
+    boxes.forEach(x => x.checked = !(b && b.hide && b.hide.has(x.dataset.v)));
+    const all = lfPop.querySelector('[data-all]'), vis = boxes.filter(x => !x.closest('label').hidden);
+    if (all) { all.checked = vis.every(x => x.checked); all.indeterminate = !all.checked && vis.some(x => x.checked) }
+    lfPop.querySelectorAll('[data-s]').forEach(x => x.setAttribute('aria-pressed', !!(f.s && f.s.i === lfAt.i && f.s.dir === +x.dataset.s)));
+  }
+  function lfOpen(btn) {
+    const key = btn.dataset.lf, i = +btn.dataset.i, f = FILT.get(key), c = f && f.cols[i]; if (!c) return;
+    const same = lfAt && lfAt.key === key && lfAt.i === i; lfClose(); if (same) return;
+    const type = c.type || 'text', b = f.by[i] || {};
+    const S = { text: ['A → Z', 'Z → A'], num: ['Low → high', 'High → low'], time: ['Oldest first', 'Newest first'] }[type];
+    let body = '';
+    if (type === 'text') {
+      const n = new Map(); lfRun(f, f.all, i).forEach(r => { const k = lfKey(c.get(r)); n.set(k, (n.get(k) || 0) + 1) });
+      f.all.forEach(r => { const k = lfKey(c.get(r)); if (!n.has(k)) n.set(k, 0) });
+      const vals = [...n.keys()].sort((a, b) => a === '' ? 1 : b === '' ? -1 : a.localeCompare(b, undefined, { numeric: true }));
+      body = (vals.length > 8 ? `<input class="ui-lf-q" type="search" placeholder="Search" aria-label="Search values">` : '') +
+        `<label class="ui-lf-v ui-lf-allv"><input type="checkbox" data-all> Select all</label><div class="ui-lf-vals">` +
+        vals.map(v => `<label class="ui-lf-v"><input type="checkbox" data-v="${esc(v)}"> <span>${v === '' ? '<em>(Empty)</em>' : esc(v)}</span><small>${n.get(v)}</small></label>`).join('') + '</div>';
+    } else if (type === 'num') {
+      body = `<div class="ui-lf-rng"><label>Min${c.unit ? ` (${esc(c.unit)})` : ''}<input type="number" inputmode="decimal" step="any" data-r="min" value="${b.min ?? ''}"></label><label>Max${c.unit ? ` (${esc(c.unit)})` : ''}<input type="number" inputmode="decimal" step="any" data-r="max" value="${b.max ?? ''}"></label></div>`;
+    }
+    lfPop = document.createElement('div'); lfPop.className = 'ui-lf-pop'; lfPop.setAttribute('role', 'dialog'); lfPop.setAttribute('aria-label', `${c.label}: sort and filter`);
+    lfPop.innerHTML = `<div class="ui-lf-s">${S.map((t, k) => `<button type="button" data-s="${k ? -1 : 1}">${t}</button>`).join('')}</div>${body}
+      <div class="ui-lf-ft"><button type="button" data-x="clear">Clear</button><button type="button" data-x="done">Done</button></div>`;
+    lfAt = { key, i }; document.body.appendChild(lfPop); lfSync(f); lfPlace();
+    (lfPop.querySelector('.ui-lf-q') || lfPop.querySelector('[data-s]')).focus();
+    let t;
+    lfPop.addEventListener('click', e => {
+      const x = e.target.closest('button'); if (!x) return;
+      if (x.dataset.s) { const d = +x.dataset.s; f.s = f.s && f.s.i === i && f.s.dir === d ? null : { i, dir: d }; lfChanged(f) }
+      else if (x.dataset.x === 'clear') { delete f.by[i]; if (f.s && f.s.i === i) f.s = null; lfPop.querySelectorAll('[data-r]').forEach(r => r.value = ''); lfChanged(f) }
+      else if (x.dataset.x === 'done') lfClose(true);
+    });
+    lfPop.addEventListener('change', e => {
+      const x = e.target;
+      if (x.matches('[data-v],[data-all]')) {
+        const hide = (f.by[i] && f.by[i].hide) || new Set(), boxes = x.dataset.all != null ? [...lfPop.querySelectorAll('[data-v]')].filter(v => !v.closest('label').hidden) : [x];
+        boxes.forEach(v => { x.checked ? hide.delete(v.dataset.v) : hide.add(v.dataset.v) });
+        f.by[i] = { hide }; lfChanged(f);
+      }
+    });
+    lfPop.addEventListener('input', e => {
+      const x = e.target;
+      if (x.matches('.ui-lf-q')) { const q = x.value.trim().toLowerCase(); lfPop.querySelectorAll('.ui-lf-vals .ui-lf-v').forEach(l => l.hidden = !!q && !l.textContent.toLowerCase().includes(q)); lfSync(f) }
+      if (x.matches('[data-r]')) {
+        clearTimeout(t); t = setTimeout(() => {
+          const g = k => { const v = lfPop && lfPop.querySelector(`[data-r=${k}]`).value; return v === '' || v == null || !isFinite(+v) ? null : +v };
+          f.by[i] = { min: g('min'), max: g('max') }; lfChanged(f);
+        }, 250);
+      }
+    });
+  }
+  document.addEventListener('click', e => {
+    const b = e.target.closest('.ui-lf'); if (b) return lfOpen(b);
+    const c = e.target.closest('[data-lf-clear]');
+    if (c) { const f = FILT.get(c.dataset.lfClear); if (f) { f.by = {}; f.s = null; lfClose(); f.onChange && f.onChange() } return }
+    if (lfPop && !lfPop.contains(e.target)) lfClose();
+  });
+  document.addEventListener('keydown', e => { if (lfPop && e.key === 'Escape') { e.stopPropagation(); lfClose(true) } }, true);
+  addEventListener('resize', () => lfPlace());
+  addEventListener('scroll', () => lfPlace(), true);
+
+  window.UI = { hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, mount, version: '1.0.0' };
 })();
