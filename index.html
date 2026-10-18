@@ -164,6 +164,7 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
   #today .ci:not(.done){column-gap:46px}
   #today .tg{grid-template-columns:repeat(4,minmax(0,1fr))}
 }
+body.app-on #isx-sync{display:none}
 </style>
 </head>
 <body>
@@ -289,6 +290,7 @@ function show(id,path){
     if(!f.dataset.ready&&!document.getElementById('ld-'+t.id)){const ld=document.createElement('div');ld.className='ld';ld.id='ld-'+t.id;ld.innerHTML=UI.skeleton({label:`Loading ${t.label}`,lines:4});apps.append(ld)}
   }
   document.querySelectorAll('#apps>.pane').forEach(x=>x.classList.toggle('on',x===f));
+  document.body.classList.toggle('app-on',!t.pane);   // an open app shows its own sync dot, so the shell's steps aside
   document.querySelectorAll('#apps>.ld').forEach(x=>x.hidden=x.id!=='ld-'+t.id);
   if(!modalOpen(f))setBar(false);   // switching tabs always brings the bar back
   document.querySelectorAll('#tabs button').forEach(b=>{const on=b.dataset.t===t.id;b.classList.toggle('on',on);b.setAttribute('aria-current',on?'page':'false')});
