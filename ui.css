@@ -197,3 +197,23 @@ svg.ui-draw polygon,svg.ui-draw path:not(.ui-trace){animation:ui-fade .8s ease b
 .ui-set-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;flex:none}
 .ui-set select{flex:none}
 button.ui-danger{color:var(--ui-red);border-color:rgba(255,69,69,.45)}button.ui-danger:hover{background:rgba(255,69,69,.1);border-color:var(--ui-red);color:var(--ui-red)}
+
+/* layout rhythm shared by the apps' stat grids (wide screens). Every multi-column row sits on the same four columns
+   as the stat cards, so card edges line up from row to row: pairs (.g21 / .gm) are 3/4 + 1/4 (1/2 + 1/2 below 1280 px), three-card rows (.g3)
+   are 1/2 + 1/4 + 1/4. A chart card grows its chart to the row's height instead of leaving a blank strip under it. */
+@media (min-width:1001px){
+  :is(#app,#top) .g21,:is(#app,#top) .gm,:is(#app,#top) .g3{grid-template-columns:repeat(4,minmax(0,1fr))}
+  :is(#app,#top) .g21>:first-child,:is(#app,#top) .gm>:first-child{grid-column:span 2}
+  :is(#app,#top) .g3>:first-child{grid-column:span 2}
+  :is(#app,#top) :is(.g21,.gm,.g3)>.card:has(svg.chart){display:flex;flex-direction:column}
+  :is(#app,#top) :is(.g21,.gm,.g3)>.card>.bd:has(>svg.chart){flex:1 1 auto;display:flex;flex-direction:column}
+  :is(#app,#top) :is(.g21,.gm,.g3)>.card svg.chart:last-of-type{flex:1 1 auto;min-height:160px;height:auto}
+  /* the Today card on the same grid: two equal halves with the grid's 12 px gap put its columns exactly over the
+     stat cards' (left half = cards 1-2, right panel = cards 3-4), at any width */
+  .ui-hero{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:12px}
+}
+/* from 1280 px the side panel of a pair is narrow enough to give the main card (calendar, chart) three columns;
+   below that it keeps half, so its label · value rows still fit. Either way the edges stay on the grid */
+@media (min-width:1280px){:is(#app,#top) .g21>:first-child,:is(#app,#top) .gm>:first-child{grid-column:span 3}}
+/* label · value rows in narrow side panels: the value stays on one line, the label wraps if it must */
+@media (min-width:1280px){#app .ev>b{white-space:nowrap}}

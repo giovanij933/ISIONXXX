@@ -120,6 +120,9 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
   #today .ci:not(.done){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:40px;align-items:center}
   #today .ci:not(.done)>.tch,#today .ci:not(.done)>.ui-actions{grid-column:1/-1}
 }
+/* wide screens: TODAY on the same four columns as its app cards (and the apps' stat cards). The hero splits into equal
+   halves with the grid's 12 px gap, so the Next up panel's frame sits on card 3's edge; the check-in's unframed rows use a
+   46 px gap so their text lines up with the text inside the cards (12 px gap + 17 px padding either side) */
 .ci-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:10px;margin-top:6px}
 .ci-sum b{display:block;font-size:16px;font-weight:600}.ci-sum span{font-size:10.5px;color:var(--dim);white-space:nowrap}
 #today .acts{display:flex;align-items:center;gap:10px}
@@ -155,6 +158,12 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 /* seven labels on a small phone: NUTRITION is the longest */
 @media(max-width:400px){nav button{letter-spacing:.01em}}
 @media(min-width:900px){nav.away{transform:translate(-50%,calc(100% + 40px))}nav{left:50%;right:auto;transform:translateX(-50%);width:min(760px,calc(100% - 24px));height:56px}nav button{flex-direction:row;gap:8px;font-size:11px}}
+/* (placed last so it wins over the 700 px hero layout above) */
+@media(min-width:1001px){
+  #today .hero{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:12px}
+  #today .ci:not(.done){column-gap:46px}
+  #today .tg{grid-template-columns:repeat(4,minmax(0,1fr))}
+}
 </style>
 </head>
 <body>
