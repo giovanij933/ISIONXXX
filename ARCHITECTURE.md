@@ -40,11 +40,17 @@ change. A copy that drifts is a bug.
 |---|---|
 | MIND | `isx.mind.v1` |
 | TRAINING | `isx.training.v1` |
-| NUTRITION | `nj.meals.v1` `nj.settings.v1` (`nj.daily.v1` local only) |
+| NUTRITION | `nj.meals.v1` `nj.settings.v1` (`nj.daily.v1` and `nj.mealnut.v1` local only) |
 | LEARN | `xl.progress.v1` `xl.events.v1` `xl.sessions.v1` `xl.drafts.v1` `xl.settings.v1` `xl.videos.v1` |
 | JOURNAL | `isx.journal.v1` |
 | REWIRE | `isx.rewire.v1` |
 | Shell | `isx.checkin.v1` (also read by the apps) |
+
+Two readers look across apps, read-only:
+- the shell's TODAY reads every app's keys;
+- LEARN turns every app's log into the tables its lessons run on (trades, workouts, mind, meals, habits, checkins,
+  study). NUTRITION writes `nj.mealnut.v1` (each meal with its nutrients worked out) for LEARN, because bowl
+  nutrition can't be worked out outside NUTRITION.
 
 Records with a string `id` merge one by one during sync; deletes travel as tombstones (`isx.sync.del.<key>`).
 
