@@ -374,15 +374,8 @@ html body .ui-more-pop>button{all:unset;box-sizing:border-box;display:block;widt
 html body .ui-more-pop>button:hover,html body .ui-more-pop>button:focus-visible{background:rgba(255,255,255,.08)}
 html body .ui-more-pop>button:focus-visible{outline:1px solid var(--ui-amber);outline-offset:-1px}
 @keyframes ui-more-in{from{opacity:0;transform:translateY(-4px) scale(.98)}}
-/* phones: the name row scrolls away and the buttons row stays pinned, like a large title collapsing */
-@media (max-width:640px){
-  html body header.top:not(.th){top:-42px;padding:10px 0 12px}
-  html body header.top:not(.th)::before{display:none}
-  html body header.top:not(.th) .acts{position:relative;padding:6px;margin:0 -6px}
-  html body header.top:not(.th) .acts::before{content:'';position:absolute;z-index:-1;inset:0;border-radius:16px;background:rgba(16,15,13,.72);
-    border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 30px -18px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.05);
-    -webkit-backdrop-filter:saturate(1.6) blur(18px);backdrop-filter:saturate(1.6) blur(18px)}
-}
-@media (prefers-reduced-transparency:reduce){html body header.top:not(.th)::before,html body header.top:not(.th) .acts::before,.ui-more-pop{background:#111;-webkit-backdrop-filter:none;backdrop-filter:none}}
+/* phones: the same rounded bar, with the name on top and the buttons under it, all pinned */
+@media (max-width:640px){html body header.top:not(.th){padding:10px 10px 10px 12px;row-gap:10px}}
+@media (prefers-reduced-transparency:reduce){html body header.top:not(.th)::before,.ui-more-pop{background:#111;-webkit-backdrop-filter:none;backdrop-filter:none}}
 @media (prefers-reduced-motion:reduce){.ui-more-pop{animation:none}}
 @media (max-width:640px){html body header.top:not(.th) .acts{overflow:visible}}
