@@ -250,6 +250,17 @@ button.ui-danger{color:var(--ui-red);border-color:rgba(255,69,69,.45)}button.ui-
 .ui-lf-ft button{flex:1}
 @media (pointer:coarse){.ui-lf{min-height:32px}.ui-lf-v{min-height:40px}}
 
+/* hero stat tiles: figures side by side (e.g. today / week / month); a tile with attrs is a button */
+.ui-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px;margin:16px 0 4px}
+.ui-stat{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:3px;min-width:0;padding:10px clamp(8px,2.4vw,12px);border:1px solid var(--ui-line);background:rgba(255,255,255,.02);font-family:var(--ui-f);color:var(--ui-tx);border-radius:12px}
+.ui-stat .ui-stat-l{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ui-dim)}
+.ui-stat b{font-size:clamp(15px,4.2vw,21px);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ui-stat b.ui-pos{color:var(--ui-green)}.ui-stat b.ui-neg{color:var(--ui-red)}
+.ui-stat small{font-size:11px;line-height:1.35;color:var(--ui-dim)}
+button.ui-stat{cursor:pointer;transition:border-color .2s,background-color .2s,transform .3s cubic-bezier(.32,.72,0,1)}
+button.ui-stat:hover{border-color:var(--ui-line2);background:rgba(255,255,255,.04)}button.ui-stat:active{transform:scale(.97)}
+button.ui-stat:focus-visible{outline:1px solid var(--ui-amber);outline-offset:2px}
+.ui-stat.ui-on{border-color:rgba(255,176,0,.55);background:rgba(255,176,0,.07)}.ui-stat.ui-on .ui-stat-l{color:var(--ui-amber)}
+
 /* ---------- glass: rounded, layered, translucent surfaces (the terminal look stays: mono, amber on black) ----------
    Scoped with "html body" so it wins over each app's own (later, equal-weight) rules. Real backdrop blur only on what
    floats over content (dialogs, sheets, menus, toasts, banners); cards get depth from translucency and light, which
@@ -279,7 +290,7 @@ html body .tw{border-radius:var(--g-r2)}
 html body .hb,html body .hb i,html body .ui-meter-bar,html body .ui-meter-bar i,html body .ui-week i{border-radius:999px}
 html body svg.chart rect:not(.hit){rx:2px}
 /* controls */
-html body :is(button,.btn,select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea):not(.ui-lf):not(.tl-go):not(.cd):not(.cell):not(.ui-seg>*):not(nav *){border-radius:var(--g-r3)}
+html body :is(button,.btn,select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea):not(.ui-lf):not(.tl-go):not(.cd):not(.cell):not(.ui-seg>*):not(nav *):not(.ui-stat){border-radius:var(--g-r3)}
 html body :is(select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea){background-color:rgba(255,255,255,.035);border-color:var(--g-line2)}
 html body :is(.pill,.chip,.chips button,.xf button,.ui-status){border-radius:999px}
 html body :is(button,.btn){transition:transform .35s var(--g-spring),background-color .2s,border-color .2s,color .2s,box-shadow .2s}
