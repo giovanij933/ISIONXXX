@@ -502,6 +502,41 @@
   // first paint: cards rise into place once (ui.css, html.g-boot); later redraws don't replay it
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) { document.documentElement.classList.add('g-boot'); setTimeout(() => document.documentElement.classList.remove('g-boot'), 1400) }
 
+  // header ··· menu: buttons marked data-more move into a glass menu so the bar fits on a phone.
+  // Apps that redraw their buttons get the menu rebuilt, and their own click handlers still see the moved buttons.
+  function moreMenu(acts) {
+    const items = acts.querySelectorAll(':scope>[data-more]'); if (!items.length) return;
+    let wrap = acts.querySelector(':scope>.ui-more');
+    if (!wrap) {
+      wrap = document.createElement('div'); wrap.className = 'ui-more';
+      wrap.innerHTML = '<button type="button" class="ui-more-btn" aria-haspopup="menu" aria-expanded="false" aria-label="More">···</button><div class="ui-more-pop" role="menu" hidden></div>';
+    }
+    // the ··· button wears the same classes as the app's own plain buttons
+    const ref = acts.querySelector(':scope>button:not(.pri):not(.go):not([data-more])');
+    if (ref) wrap.firstChild.className = 'ui-more-btn ' + [...ref.classList].join(' ');
+    const pop = wrap.lastChild; items.forEach(b => { b.setAttribute('role', 'menuitem'); pop.append(b) });
+    acts.append(wrap);
+  }
+  const moreSet = (btn, on, focus) => {
+    btn.setAttribute('aria-expanded', on); btn.nextSibling.hidden = !on;
+    if (on && focus) btn.nextSibling.querySelector('button')?.focus();
+  };
+  const moreOpen = () => document.querySelector('.ui-more-btn[aria-expanded=true]');
+  document.addEventListener('click', e => {
+    const btn = e.target.closest('.ui-more-btn'), open = moreOpen();
+    if (open && open !== btn) moreSet(open, false);
+    if (btn) moreSet(btn, btn.getAttribute('aria-expanded') !== 'true', e.detail === 0);
+  });
+  document.addEventListener('keydown', e => {
+    const open = moreOpen(); if (!open) return;
+    if (e.key === 'Escape') { moreSet(open, false); open.focus(); return }
+    if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
+    const its = [...open.nextSibling.querySelectorAll('button')], i = its.indexOf(document.activeElement);
+    its[(i + (e.key === 'ArrowDown' ? 1 : its.length - 1)) % its.length]?.focus(); e.preventDefault();
+  });
+  const moreInit = () => document.querySelectorAll('header.top .acts').forEach(a => { moreMenu(a); new MutationObserver(() => moreMenu(a)).observe(a, { childList: true }) });
+  document.readyState === 'loading' ? addEventListener('DOMContentLoaded', moreInit) : moreInit();
+
   // no page zoom: the apps stay fixed like a native app. iOS ignores user-scalable=no, so pinches are stopped here too
   ['gesturestart', 'gesturechange'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
   document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault() }, { passive: false });
