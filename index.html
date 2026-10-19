@@ -553,7 +553,7 @@ function heroHTML(wins,next){
     <div class="hero-top"><div><h2 id="hero-h">${hello}</h2><p class="hero-sub">${!wins.length?'Log something in any app to start your day.':all?'Everything done today. Perfect day.':won?`${won} of ${wins.length} done · ${wins.length-won} to go`:`${wins.length} to do today`}</p></div>
       ${wins.length?`<p class="hero-n" aria-hidden="true"><b>${won}</b>/${wins.length}</p>`:''}</div>
     ${wins.length?`<ul class="rings" aria-label="Today's progress">${wins.map(c=>{const f=ringOf(c),from=PREV.ring[c.id]??0;
-      return `<li><button type="button" class="ring${c.done?' done':''}${c.rest?' rest':''}" data-jump="${c.id}" aria-label="${c.label}: ${c.done?'done, open it':c.rest?'rest day':Math.round(f*100)+'%'}">
+      return `<li><button type="button" class="ring${c.done?' done':''}${c.rest?' rest':''}" data-go="${c.id}" data-act="today" aria-label="${c.label}: ${c.done?'done':c.rest?'rest day':Math.round(f*100)+'%'}, open today in ${c.label}">
         <svg viewBox="0 0 44 44" aria-hidden="true"><circle class="rt" cx="22" cy="22" r="18"/><circle class="rf" cx="22" cy="22" r="18" pathLength="100" stroke-dasharray="${(from*100).toFixed(1)} 100" data-to="${(f*100).toFixed(1)}"/>${c.done?'<path class="ck" d="M15.5 22.5l4.5 4.5 8.5-9"/>':''}</svg><span>${c.label}</span></button></li>`}).join('')}</ul>`:''}
     ${next?`<button type="button" class="nx" data-go="${next.id}" data-act="${QA[next.id][0][0]}"><span>Next up · ${next.label}</span><b>${QA[next.id][0][1]}</b></button>`
       :wins.length?`<p class="nx-none">${all?'Everything done today ✓':'Nothing else due today'}</p>`:''}
@@ -585,7 +585,7 @@ const TL={mind:'MIND',training:'TRAIN',nutrition:'NUTRITION',learn:'LEARN',journ
 function timelineHTML(t){
   const T=timeline(t);
   return `<section class="tl-wrap" aria-labelledby="tl-h"><div class="tch"><h2 class="h" id="tl-h">Today so far</h2><span class="st">${T.length?plural(T.length,'entry').replace('entrys','entries'):'—'}</span></div>
-    ${T.length?`<ol class="tl">${T.map(x=>`<li class="tl-${x.app}"><time>${TF.format(x.at)}</time><i aria-hidden="true"></i><button type="button" class="tl-go" ${x.app==='checkin'?'data-ci="edit" aria-label="Edit check-in: ':`data-open="${x.app}" aria-label="Open ${TL[x.app]}: `}${esc(x.text)}"><b>${TL[x.app]}</b> ${esc(x.text)}${x.app==='checkin'?'<em>Edit</em>':''}</button></li>`).join('')}</ol>`
+    ${T.length?`<ol class="tl">${T.map(x=>`<li class="tl-${x.app}"><time>${TF.format(x.at)}</time><i aria-hidden="true"></i><button type="button" class="tl-go" ${x.app==='checkin'?'data-ci="edit" aria-label="Edit check-in: ':`data-go="${x.app}" data-act="today" aria-label="Open today in ${TL[x.app]}: `}${esc(x.text)}"><b>${TL[x.app]}</b> ${esc(x.text)}${x.app==='checkin'?'<em>Edit</em>':''}</button></li>`).join('')}</ol>`
       :'<p class="sub">Your day shows up here as you log: sessions, workouts, meals, study, trades and habits, in order.</p>'}</section>`;
 }
 /* after a redraw: rings fill from where they were, numbers count up, finished things celebrate, cards glide to their
@@ -615,7 +615,7 @@ function celebrate(el,wins){
   if(firstDraw){wins.forEach(c=>PREV.done[c.id]=!!c.done);return}
   const fresh=wins.filter(c=>c.done&&PREV.done[c.id]===false);wins.forEach(c=>PREV.done[c.id]=!!c.done);
   if(!fresh.length)return;
-  fresh.forEach(c=>{el.querySelector(`.ring[data-jump="${c.id}"]`)?.classList.add('pop')});
+  fresh.forEach(c=>{el.querySelector(`.ring[data-go="${c.id}"]`)?.classList.add('pop')});
   const all=wins.length&&wins.every(c=>c.done);
   UI.toast(all?'Perfect day: everything done ✓':`${fresh.map(c=>c.label).join(' + ')} done ✓`);
   if(all)el.querySelector('.hero')?.classList.add('burst');
@@ -678,8 +678,9 @@ addEventListener('message',e=>{
   openAct(t.id,e.data.act);
 });
 // switch to an app and straight into an action there (REWIRE's LOG IN TRAINING opens TRAINING's START), once it has loaded
+// act 'today' (rings, timeline): the app opens filtered to today
 function openAct(id,act){
-  show(id);const f=document.getElementById('f-'+id);
+  id=pick(id).id;show(id);const f=document.getElementById('f-'+id);
   if(act&&f){const go=()=>f.contentWindow.postMessage({isx:'do',act},location.origin);f.dataset.ready?go():f.addEventListener('load',()=>setTimeout(go,60),{once:true})}
 }
 addEventListener('hashchange',()=>show(location.hash.slice(1)));
