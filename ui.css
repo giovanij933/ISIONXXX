@@ -323,3 +323,8 @@ html.g-boot body :is(.g,.grid,section)>:nth-child(4){animation-delay:.12s}
 @media (prefers-reduced-transparency:reduce){html body :is(dialog,.modal>.box,#isx-sd,.ui-lf-pop,.ui-toast,.toast,#isx-full){background:#141414;-webkit-backdrop-filter:none;backdrop-filter:none}}
 @media (prefers-reduced-motion:reduce){html body :is(.card,.ui-card,.ui-hero,dialog,.modal>.box){animation:none!important}html body :is(button,.btn):active{transform:none}}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){html body :is(dialog,.modal>.box,#isx-sd,.ui-lf-pop,.ui-toast,.toast,#isx-full){background:#141414}}
+
+/* touch screens: form fields at 16px, so iOS doesn't zoom the page in when you tap one (it does for anything
+   smaller). !important because some fields set their size with id-level rules (the sync dialog's); pinch-zoom still
+   works, since nothing blocks it in the viewport tag */
+@media (pointer:coarse){html body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea){font-size:16px!important}}
