@@ -302,6 +302,11 @@ html body svg.chart rect:not(.hit){rx:2px}
 /* controls */
 html body :is(button,.btn,select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea):not(.ui-lf):not(.tl-go):not(.cd):not(.cell):not(.ui-seg>*):not(nav *):not(.ui-stat){border-radius:var(--g-r3)}
 html body :is(select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea){background-color:rgba(255,255,255,.035);border-color:var(--g-line2)}
+/* the open list of a dropdown: Chrome on Windows paints it from the select's own, nearly clear background over white,
+   which leaves light text on light grey; options get a solid dark background instead */
+html body select :is(option,optgroup){background-color:#141311;color:#d9d5c8}
+html body select option:checked{background-color:#2a2416;color:#ffb000}
+html body select option:disabled{color:#6f6a5f}
 html body :is(.pill,.chip,.chips button,.xf button,.ui-status){border-radius:999px}
 html body :is(button,.btn){transition:transform .35s var(--g-spring),background-color .2s,border-color .2s,color .2s,box-shadow .2s}
 html body :is(button,.btn):not(nav *):active:not(:disabled){transform:scale(.965)}
