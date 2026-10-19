@@ -550,10 +550,12 @@
   const moreInit = () => brandInit() || document.querySelectorAll('header.top .acts').forEach(a => { moreMenu(a); new MutationObserver(() => moreMenu(a)).observe(a, { childList: true }) });
   document.readyState === 'loading' ? addEventListener('DOMContentLoaded', moreInit) : moreInit();
 
-  // dropdowns open as a glass list like the ··· menu instead of the browser's own. The select stays the real control:
-  // picking sets its value and fires input + change, so every app's handlers work unchanged. data-native opts out.
+  // on desktop, dropdowns open as a glass list like the ··· menu instead of the browser's own; phones and tablets keep
+  // their native picker. The select stays the real control: picking sets its value and fires input + change, so every
+  // app's handlers work unchanged. data-native opts out.
   let selPop = null, selFor = null;
-  const selOk = s => s && s.tagName === 'SELECT' && !s.multiple && !(s.size > 1) && !s.disabled && !('native' in s.dataset);
+  const selDesk = matchMedia('(hover: hover) and (pointer: fine)');
+  const selOk = s => selDesk.matches && s && s.tagName === 'SELECT' && !s.multiple && !(s.size > 1) && !s.disabled && !('native' in s.dataset);
   const selClose = (refocus) => {
     if (!selPop) return; const s = selFor;
     try { selPop.hidePopover?.() } catch (e) {} selPop.remove(); selPop = selFor = null;
@@ -589,17 +591,13 @@
     const cur = pop.querySelector('[aria-selected=true]') || pop.querySelector('.ui-sel-opt:not(:disabled)');
     cur?.scrollIntoView({ block: 'nearest' }); cur?.focus({ preventScroll: true });
   }
-  let selT0 = null;   // where a touch began, so a swipe that ends on a dropdown scrolls instead of opening it
-  document.addEventListener('touchstart', e => { const t = e.touches[0]; selT0 = t && [t.clientX, t.clientY] }, { capture: true, passive: true });
   const selTap = e => {
     const s = e.target.closest?.('select'); if (!selOk(s)) return;
-    if (e.type === 'mousedown' && e.button !== 0) return;
-    if (e.type === 'touchend') { const t = e.changedTouches[0]; if (selT0 && t && Math.hypot(t.clientX - selT0[0], t.clientY - selT0[1]) > 10) return }
+    if (e.button !== 0) return;
     e.preventDefault(); s.focus({ preventScroll: true });
     selFor === s ? selClose(true) : selOpen(s);
   };
   document.addEventListener('mousedown', selTap, true);
-  document.addEventListener('touchend', selTap, { capture: true, passive: false });
   document.addEventListener('mousedown', e => { if (selPop && !selPop.contains(e.target) && e.target !== selFor) selClose() }, true);
   document.addEventListener('keydown', e => {
     const s = e.target;
