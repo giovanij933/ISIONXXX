@@ -406,7 +406,7 @@ html body .ui-more-pop>button:focus-visible{outline:1px solid var(--ui-amber);ou
 @media (prefers-reduced-transparency:reduce){html body header.top:not(.th)::before,.ui-more-pop{background:#111;-webkit-backdrop-filter:none;backdrop-filter:none}}
 @media (prefers-reduced-motion:reduce){.ui-more-pop{animation:none}}
 @media (max-width:640px){html body header.top:not(.th) .acts{overflow:visible}}
-/* ---------- dropdown lists: the same glass panel as the ··· menu (ui.js builds it in place of the browser's list) ---------- */
+/* ---------- dropdown lists on desktop: the same glass panel as the ··· menu (ui.js builds it in place of the browser's list) ---------- */
 .ui-sel-pop{position:fixed;inset:auto;margin:0;z-index:70;box-sizing:border-box;max-width:min(420px,calc(100vw - 16px));overflow:auto;overscroll-behavior:contain;
   padding:6px;display:flex;flex-direction:column;gap:2px;color:var(--ui-tx);
   background:rgba(22,21,19,.95);-webkit-backdrop-filter:saturate(1.6) blur(22px);backdrop-filter:saturate(1.6) blur(22px);
@@ -421,6 +421,5 @@ html body .ui-sel-pop .ui-sel-opt:focus-visible{outline:1px solid var(--ui-amber
 html body .ui-sel-pop .ui-sel-opt:disabled{opacity:.4;cursor:default}
 html body .ui-sel-pop .ui-sel-in{padding-left:22px}
 .ui-sel-grp{padding:8px 12px 4px;font:600 10px var(--ui-f);letter-spacing:.12em;text-transform:uppercase;color:var(--ui-dim)}
-@media (pointer:coarse){html body .ui-sel-pop .ui-sel-opt{padding:12px 12px;font-size:15px}}
 @media (prefers-reduced-transparency:reduce){.ui-sel-pop{background:#111;-webkit-backdrop-filter:none;backdrop-filter:none}}
 @media (prefers-reduced-motion:reduce){.ui-sel-pop{animation:none}}
