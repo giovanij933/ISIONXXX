@@ -194,16 +194,12 @@ function fit(){
   document.documentElement.style.setProperty('--vh',(l?Math.min(a,b):Math.max(a,b))+'px');
 }
 fit();addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,300));
-// inside the shell every app gets the same frame: header pinned to the top (brand, then one row of actions you
-// can swipe), nothing floating over the content. Injected here so the apps stay unchanged when opened on their own.
+// inside the shell every app gets the same frame: room for the tab bar, nothing floating over the content. The
+// pinned glass header comes from ui.css. Injected here so the apps stay unchanged when opened on their own.
 const EMBED_CSS=`
 html.isx-embed body{padding-top:14px!important;padding-bottom:calc(var(--isx-tabs,96px) + 20px)!important}
 html.isx-embed #toast,html.isx-embed .toast{bottom:calc(var(--isx-tabs,96px) + 12px)!important}
-html.isx-embed header.top{position:sticky;top:0;z-index:8;background:#070707;margin-top:-14px;padding:12px 0 10px;row-gap:8px}
 html.isx-embed header.top .brand{font-size:14px}
-html.isx-embed header.top .acts{flex-wrap:nowrap;overflow-x:auto;max-width:100%;scrollbar-width:none;-webkit-overflow-scrolling:touch}
-html.isx-embed header.top .acts::-webkit-scrollbar{display:none}
-html.isx-embed header.top .acts>*{flex:none}
 html.isx-embed dialog{max-height:calc(100% - 24px)}
 /* motion: taps respond, dialogs and sheets ease in, no 300 ms tap delay */
 html.isx-embed{-webkit-tap-highlight-color:transparent}

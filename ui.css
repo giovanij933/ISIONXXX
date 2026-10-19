@@ -353,7 +353,7 @@ html{touch-action:manipulation}
 /* ---------- app header: a rounded frosted bar pinned to the top, the rarely used buttons behind ··· ---------- */
 html body header.top:not(.th){position:sticky;top:8px;z-index:7;padding:10px 14px;margin-top:-6px;gap:12px;border-bottom-color:transparent}
 /* the glass sits on a rounded layer behind the header, so it floats like the tab bar */
-html body header.top:not(.th)::before{content:'';position:absolute;z-index:-1;inset:0;border-radius:18px;background:rgba(16,15,13,.86);
+html body header.top:not(.th)::before{content:'';position:absolute;z-index:-1;inset:0;border-radius:18px;background:rgba(16,15,13,.72);
   border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 30px -18px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.05);
   -webkit-backdrop-filter:saturate(1.6) blur(18px);backdrop-filter:saturate(1.6) blur(18px)}
 html body header.top:not(.th) .brand{line-height:22px}
@@ -374,7 +374,7 @@ html body .ui-more-pop>button:focus-visible{outline:1px solid var(--ui-amber);ou
   html body header.top:not(.th){top:-42px;padding:10px 0 12px}
   html body header.top:not(.th)::before{display:none}
   html body header.top:not(.th) .acts{position:relative;padding:6px;margin:0 -6px}
-  html body header.top:not(.th) .acts::before{content:'';position:absolute;z-index:-1;inset:0;border-radius:16px;background:rgba(16,15,13,.86);
+  html body header.top:not(.th) .acts::before{content:'';position:absolute;z-index:-1;inset:0;border-radius:16px;background:rgba(16,15,13,.72);
     border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 30px -18px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.05);
     -webkit-backdrop-filter:saturate(1.6) blur(18px);backdrop-filter:saturate(1.6) blur(18px)}
 }
