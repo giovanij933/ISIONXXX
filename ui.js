@@ -502,5 +502,9 @@
   // first paint: cards rise into place once (ui.css, html.g-boot); later redraws don't replay it
   if (!matchMedia('(prefers-reduced-motion: reduce)').matches) { document.documentElement.classList.add('g-boot'); setTimeout(() => document.documentElement.classList.remove('g-boot'), 1400) }
 
+  // no page zoom: the apps stay fixed like a native app. iOS ignores user-scalable=no, so pinches are stopped here too
+  ['gesturestart', 'gesturechange'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
+  document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault() }, { passive: false });
+
   window.UI = { hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, mount, version: '1.0.0' };
 })();
