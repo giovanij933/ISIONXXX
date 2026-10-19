@@ -385,7 +385,10 @@ function tJournal(){
   // trading weeks run Monday to Friday; the weekend still shows the week that just ended (same as JOURNAL)
   const nd=new Date(now+'T12:00:00');nd.setDate(nd.getDate()-(nd.getDay()+6)%7);const ws=ymd(nd);
   const wk=Object.entries(D).filter(([d])=>d>=ws&&d<=now).reduce((a,[,v])=>a+v,0);
-  return {id:'journal',label:'JOURNAL',done:null,big:N.length?money(pnl):'No trades',bigCls:N.length?(pnl>0?'pos':pnl<0?'neg':''):'',
+  // the daily goal is journaling, not trading: on a weekday it's done once the day's notes are written (half way once
+  // trades are logged). Weekends have no goal. P&L never decides it, so a red day that's reviewed still counts
+  const we=new Date(now+'T12:00:00').getDay()%6===0,noted=!!(s.notes||{})[now]?.trim();
+  return {id:'journal',label:'JOURNAL',done:we?null:noted,meter:we?null:{v:noted?2:N.length?1:0,max:2,lb:"Today's journal",val:noted?'Notes written':N.length?'Trades logged · notes to write':'Not started'},big:N.length?money(pnl):'No trades',bigCls:N.length?(pnl>0?'pos':pnl<0?'neg':''):'',
     sub:[N.length?`${plural(N.length,'trade')} · ${w} won`:'',`week <b class="${wk>0?'pos':wk<0?'neg':''}">${money(wk)}</b>`],
     dots:week7().map(d=>{const v=D[ymd(d)];return v==null?'':v>0?'pos':v<0?'neg':'on'})};
 }
@@ -419,7 +422,7 @@ function tRewire(t){
 
 // one-tap actions on each card: they open the app straight into that action (same as REWIRE's LOG IN buttons)
 const QA={mind:[['go','▶ Start session']],training:[['go','▶ Start workout'],['add','+ Log']],nutrition:[['quick','+ Food'],['cook','Cook bowl']],
-  learn:[['startnext','▶ Next lesson']],journal:[['add','+ Trade']],rewire:[['urge','Urge']]};
+  learn:[['startnext','▶ Next lesson']],journal:[['note',"✎ Today's notes"],['add','+ Trade']],rewire:[['urge','Urge']]};
 // TODAY's cards are the shared UI.card: the title opens the app, actions stay separate controls, the bars are
 // labelled progress bars and each day of the strip is read out (ui.js)
 const plain=h=>String(h??'').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&');
