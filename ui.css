@@ -276,6 +276,11 @@ button.ui-stat:focus-visible{outline:1px solid var(--ui-amber);outline-offset:2p
 html{transition:--gx 1.2s var(--g-spring),--gy 1.2s var(--g-spring)}
 @media (prefers-reduced-motion:reduce){html{transition:none}}
 html body{background:radial-gradient(1100px 620px at var(--gx) var(--gy),rgba(255,176,0,.075),transparent 62%),radial-gradient(900px 560px at 108% 4%,rgba(255,122,51,.05),transparent 60%),var(--bg,#070707) fixed}
+/* and a soft light over the whole page, cards included, that sits on the pointer while a mouse is moving */
+html body::after{content:'';position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;mix-blend-mode:screen;
+  background:radial-gradient(520px circle at var(--gx) var(--gy),rgba(255,176,0,.075),rgba(255,176,0,.025) 45%,transparent 70%);transition:opacity .6s}
+html.g-ptr body::after{opacity:1}
+@media (prefers-reduced-transparency:reduce){html body::after{display:none}}
 /* cards */
 html body :is(.card,.ui-card){border-radius:var(--g-r);background:var(--g-card);border-color:var(--g-line);box-shadow:var(--g-hi),var(--g-drop);
   transition:border-color .3s var(--g-spring),box-shadow .3s var(--g-spring)}
