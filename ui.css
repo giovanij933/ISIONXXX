@@ -350,11 +350,12 @@ html body .gauge path[stroke="#ffb000"],html body :is(.ui-ring:not(.ui-done) .ui
   html body :is(button.pri,.btn.go,.ui-btn.ui-primary),html body .ui-seg>button[aria-checked=true]{background:#ffb000;color:#000}}
 /* no double-tap zoom anywhere */
 html{touch-action:manipulation}
-/* ---------- app header: a frosted bar pinned to the top, the rarely used buttons behind ··· ---------- */
-html{overflow-x:clip}
-html body header.top:not(.th){position:sticky;top:0;z-index:7;padding:10px 0 12px;margin-top:-10px;gap:12px;border-bottom-color:transparent}
-html body header.top:not(.th)::before{content:'';position:absolute;z-index:-1;inset:0 calc(50% - 50vw);background:rgba(10,10,10,.72);
-  -webkit-backdrop-filter:saturate(1.6) blur(18px);backdrop-filter:saturate(1.6) blur(18px);border-bottom:1px solid rgba(255,255,255,.07)}
+/* ---------- app header: a rounded frosted bar pinned to the top, the rarely used buttons behind ··· ---------- */
+html body header.top:not(.th){position:sticky;top:8px;z-index:7;padding:10px 14px;margin-top:-6px;gap:12px;border-bottom-color:transparent}
+/* the glass sits on a rounded layer behind the header, so it floats like the tab bar */
+html body header.top:not(.th)::before{content:'';position:absolute;z-index:-1;inset:0;border-radius:18px;background:rgba(16,15,13,.86);
+  border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 30px -18px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.05);
+  -webkit-backdrop-filter:saturate(1.6) blur(18px);backdrop-filter:saturate(1.6) blur(18px)}
 html body header.top:not(.th) .brand{line-height:22px}
 .ui-more{position:relative;flex:none}
 html body .ui-more-btn{min-width:44px;font-size:15px;letter-spacing:.1em;line-height:1}
@@ -369,7 +370,14 @@ html body .ui-more-pop>button:hover,html body .ui-more-pop>button:focus-visible{
 html body .ui-more-pop>button:focus-visible{outline:1px solid var(--ui-amber);outline-offset:-1px}
 @keyframes ui-more-in{from{opacity:0;transform:translateY(-4px) scale(.98)}}
 /* phones: the name row scrolls away and the buttons row stays pinned, like a large title collapsing */
-@media (max-width:640px){html body header.top:not(.th){top:-40px}}
-@media (prefers-reduced-transparency:reduce){html body header.top:not(.th)::before,.ui-more-pop{background:#111;-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media (max-width:640px){
+  html body header.top:not(.th){top:-42px;padding:10px 0 12px}
+  html body header.top:not(.th)::before{display:none}
+  html body header.top:not(.th) .acts{position:relative;padding:6px;margin:0 -6px}
+  html body header.top:not(.th) .acts::before{content:'';position:absolute;z-index:-1;inset:0;border-radius:16px;background:rgba(16,15,13,.86);
+    border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 30px -18px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.05);
+    -webkit-backdrop-filter:saturate(1.6) blur(18px);backdrop-filter:saturate(1.6) blur(18px)}
+}
+@media (prefers-reduced-transparency:reduce){html body header.top:not(.th)::before,html body header.top:not(.th) .acts::before,.ui-more-pop{background:#111;-webkit-backdrop-filter:none;backdrop-filter:none}}
 @media (prefers-reduced-motion:reduce){.ui-more-pop{animation:none}}
 @media (max-width:640px){html body header.top:not(.th) .acts{overflow:visible}}
