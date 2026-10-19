@@ -496,5 +496,8 @@
   addEventListener('resize', () => lfPlace());
   addEventListener('scroll', () => lfPlace(), true);
 
+  // first paint: cards rise into place once (ui.css, html.g-boot); later redraws don't replay it
+  if (!matchMedia('(prefers-reduced-motion: reduce)').matches) { document.documentElement.classList.add('g-boot'); setTimeout(() => document.documentElement.classList.remove('g-boot'), 1400) }
+
   window.UI = { hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, mount, version: '1.0.0' };
 })();
