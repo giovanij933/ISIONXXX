@@ -1,7 +1,7 @@
 // The shell only: each app inside it keeps its own service worker and cache.
 // Bump the version string whenever you change index.html so clients pick up the new shell.
-const CACHE = 'isx-shell-v56';
-const SHELL = ['./', './index.html', './sync.js', './ui.js', './ui.css', './manifest.webmanifest', './icon.svg', './apple-touch-icon.png', './icon-192.png', './icon-512.png'];
+const CACHE = 'isx-shell-v57';
+const SHELL = ['./', './index.html', './sync.js', './ui.js', './ui.css', './manifest.webmanifest', './icon-st.svg', './apple-touch-icon-st.png', './icon-st-192.png', './icon-st-512.png'];
 
 // fetch this site's own files past the browser's HTTP cache (GitHub Pages lets it keep them ~10 min), so a new
 // version never installs or refreshes with the previous one's files; other sites (fonts, runtimes) as usual
