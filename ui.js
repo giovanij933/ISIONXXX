@@ -195,13 +195,14 @@
 
   /* ---------- hero: an app's day at a glance ----------
      { key, title, sub?, big?: {value, label?, tone?: 'pos'|'neg'}, rings: [{ key, label, value, max, display?, done? }], action?: button props,
+       stats?: [{ label, value, tone?, sub?, attrs? (makes it a button), on? (chosen) }] — tiles in place of rings, e.g. P&L by period,
        log?: today's entries, listed in the card in time order ({ at, tag?, text, tone? }, as in timeline) }
      Rings fill toward each goal (done = full + tick). key makes UI.animate fill them from where they were and notice a
      ring that just completed. Rings are read as "Calories: 1,420 of 2,000".                                    */
   // timeline rows, shared by hero's log and timeline()
   const tlRows = items => items.filter(x => x && isFinite(x.at)).sort((a, b) => a.at - b.at)
     .map(x => `<li${x.tone ? ` class="ui-${esc(x.tone)}"` : ''}><time>${TFMT.format(x.at)}</time><i aria-hidden="true"></i><span>${x.tag ? `<b>${esc(x.tag)}</b> ` : ''}${esc(x.text)}</span></li>`).join('');
-  function hero({ key = 'hero', title, sub, big, rings = [], action, log = [] } = {}) {
+  function hero({ key = 'hero', title, sub, big, rings = [], stats = [], action, log = [] } = {}) {
     const ring = r => {
       const v = num(r.value), m = num(r.max), f = r.done ? 1 : v != null && m > 0 ? Math.max(0, Math.min(1, v / m)) : 0, done = r.done ?? (v != null && m > 0 && v >= m);
       const said = r.display ?? (v != null && m != null ? `${v} of ${m}` : 'no data');
@@ -213,6 +214,8 @@
       <div class="ui-hero-top"><div><h2>${esc(title)}</h2>${sub ? `<p class="ui-sub">${esc(sub)}</p>` : ''}</div>
         ${big ? `<p class="ui-hero-big"><b data-count="${esc(key)}:big"${big.tone === 'pos' || big.tone === 'neg' ? ` class="ui-${big.tone}"` : ''}>${esc(big.value)}</b>${big.label ? `<span>${esc(big.label)}</span>` : ''}</p>` : ''}</div>
       ${rings.length ? `<ul class="ui-rings">${rings.map(ring).join('')}</ul>` : ''}
+      ${stats.length ? `<div class="ui-stats">${stats.map(st => { const tag = st.attrs ? 'button' : 'div';
+        return `<${tag} class="ui-stat${st.on ? ' ui-on' : ''}"${st.attrs ? ` type="button" ${attr(st.attrs)}${st.on != null ? ` aria-pressed="${!!st.on}"` : ''}` : ''}><span class="ui-stat-l">${esc(st.label)}</span><b${st.tone === 'pos' || st.tone === 'neg' ? ` class="ui-${st.tone}"` : ''}>${esc(st.value)}</b>${st.sub ? `<small>${esc(st.sub)}</small>` : ''}</${tag}>` }).join('')}</div>` : ''}
       ${action ? `<div class="ui-actions">${button({ variant: 'primary', ...action })}</div>` : ''}
       ${(() => {
         // today's entries, in a side panel on wide screens (header + count, or a placeholder until there are some)
