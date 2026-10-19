@@ -509,17 +509,30 @@
     let wrap = acts.querySelector(':scope>.ui-more');
     if (!wrap) {
       wrap = document.createElement('div'); wrap.className = 'ui-more';
-      wrap.innerHTML = '<button type="button" class="ui-more-btn" aria-haspopup="menu" aria-expanded="false" aria-label="More">···</button><div class="ui-more-pop" role="menu" hidden></div>';
+      wrap.innerHTML = '<button type="button" class="ui-more-btn" aria-haspopup="menu" aria-expanded="false" aria-label="More"><span class="ui-more-h">···</span><span class="ui-more-v">⋮</span></button><div class="ui-more-pop" role="menu" hidden></div>';
     }
     // the ··· button wears the same classes as the app's own plain buttons
     const ref = acts.querySelector(':scope>button:not(.pri):not(.go):not([data-more])');
     if (ref) wrap.firstChild.className = 'ui-more-btn ' + [...ref.classList].join(' ');
     const pop = wrap.lastChild; items.forEach(b => { b.setAttribute('role', 'menuitem'); pop.append(b) });
+    // phones keep only the main button in the bar (ui.css), so the menu starts with copies of the everyday ones
+    pop.querySelectorAll('.ui-more-m,.ui-more-sep').forEach(e => e.remove());
+    const daily = [...acts.querySelectorAll(':scope>button:not(.pri):not(.go)')];
+    if (daily.length) pop.prepend(...daily.map(b => {
+      const m = document.createElement('button'); m.type = 'button'; m.className = 'ui-more-m'; m.setAttribute('role', 'menuitem');
+      m.textContent = b.textContent; m.onclick = () => b.click(); return m;
+    }), Object.assign(document.createElement('hr'), { className: 'ui-more-sep' }));
     acts.append(wrap);
   }
+  // on phones the bar shows the app name without the ISIONXXX // prefix (ui.css), so it fits on one line
+  const brandInit = () => document.querySelectorAll('header.top:not(.th) .brand').forEach(h => {
+    const t = h.firstChild, b = t?.nextSibling;
+    if (t?.nodeType === 3 && b?.tagName === 'B') { const s = document.createElement('span'); s.className = 'ui-brand-pre'; h.insertBefore(s, t); s.append(t, b) }
+  });
+  const shown = pop => [...pop.querySelectorAll('button')].filter(b => b.offsetParent);
   const moreSet = (btn, on, focus) => {
     btn.setAttribute('aria-expanded', on); btn.nextSibling.hidden = !on;
-    if (on && focus) btn.nextSibling.querySelector('button')?.focus();
+    if (on && focus) shown(btn.nextSibling)[0]?.focus();
   };
   const moreOpen = () => document.querySelector('.ui-more-btn[aria-expanded=true]');
   document.addEventListener('click', e => {
@@ -531,20 +544,21 @@
     const open = moreOpen(); if (!open) return;
     if (e.key === 'Escape') { moreSet(open, false); open.focus(); return }
     if (e.key !== 'ArrowDown' && e.key !== 'ArrowUp') return;
-    const its = [...open.nextSibling.querySelectorAll('button')], i = its.indexOf(document.activeElement);
+    const its = shown(open.nextSibling), i = its.indexOf(document.activeElement);
     its[(i + (e.key === 'ArrowDown' ? 1 : its.length - 1)) % its.length]?.focus(); e.preventDefault();
   });
-  const moreInit = () => document.querySelectorAll('header.top .acts').forEach(a => { moreMenu(a); new MutationObserver(() => moreMenu(a)).observe(a, { childList: true }) });
+  const moreInit = () => brandInit() || document.querySelectorAll('header.top .acts').forEach(a => { moreMenu(a); new MutationObserver(() => moreMenu(a)).observe(a, { childList: true }) });
   document.readyState === 'loading' ? addEventListener('DOMContentLoaded', moreInit) : moreInit();
 
-  // the background glow follows the mouse (ui.css eases it); it settles back to the corner when the pointer leaves
+  // the background glow and the light over the page follow the mouse (ui.css eases them); when the pointer leaves,
+  // the light fades and the glow settles back to the corner
   if (matchMedia('(pointer: fine)').matches) {
     const root = document.documentElement; let raf = 0, x = 0, y = 0;
     addEventListener('pointermove', e => {
-      if (e.pointerType !== 'mouse') return; x = e.clientX; y = e.clientY;
+      if (e.pointerType !== 'mouse') return; x = e.clientX; y = e.clientY; root.classList.add('g-ptr');
       raf ||= requestAnimationFrame(() => { raf = 0; root.style.setProperty('--gx', x + 'px'); root.style.setProperty('--gy', y + 'px') });
     }, { passive: true });
-    document.addEventListener('mouseleave', () => { root.style.removeProperty('--gx'); root.style.removeProperty('--gy') });
+    document.addEventListener('mouseleave', () => { root.classList.remove('g-ptr'); root.style.removeProperty('--gx'); root.style.removeProperty('--gy') });
   }
 
   // no page zoom: the apps stay fixed like a native app. iOS ignores user-scalable=no, so pinches are stopped here too
