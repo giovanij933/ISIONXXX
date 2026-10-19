@@ -368,7 +368,11 @@ html body header.top:not(.th)::before{content:'';position:absolute;z-index:-1;in
   -webkit-backdrop-filter:saturate(1.6) blur(18px);backdrop-filter:saturate(1.6) blur(18px)}
 html body header.top:not(.th) .brand{line-height:22px}
 .ui-more{position:relative;flex:none}
-html body .ui-more-btn{min-width:44px;font-size:15px;letter-spacing:.1em;line-height:1}
+html body .ui-more-btn{min-width:44px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+/* the three dots are drawn, not typed, so they sit centred and round in every app and font */
+.ui-more-h,.ui-more-v{display:block;flex:none;background:radial-gradient(circle,currentColor 1.7px,transparent 2.2px)}
+.ui-more-h{width:18px;height:6px;background-size:6px 6px;background-repeat:repeat-x}
+.ui-more-v{width:6px;height:18px;background-size:6px 6px;background-repeat:repeat-y}
 html body .ui-more-btn[aria-expanded=true]{background:rgba(255,255,255,.08)}
 .ui-more-pop{position:absolute;right:0;top:calc(100% + 8px);z-index:30;min-width:190px;padding:6px;display:flex;flex-direction:column;gap:2px;
   background:rgba(22,21,19,.95);-webkit-backdrop-filter:saturate(1.6) blur(22px);backdrop-filter:saturate(1.6) blur(22px);
@@ -389,7 +393,7 @@ html body .ui-more-pop>button:focus-visible{outline:1px solid var(--ui-amber);ou
   html body header.top:not(.th) .acts{flex:1 1 auto;justify-content:flex-end;gap:6px}
   html body header.top:not(.th) .acts>button:not(.pri):not(.go){display:none}
   .ui-brand-pre{display:none}
-  .ui-more-h{display:none}.ui-more-v{display:inline;font-size:20px;letter-spacing:0}
+  .ui-more-h{display:none}.ui-more-v{display:block}
   html body .ui-more-btn{min-width:38px;padding-left:8px;padding-right:8px}
   html body .ui-more-pop>.ui-more-m,.ui-more-sep{display:block}
   html body header.top:not(.th) #isx-sync.inl{order:9;margin:-4px -2px -4px -4px}
