@@ -279,11 +279,11 @@ html body .tw{border-radius:var(--g-r2)}
 html body .hb,html body .hb i,html body .ui-meter-bar,html body .ui-meter-bar i,html body .ui-week i{border-radius:999px}
 html body svg.chart rect:not(.hit){rx:2px}
 /* controls */
-html body :is(button,.btn,select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea):not(.ui-lf):not(.tl-go):not(.cd):not(.cell):not(.ui-seg>*){border-radius:var(--g-r3)}
+html body :is(button,.btn,select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea):not(.ui-lf):not(.tl-go):not(.cd):not(.cell):not(.ui-seg>*):not(nav *){border-radius:var(--g-r3)}
 html body :is(select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea){background-color:rgba(255,255,255,.035);border-color:var(--g-line2)}
 html body :is(.pill,.chip,.chips button,.xf button,.ui-status){border-radius:999px}
 html body :is(button,.btn){transition:transform .35s var(--g-spring),background-color .2s,border-color .2s,color .2s,box-shadow .2s}
-html body :is(button,.btn):active:not(:disabled){transform:scale(.965)}
+html body :is(button,.btn):not(nav *):active:not(:disabled){transform:scale(.965)}
 html body :is(button.pri,.btn.go,.ui-btn.ui-primary){box-shadow:0 8px 22px -10px rgba(255,176,0,.55)}
 /* floating layers: real glass */
 html body :is(dialog,.modal>.box,#isx-sd,.ui-lf-pop){border-radius:20px;background:var(--g-float);-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);
