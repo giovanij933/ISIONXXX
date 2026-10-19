@@ -332,10 +332,10 @@ html.g-boot body :is(.g,.grid,section)>:nth-child(4){animation-delay:.12s}
 /* ---------- glass on colour: green, red and amber fills are see-through tinted glass with a light top edge ---------- */
 html body{--gl-sheen:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0) 50%);
   --gl-g:rgba(51,255,102,.28);--gl-r:rgba(255,69,69,.28);--gl-a:rgba(255,176,0,.28)}
-/* solid amber buttons and the chosen segment become amber-tinted glass with amber text */
-html body :is(button.pri,.btn.go,.ui-btn.ui-primary),html body .ui-seg>button[aria-checked=true]{background:var(--gl-sheen),rgba(255,176,0,.2);border-color:rgba(255,176,0,.6);color:#ffc23d;
+/* solid amber buttons and the chosen segment become amber-tinted glass with dark text */
+html body :is(button.pri,.btn.go,.ui-btn.ui-primary),html body .ui-seg>button[aria-checked=true]{background:var(--gl-sheen),rgba(255,176,0,.6);border-color:rgba(255,176,0,.75);color:#000;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 6px 18px -12px var(--gl-a)}
-html body :is(button.pri,.btn.go,.ui-btn.ui-primary):hover:not(:disabled){background:var(--gl-sheen),rgba(255,176,0,.3);color:#ffd166;filter:none}
+html body :is(button.pri,.btn.go,.ui-btn.ui-primary):hover:not(:disabled){background:var(--gl-sheen),rgba(255,176,0,.7);color:#000;filter:none}
 /* bars and dots: the fill shows a little of the card through it */
 html body :is(.hb i,.ui-meter-bar i,.ui-week i:is(.ui-on,.ui-pos,.ui-neg)){background-image:var(--gl-sheen);opacity:.78;box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
 html body .dot:is(.bgp,.bgn,.bga,.bgm,[style]){opacity:.85}
