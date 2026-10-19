@@ -328,3 +328,34 @@ html.g-boot body :is(.g,.grid,section)>:nth-child(4){animation-delay:.12s}
    smaller). !important because some fields set their size with id-level rules (the sync dialog's); pinch-zoom still
    works, since nothing blocks it in the viewport tag */
 @media (pointer:coarse){html body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea){font-size:16px!important}}
+
+/* ---------- glass on colour: green, red and amber fills get a sheen and a soft glow in their own colour ---------- */
+html body{--gl-sheen:linear-gradient(180deg,rgba(255,255,255,.34),rgba(255,255,255,.08) 46%,rgba(255,255,255,0) 54%,rgba(0,0,0,.14));
+  --gl-g:rgba(51,255,102,.55);--gl-r:rgba(255,69,69,.55);--gl-a:rgba(255,176,0,.55)}
+/* solid buttons and the chosen segment */
+html body :is(button.pri,.btn.go,.ui-btn.ui-primary){background-image:var(--gl-sheen);box-shadow:inset 0 1px 0 rgba(255,255,255,.5),inset 0 -1px 0 rgba(0,0,0,.25),0 10px 26px -12px var(--gl-a)}
+html body .ui-seg>button[aria-checked=true]{background-image:var(--gl-sheen);box-shadow:inset 0 1px 0 rgba(255,255,255,.45),0 6px 18px -10px var(--gl-a)}
+/* bars and dots */
+html body :is(.hb i,.ui-meter-bar i,.ui-week i:is(.ui-on,.ui-pos,.ui-neg)){background-image:var(--gl-sheen);box-shadow:inset 0 1px 0 rgba(255,255,255,.35)}
+html body .hb i.bgp,html body .hb i[style*="--g"]{box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 0 16px -4px var(--gl-g)}
+html body .hb i.bgn,html body .hb i[style*="--r"]{box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 0 16px -4px var(--gl-r)}
+html body .hb i:is(.bga,[style*="ffb000"],[style*="--acc"],[style*="--a)"]){box-shadow:inset 0 1px 0 rgba(255,255,255,.35),0 0 16px -4px var(--gl-a)}
+html body .dot:is(.bgp,.bgn,.bga,.bgm,[style]){background-image:var(--gl-sheen)}
+html body .dot.bgp{box-shadow:0 0 8px -1px var(--gl-g)}html body .dot.bgn{box-shadow:0 0 8px -1px var(--gl-r)}html body .dot.bga{box-shadow:0 0 8px -1px var(--gl-a)}
+/* calendar days that are green, red or amber: a glassy tint with a light inner edge and a faint glow */
+html body :is(.cd.p,.cd.n,.cell.on){background-image:linear-gradient(180deg,rgba(255,255,255,.07),rgba(255,255,255,0) 55%);box-shadow:inset 0 1px 0 rgba(255,255,255,.07)}
+html body :is(.cd.p,.cell.on.ok){box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 22px -12px var(--gl-g)}
+html body :is(.cd.n,.cell.on.over){box-shadow:inset 0 1px 0 rgba(255,255,255,.08),0 0 22px -12px var(--gl-r)}
+/* charts, gauges and rings glow in their colour */
+html body svg.chart :is(.fp,.cg .ln){filter:drop-shadow(0 0 4px var(--gl-g))}html body svg.chart.cg .ln{filter:drop-shadow(0 0 4px var(--gl-g))}
+html body svg.chart .fn,html body svg.chart.cr .ln{filter:drop-shadow(0 0 4px var(--gl-r))}html body svg.chart .fa{filter:drop-shadow(0 0 4px var(--gl-a))}
+html body .gauge :is(.sg,path[stroke="#33ff66"]){filter:drop-shadow(0 0 5px var(--gl-g))}
+html body .gauge :is(.sr,path[stroke="#ff4545"]){filter:drop-shadow(0 0 5px var(--gl-r))}
+html body .gauge path[stroke="#ffb000"]{filter:drop-shadow(0 0 5px var(--gl-a))}
+html body :is(.ui-ring.ui-done .ui-rf,.ring.done .rf){filter:drop-shadow(0 0 6px var(--gl-g))}
+html body :is(.ui-ring:not(.ui-done) .ui-rf,.ring:not(.done):not(.rest) .rf){filter:drop-shadow(0 0 5px var(--gl-a))}
+/* the big coloured figures glow a little, like lit glass (small text stays crisp) */
+html body :is(.big,.ui-hero-big b,.ui-stat b,.hero-n b,.k+.big):is(.pos,.grn,.ui-pos){text-shadow:0 0 22px rgba(51,255,102,.35)}
+html body :is(.big,.ui-hero-big b,.ui-stat b):is(.neg,.red,.ui-neg){text-shadow:0 0 22px rgba(255,69,69,.35)}
+html body :is(.big,.ui-hero-big b,.ui-stat b,.hero-n b):is(.amb){text-shadow:0 0 22px rgba(255,176,0,.3)}
+@media (prefers-reduced-transparency:reduce){html body :is(svg.chart *,.gauge path,.ui-rf,.rf){filter:none}html body :is(.big,.ui-hero-big b,.ui-stat b){text-shadow:none}}
