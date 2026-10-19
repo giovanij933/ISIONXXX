@@ -348,3 +348,5 @@ html body .gauge :is(.sr,path[stroke="#ff4545"]){filter:drop-shadow(0 0 2px var(
 html body .gauge path[stroke="#ffb000"],html body :is(.ui-ring:not(.ui-done) .ui-rf,.ring:not(.done):not(.rest) .rf){filter:drop-shadow(0 0 2px var(--gl-a))}
 @media (prefers-reduced-transparency:reduce){html body :is(.gauge path,.ui-rf,.rf){filter:none}html body :is(.hb i,.ui-meter-bar i,.ui-week i,.dot,svg.chart *){opacity:1}
   html body :is(button.pri,.btn.go,.ui-btn.ui-primary),html body .ui-seg>button[aria-checked=true]{background:#ffb000;color:#000}}
+/* no double-tap zoom anywhere */
+html{touch-action:manipulation}
