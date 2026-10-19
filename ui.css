@@ -379,8 +379,21 @@ html body .ui-more-pop>button{all:unset;box-sizing:border-box;display:block;widt
 html body .ui-more-pop>button:hover,html body .ui-more-pop>button:focus-visible{background:rgba(255,255,255,.08)}
 html body .ui-more-pop>button:focus-visible{outline:1px solid var(--ui-amber);outline-offset:-1px}
 @keyframes ui-more-in{from{opacity:0;transform:translateY(-4px) scale(.98)}}
-/* phones: the same rounded bar, with the name on top and the buttons under it, all pinned */
-@media (max-width:640px){html body header.top:not(.th){padding:10px 10px 10px 12px;row-gap:10px}}
+/* phones: the same rounded bar on one line: the app name, the main button, a vertical ⋮ holding everything else, and
+   the sync dot. The everyday buttons show as the first items of the menu instead. */
+.ui-more-v,html body .ui-more-pop>.ui-more-m,.ui-more-sep{display:none}
+.ui-more-sep{border:0;border-top:1px solid rgba(255,255,255,.08);margin:4px 6px}
+@media (max-width:640px){
+  html body header.top:not(.th){flex-wrap:nowrap;padding:7px 6px 7px 14px;gap:8px}
+  html body header.top:not(.th) .brand{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  html body header.top:not(.th) .acts{flex:1 1 auto;justify-content:flex-end;gap:6px}
+  html body header.top:not(.th) .acts>button:not(.pri):not(.go){display:none}
+  .ui-brand-pre{display:none}
+  .ui-more-h{display:none}.ui-more-v{display:inline;font-size:20px;letter-spacing:0}
+  html body .ui-more-btn{min-width:38px;padding-left:8px;padding-right:8px}
+  html body .ui-more-pop>.ui-more-m,.ui-more-sep{display:block}
+  html body header.top:not(.th) #isx-sync.inl{order:9;margin:-4px -2px -4px -4px}
+}
 @media (prefers-reduced-transparency:reduce){html body header.top:not(.th)::before,.ui-more-pop{background:#111;-webkit-backdrop-filter:none;backdrop-filter:none}}
 @media (prefers-reduced-motion:reduce){.ui-more-pop{animation:none}}
 @media (max-width:640px){html body header.top:not(.th) .acts{overflow:visible}}
