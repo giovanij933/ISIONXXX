@@ -537,6 +537,16 @@
   const moreInit = () => document.querySelectorAll('header.top .acts').forEach(a => { moreMenu(a); new MutationObserver(() => moreMenu(a)).observe(a, { childList: true }) });
   document.readyState === 'loading' ? addEventListener('DOMContentLoaded', moreInit) : moreInit();
 
+  // the background glow follows the mouse (ui.css eases it); it settles back to the corner when the pointer leaves
+  if (matchMedia('(pointer: fine)').matches) {
+    const root = document.documentElement; let raf = 0, x = 0, y = 0;
+    addEventListener('pointermove', e => {
+      if (e.pointerType !== 'mouse') return; x = e.clientX; y = e.clientY;
+      raf ||= requestAnimationFrame(() => { raf = 0; root.style.setProperty('--gx', x + 'px'); root.style.setProperty('--gy', y + 'px') });
+    }, { passive: true });
+    document.addEventListener('mouseleave', () => { root.style.removeProperty('--gx'); root.style.removeProperty('--gy') });
+  }
+
   // no page zoom: the apps stay fixed like a native app. iOS ignores user-scalable=no, so pinches are stopped here too
   ['gesturestart', 'gesturechange'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
   document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault() }, { passive: false });

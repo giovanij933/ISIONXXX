@@ -269,8 +269,13 @@ button.ui-stat:focus-visible{outline:1px solid var(--ui-amber);outline-offset:2p
   --g-card:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012) 40%),rgba(13,13,13,.78);
   --g-float:rgba(18,18,18,.72);--g-blur:saturate(170%) blur(24px);--g-hi:inset 0 1px 0 rgba(255,255,255,.055);
   --g-drop:0 18px 40px -22px rgba(0,0,0,.95);--g-spring:cubic-bezier(.32,.72,0,1)}
-/* a faint amber glow behind everything, so the glass has something to pick up */
-html body{background:radial-gradient(1100px 620px at 8% -12%,rgba(255,176,0,.075),transparent 62%),radial-gradient(900px 560px at 108% 4%,rgba(255,122,51,.05),transparent 60%),var(--bg,#070707) fixed}
+/* a faint amber glow behind everything, so the glass has something to pick up. With a mouse it drifts after the
+   pointer (ui.js sets --gx/--gy); registered so the move eases instead of jumping */
+@property --gx{syntax:'<length-percentage>';inherits:true;initial-value:8%}
+@property --gy{syntax:'<length-percentage>';inherits:true;initial-value:-12%}
+html{transition:--gx 1.2s var(--g-spring),--gy 1.2s var(--g-spring)}
+@media (prefers-reduced-motion:reduce){html{transition:none}}
+html body{background:radial-gradient(1100px 620px at var(--gx) var(--gy),rgba(255,176,0,.075),transparent 62%),radial-gradient(900px 560px at 108% 4%,rgba(255,122,51,.05),transparent 60%),var(--bg,#070707) fixed}
 /* cards */
 html body :is(.card,.ui-card){border-radius:var(--g-r);background:var(--g-card);border-color:var(--g-line);box-shadow:var(--g-hi),var(--g-drop);
   transition:border-color .3s var(--g-spring),box-shadow .3s var(--g-spring)}
@@ -369,15 +374,8 @@ html body .ui-more-pop>button{all:unset;box-sizing:border-box;display:block;widt
 html body .ui-more-pop>button:hover,html body .ui-more-pop>button:focus-visible{background:rgba(255,255,255,.08)}
 html body .ui-more-pop>button:focus-visible{outline:1px solid var(--ui-amber);outline-offset:-1px}
 @keyframes ui-more-in{from{opacity:0;transform:translateY(-4px) scale(.98)}}
-/* phones: the name row scrolls away and the buttons row stays pinned, like a large title collapsing */
-@media (max-width:640px){
-  html body header.top:not(.th){top:-42px;padding:10px 0 12px}
-  html body header.top:not(.th)::before{display:none}
-  html body header.top:not(.th) .acts{position:relative;padding:6px;margin:0 -6px}
-  html body header.top:not(.th) .acts::before{content:'';position:absolute;z-index:-1;inset:0;border-radius:16px;background:rgba(16,15,13,.72);
-    border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 30px -18px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.05);
-    -webkit-backdrop-filter:saturate(1.6) blur(18px);backdrop-filter:saturate(1.6) blur(18px)}
-}
-@media (prefers-reduced-transparency:reduce){html body header.top:not(.th)::before,html body header.top:not(.th) .acts::before,.ui-more-pop{background:#111;-webkit-backdrop-filter:none;backdrop-filter:none}}
+/* phones: the same rounded bar, with the name on top and the buttons under it, all pinned */
+@media (max-width:640px){html body header.top:not(.th){padding:10px 10px 10px 12px;row-gap:10px}}
+@media (prefers-reduced-transparency:reduce){html body header.top:not(.th)::before,.ui-more-pop{background:#111;-webkit-backdrop-filter:none;backdrop-filter:none}}
 @media (prefers-reduced-motion:reduce){.ui-more-pop{animation:none}}
 @media (max-width:640px){html body header.top:not(.th) .acts{overflow:visible}}
