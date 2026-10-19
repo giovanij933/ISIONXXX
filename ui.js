@@ -509,7 +509,7 @@
     let wrap = acts.querySelector(':scope>.ui-more');
     if (!wrap) {
       wrap = document.createElement('div'); wrap.className = 'ui-more';
-      wrap.innerHTML = '<button type="button" class="ui-more-btn" aria-haspopup="menu" aria-expanded="false" aria-label="More"><span class="ui-more-h">···</span><span class="ui-more-v">⋮</span></button><div class="ui-more-pop" role="menu" hidden></div>';
+      wrap.innerHTML = '<button type="button" class="ui-more-btn" aria-haspopup="menu" aria-expanded="false" aria-label="More"><span class="ui-more-h"></span><span class="ui-more-v"></span></button><div class="ui-more-pop" role="menu" hidden></div>';
     }
     // the ··· button wears the same classes as the app's own plain buttons
     const ref = acts.querySelector(':scope>button:not(.pri):not(.go):not([data-more])');
