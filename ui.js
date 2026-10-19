@@ -550,6 +550,75 @@
   const moreInit = () => brandInit() || document.querySelectorAll('header.top .acts').forEach(a => { moreMenu(a); new MutationObserver(() => moreMenu(a)).observe(a, { childList: true }) });
   document.readyState === 'loading' ? addEventListener('DOMContentLoaded', moreInit) : moreInit();
 
+  // dropdowns open as a glass list like the ··· menu instead of the browser's own. The select stays the real control:
+  // picking sets its value and fires input + change, so every app's handlers work unchanged. data-native opts out.
+  let selPop = null, selFor = null;
+  const selOk = s => s && s.tagName === 'SELECT' && !s.multiple && !(s.size > 1) && !s.disabled && !('native' in s.dataset);
+  const selClose = (refocus) => {
+    if (!selPop) return; const s = selFor;
+    try { selPop.hidePopover?.() } catch (e) {} selPop.remove(); selPop = selFor = null;
+    if (refocus && s) s.focus({ preventScroll: true });
+  };
+  const selPick = (s, i) => {
+    if (s.selectedIndex !== i) { s.selectedIndex = i; s.dispatchEvent(new Event('input', { bubbles: true })); s.dispatchEvent(new Event('change', { bubbles: true })) }
+    selClose(true);
+  };
+  function selOpen(s) {
+    selClose(); selFor = s;
+    const pop = selPop = document.createElement('div'); pop.className = 'ui-sel-pop'; pop.setAttribute('role', 'listbox');
+    if (s.getAttribute('aria-label')) pop.setAttribute('aria-label', s.getAttribute('aria-label'));
+    [...s.children].forEach(n => {
+      const add = (o, nested) => {
+        const b = document.createElement('button'); b.type = 'button'; b.className = 'ui-sel-opt' + (nested ? ' ui-sel-in' : '');
+        b.setAttribute('role', 'option'); b.setAttribute('aria-selected', o.selected); b.textContent = o.textContent; b.disabled = o.disabled;
+        b.onclick = () => selPick(s, o.index); pop.append(b);
+      };
+      if (n.tagName === 'OPTGROUP') { const h = document.createElement('div'); h.className = 'ui-sel-grp'; h.textContent = n.label; pop.append(h); [...n.children].forEach(o => add(o, true)) }
+      else if (n.tagName === 'OPTION' && !n.hidden) add(n);
+    });
+    if ('popover' in HTMLElement.prototype) pop.popover = 'manual';   // top layer, so it also opens above dialogs
+    // inside an open dialog the list must live in the dialog: everything outside a modal dialog is inert
+    (s.closest('dialog[open]') || document.body).append(pop); try { pop.showPopover?.() } catch (e) {}
+    const r = s.getBoundingClientRect(), vh = innerHeight, gap = 6;
+    pop.style.minWidth = r.width + 'px';
+    const below = vh - r.bottom - gap - 8, above = r.top - gap - 8, up = below < 220 && above > below;
+    pop.style.maxHeight = Math.max(120, Math.min(360, up ? above : below)) + 'px';
+    const w = pop.offsetWidth, h = pop.offsetHeight;
+    pop.style.left = Math.max(8, Math.min(r.left, innerWidth - w - 8)) + 'px';
+    pop.style.top = (up ? r.top - gap - h : r.bottom + gap) + 'px';
+    const cur = pop.querySelector('[aria-selected=true]') || pop.querySelector('.ui-sel-opt:not(:disabled)');
+    cur?.scrollIntoView({ block: 'nearest' }); cur?.focus({ preventScroll: true });
+  }
+  let selT0 = null;   // where a touch began, so a swipe that ends on a dropdown scrolls instead of opening it
+  document.addEventListener('touchstart', e => { const t = e.touches[0]; selT0 = t && [t.clientX, t.clientY] }, { capture: true, passive: true });
+  const selTap = e => {
+    const s = e.target.closest?.('select'); if (!selOk(s)) return;
+    if (e.type === 'mousedown' && e.button !== 0) return;
+    if (e.type === 'touchend') { const t = e.changedTouches[0]; if (selT0 && t && Math.hypot(t.clientX - selT0[0], t.clientY - selT0[1]) > 10) return }
+    e.preventDefault(); s.focus({ preventScroll: true });
+    selFor === s ? selClose(true) : selOpen(s);
+  };
+  document.addEventListener('mousedown', selTap, true);
+  document.addEventListener('touchend', selTap, { capture: true, passive: false });
+  document.addEventListener('mousedown', e => { if (selPop && !selPop.contains(e.target) && e.target !== selFor) selClose() }, true);
+  document.addEventListener('keydown', e => {
+    const s = e.target;
+    if (!selPop) { if (selOk(s) && (e.key === 'Enter' || e.key === ' ' || e.key === 'F4' || (e.altKey && e.key === 'ArrowDown'))) { e.preventDefault(); selOpen(s) } return }
+    if (!selPop.contains(document.activeElement)) return;
+    const its = [...selPop.querySelectorAll('.ui-sel-opt:not(:disabled)')], i = its.indexOf(document.activeElement);
+    const go = j => { e.preventDefault(); its[Math.max(0, Math.min(its.length - 1, j))]?.focus() };
+    if (e.key === 'ArrowDown') go(i + 1); else if (e.key === 'ArrowUp') go(i - 1);
+    else if (e.key === 'Home') go(0); else if (e.key === 'End') go(its.length - 1);
+    else if (e.key === 'Escape') { e.preventDefault(); e.stopPropagation(); selClose(true) }
+    else if (e.key === 'Tab') selClose(true);
+    else if (e.key.length === 1 && /\S/.test(e.key)) {   // type a letter to jump to the next option starting with it
+      const k = e.key.toLowerCase(), n = its.length, j = [...Array(n)].map((_, d) => (i + 1 + d) % n).find(x => its[x].textContent.trim().toLowerCase().startsWith(k));
+      if (j != null) go(j);
+    }
+  }, true);
+  addEventListener('resize', () => selClose());
+  addEventListener('scroll', e => { if (selPop && !selPop.contains(e.target)) selClose() }, true);
+
   // the background glow and the light over the page follow the mouse (ui.css eases them); when the pointer leaves,
   // the light fades and the glow settles back to the corner
   if (matchMedia('(pointer: fine)').matches) {
