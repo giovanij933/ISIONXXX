@@ -154,7 +154,15 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 @keyframes tIn{from{opacity:0;transform:translateY(8px)}}
 #today.drawn .tc,#today.drawn .ci,#today.drawn .ins{animation:none}
 .tch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
-.st{font-size:10px;letter-spacing:.12em;color:var(--dim);border:1px solid var(--line2);padding:2px 6px}.st.ok{color:var(--green);border-color:#1d6b3f}.st.bad{color:var(--red);border-color:#6b1d1d}
+.st{font-size:10px;letter-spacing:.12em;color:var(--dim);border:1px solid var(--line2);padding:2px 6px}
+/* the Today-so-far and Insights cards wear the same glass as every other card, their count badges are pills, and each
+   timeline dot sits beside the first line of its entry, so a two-line entry doesn't pull it down */
+html body :is(.tl-wrap,.ins){border-radius:var(--g-r);background:var(--g-card);border-color:var(--g-line);box-shadow:var(--g-hi),var(--g-drop)}
+html body .ins.sto{border-color:rgba(255,176,0,.45)}html body .ins.sto.bad{border-color:var(--red)}
+html body :is(.st,.ci button.st){border-radius:999px;padding:3px 10px;border-color:var(--g-line2)}
+html body .ci button.st{border-color:#1d6b3f}
+.tl i{align-self:start;margin-top:7px}
+html body .tl-go{border-radius:8px}.st.ok{color:var(--green);border-color:#1d6b3f}.st.bad{color:var(--red);border-color:#6b1d1d}
 /* seven labels on a small phone: NUTRITION is the longest */
 @media(max-width:400px){nav button{letter-spacing:.01em}}
 @media(min-width:900px){nav.away{transform:translate(-50%,calc(100% + 40px))}nav{left:50%;right:auto;transform:translateX(-50%);width:min(760px,calc(100% - 24px));height:56px}nav button{flex-direction:row;gap:8px;font-size:11px}}
