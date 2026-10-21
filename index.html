@@ -365,7 +365,8 @@ function tTrain(t){
   // a day off after the weekly goal is hit is a planned rest day: not a win, but not held against you either
   const rest=!W.length&&wk>=goal;
   return {id:'training',label:'TRAIN',done:W.length?true:rest?null:false,rest,
-    big:W.length?plural(W.length,'exercise'):str?'Stretched':'Rest day',
+    // only a planned rest day reads "Rest day": before the weekly goal, a day without a workout is still to do
+    big:W.length?plural(W.length,'exercise'):str?'Stretched':rest?'Rest day':'Not yet',
     sub:[vol?`${fi(vol)} ${s.wu||'lb'} lifted`:'',car?`${Math.round(car)} min cardio`:'',str&&W.length?'+ stretch':'',!W.length&&wk>=goal?'weekly goal hit':''],
     meter:{v:wk,max:goal,lb:'Workouts this week',val:`${wk} / ${goal}`},
     dots:week7().map(d=>wd.has(ymd(d))?'on':sd.has(ymd(d))?'half':'')};
