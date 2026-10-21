@@ -46,8 +46,11 @@ change. A copy that drifts is a bug.
 | REWIRE | `isx.rewire.v1` |
 | Shell | `isx.checkin.v1` (also read by the apps) |
 
+Every app also writes `isx.plan.<app>` (local only, never synced) through `UI.planner` in ui.js: the session its START
+would begin next, with a signature of the keys it was built from and the day, for TODAY's plan card.
+
 Two readers look across apps, read-only:
-- the shell's TODAY reads every app's keys;
+- the shell's TODAY reads every app's keys and plan records;
 - LEARN turns every app's log into the tables its lessons run on (trades, workouts, mind, meals, habits, checkins,
   study). NUTRITION writes `nj.mealnut.v1` (each meal with its nutrients worked out) for LEARN, because bowl
   nutrition can't be worked out outside NUTRITION.
@@ -56,6 +59,8 @@ Records with a string `id` merge one by one during sync; deletes travel as tombs
 
 **Messages.** These are same-origin `postMessage` messages; anything else is ignored.
 - shell → app: `{isx:'do', act}`. `act` is one of the app's quick actions (`go`, `add`, `quick`, …).
+- shell → app: `{isx:'replan'}`. Rebuild the app's plan record now (ui.js handles it). TODAY sends it once per
+  out-of-date signature to an app that's loaded; one that isn't is loaded in the background and rebuilds as it starts.
 - app → shell: `{isx:'open', app, act}`. Opens another app's tab, optionally running an action.
 
 **Events.**
