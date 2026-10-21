@@ -632,5 +632,30 @@
   ['gesturestart', 'gesturechange'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
   document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault() }, { passive: false });
 
-  window.UI = { hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, mount, version: '1.0.0' };
+  /* ---------- plans: what each app would start next, for TODAY's plan card ----------
+     An app registers a builder once its data is loaded: UI.planner(app, srcKeys, build). build() returns the rows to
+     show, [{title, sub, act, h0, h1}]: act is the app action that starts it (the same names TODAY's {isx:'do'} uses),
+     h0/h1 an optional local-hour window for plans that change with the time of day. The result is saved as
+     isx.plan.<app> (never synced) with a signature of the data it came from and the day, so TODAY can see a plan is
+     out of date (UI.planOf(app).fresh) and ask the app to rebuild it with postMessage {isx:'replan'}. Apps call
+     UI.replan() after they save; it rebuilds once the current task is done. */
+  const planDay = () => { const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}` };
+  const planSig = src => src.map(k => { try { return (localStorage.getItem(k) || '').length } catch (e) { return 0 } }).join(':') + '|' + planDay();
+  let planReg = null, planT = 0;
+  function planNow() {
+    clearTimeout(planT); planT = 0; if (!planReg) return;
+    const { app, src, build } = planReg;
+    try { const items = (build() || []).filter(Boolean); localStorage.setItem('isx.plan.' + app, JSON.stringify({ v: 1, app, sig: planSig(src), src, at: Date.now(), items })) }
+    catch (e) { console.warn('UI.planner(' + app + ')', e) }
+  }
+  const replan = () => { if (planReg && !planT) planT = setTimeout(planNow, 0) };
+  function planner(app, src, build) { planReg = { app, src, build }; planNow() }
+  function planOf(app) {
+    try { const p = JSON.parse(localStorage.getItem('isx.plan.' + app)); return p && p.v === 1 ? Object.assign(p, { fresh: p.sig === planSig(p.src || []) }) : null } catch (e) { return null }
+  }
+  addEventListener('message', e => { if (e.origin === location.origin && e.data && e.data.isx === 'replan') planNow() });
+  addEventListener('isx-sync', replan);
+  document.addEventListener('visibilitychange', () => { if (!document.hidden) replan() });
+
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, mount, version: '1.0.0' };
 })();
