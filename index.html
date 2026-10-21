@@ -116,7 +116,7 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 .pl-x{flex:1;min-width:0;display:flex;flex-direction:column;gap:2px}
 .pl-a{display:flex;align-items:center;gap:7px;font-size:10px;font-weight:600;letter-spacing:.12em;color:var(--dim)}
 .pl-a i{flex:none;width:7px;height:7px;border-radius:50%}:where(.pl-a) i{background:var(--amber)}
-.pl-a em{font-style:normal;font-weight:400;letter-spacing:.06em;color:var(--amber)}.pl-r.done .pl-a em{color:var(--green)}
+.pl-a em{font-style:normal;font-weight:400;letter-spacing:.06em;color:var(--amber)}.pl-r.done .pl-a em:first-of-type{color:var(--green)}
 .pl-t{font-weight:600;font-size:13px;overflow-wrap:anywhere}.pl-s{color:var(--dim);font-size:12px;overflow-wrap:anywhere}
 .pl-r.done .pl-t,.pl-r.old .pl-t{color:var(--dim);font-weight:500}
 .pl-r .ui-btn{flex:none;min-width:96px}.pl-r .ui-btn.ui-secondary{border-color:rgba(255,176,0,.45);color:var(--amber)}
@@ -346,7 +346,10 @@ function tMind(t){
   const min=Math.round(T.reduce((a,e)=>a+(+e.mins||0),0));
   const R=T.filter(e=>e.pre!=null&&e.post!=null),sh=R.length?R.reduce((a,e)=>a+e.post-e.pre,0)/R.length:null;
   const set=new Set(L.map(e=>dayAt(e.at))),st=streakOf(set);
+  // what you practiced today, in order, for the plan card's done row
+  const K=[...new Set(T.slice().sort((a,b)=>a.at-b.at).map(e=>KN[e.kind]||'Session'))];
   return {id:'mind',label:'MIND',done:T.length>0,big:T.length?`${min} min`:'Not yet',
+    did:T.length?{title:K.length>2?`${K[0]} + ${K.length-1} more`:K.join(' · '),sub:`${plural(T.length,'session')} · ${min} min today`}:null,
     sub:[T.length?plural(T.length,'session'):'No session today',sh!=null?`mood <b class="${sh>0?'pos':sh<0?'neg':''}">${sh>0?'+':''}${Math.round(sh*10)/10}</b>`:'',st?`${st}-day streak`:''],
     // MIND's goal is set per week (5, 10, 15, 20, 30 min a day x 7); TODAY shows the day's share of it
     meter:{v:min,max:Math.round(goal/7),lb:'Mindful minutes today',val:`${min} / ${Math.round(goal/7)}`},
@@ -564,7 +567,11 @@ function insHTML(){
    Each app saves it as isx.plan.<id> (UI.planner in ui.js). A plan that's out of date (its data or the day changed) shows
    dimmed while TODAY asks that app to rebuild it, once per change: a loaded app gets {isx:'replan'}, one that isn't
    loaded yet loads in the background and rebuilds as it starts. An app with data but no plan yet is loaded the same way.
-   The filled Start is the hero's Next up when that app has a session to start, so the two agree. */
+   A row's tick is its ring's, so the card and the rings agree. An app's own "done" can mean something else (NUTRITION's
+   next meal, LEARN's whole session, a MOBILITY day, REWIRE's danger hour), so where the two differ the row says so: an
+   app that's done offers what's next in it, and a planned session that's done while the ring isn't offers the hero's
+   action for that app. Apps without a ring today (a rest day, a weekend's journal) go by the plan's tick. The filled
+   Start is only ever the hero's Next up (or, with no rings yet, the first session). */
 const hasWin=x=>typeof x.h0==='number'&&typeof x.h1==='number';
 const inWin=(x,h)=>x.h0<=x.h1?h>=x.h0&&h<x.h1:h>=x.h0||h<x.h1;   // h0 > h1 runs past midnight
 // the row for this hour: the first whose window holds it, else the first without one
@@ -585,21 +592,32 @@ function planLoad(){
 function planHTML(t,C,next){
   const h=new Date().getHours(),R=[];
   TABS.filter(a=>!a.pane).forEach(a=>{
-    const p=UI.planOf(a.id);
-    if(!p){if(C.some(c=>c&&c.id===a.id)){planAsk(a.id,'none');if(!document.getElementById('f-'+a.id)?.dataset.ready)R.push({a,wait:1})}return}
+    const p=UI.planOf(a.id),c=C.find(c=>c&&c.id===a.id);
+    if(!p){if(c){planAsk(a.id,'none');if(!document.getElementById('f-'+a.id)?.dataset.ready)R.push({a,c,wait:1,ok:c.done===true})}return}
     if(!p.fresh)planAsk(a.id,UI.planSig(arr(p.src)));
-    const x=planRow(arr(p.items),h);
-    // a tick only counts for the day it was given (a plan from yesterday isn't done today)
-    if(x)R.push({a,x,old:!p.fresh,done:!!x.done&&dayAt(p.at)===t});
+    const x=planRow(arr(p.items),h);if(!x)return;
+    // the plan's tick only counts for the day it was given (a plan from yesterday isn't done today)
+    const pd=!!x.done&&dayAt(p.at)===t;
+    R.push({a,c,x,pd,old:!p.fresh,ok:c?.done==null?pd:!!c.done});
   });
   if(!R.length)return '';
-  const nd=R.filter(r=>r.done).length,open=r=>!r.done&&!r.wait,first=R.find(r=>open(r)&&r.a.id===next?.id)||R.find(open);
-  const row=r=>{const{a,x}=r,l=a.label;
-    if(r.wait)return `<li class="pl-r pl-${a.id} old"><div class="pl-x"><span class="pl-a"><i aria-hidden="true"></i>${l}<em>updating…</em></span><b class="pl-t">Getting the plan</b></div>${UI.button({label:'Open',variant:'ghost',attrs:{'data-go':a.id,'aria-label':`Open ${l}`}})}</li>`;
-    return `<li class="pl-r pl-${a.id}${r.done?' done':''}${r.old?' old':''}"><div class="pl-x"><span class="pl-a"><i aria-hidden="true"></i>${l}${r.done?'<em>✓ Done</em>':''}${r.old?'<em>updating…</em>':''}</span>
-      <b class="pl-t">${esc(x.title)}</b>${x.sub?`<span class="pl-s">${esc(x.sub)}</span>`:''}</div>
-      ${UI.button({label:r.done?'Open':'▶ Start',act:x.act||null,variant:r.done?'ghost':r===first?'primary':'secondary',attrs:{'data-go':a.id,'aria-label':`${r.done?'Open':'Start'} ${l}: ${x.title||''}${r.done?', done today':''}`}})}</li>`};
-  return `<section class="pl" aria-labelledby="pl-h"><div class="tch"><h2 class="h" id="pl-h">Today's plan</h2><span class="st${nd&&nd===R.length?' ok':''}">${nd?`${nd} of ${R.length} done`:plural(R.length,'session')}</span></div>
+  const go=r=>!r.wait&&!r.old&&!r.ok,first=next?R.find(r=>r.a.id===next.id&&go(r)):C.some(c=>c&&c.done!=null)?null:R.find(go);
+  // MIND's plan ticks its suggestion once anything is logged, so a done MIND row shows what you practiced instead
+  const row=r=>{const{a,c,x}=r,l=a.label,did=r.ok&&c?.did,q=QA[a.id][0];
+    let ti=(did?did.title:x?.title)||'',su=did?did.sub:x?.sub,bl='▶ Start',act=x?.act,va=r===first?'primary':'secondary',ar=`Start ${l}: ${ti}`,em='';
+    // out of date: it opens the app (the act may be yesterday's) while the app rebuilds it
+    if(r.wait||r.old){ti=ti||'Getting the plan';bl='Open';act=null;va='ghost';ar=r.wait?`Open ${l}`:`Open ${l}: ${ti}, plan updating`;em='updating…'}
+    else if(did||r.ok&&r.pd){bl='Open';act=did?'today':act;va='ghost';ar=`Open ${l}: ${ti}, done today`}
+    // done today, and START has more: it's what's next there, not the thing to do
+    else if(r.ok){ti='Next: '+ti;va='ghost';ar=`Start ${l}: ${x.title}, up next (${l} is done today)`}
+    // the planned session is done but the ring isn't (it doesn't count a MOBILITY day, say): the hero's action for the app
+    else if(r.pd){ti='Done: '+ti;bl=q[1];act=q[0];em='Not yet';ar=`${q[1].replace(/^\W+/,'')} in ${l}: ${x.title} done, ${l} not done today yet`}
+    return `<li class="pl-r pl-${a.id}${r.ok?' done':''}${r.wait||r.old?' old':''}"><div class="pl-x"><span class="pl-a"><i aria-hidden="true"></i>${l}${r.ok?'<em>✓ Done</em>':''}${em?`<em>${em}</em>`:''}</span>
+      <b class="pl-t">${esc(ti)}</b>${su?`<span class="pl-s">${esc(su)}</span>`:''}</div>
+      ${UI.button({label:bl,act:act||null,variant:va,attrs:{'data-go':a.id,'aria-label':ar}})}</li>`};
+  // a count, not a score: the hero keeps the score (apps without a ring or a plan would make the two differ)
+  const all=!next&&R.every(r=>r.ok);
+  return `<section class="pl" aria-labelledby="pl-h"><div class="tch"><h2 class="h" id="pl-h">Today's plan</h2><span class="st${all?' ok':''}">${all?'✓ All done':plural(R.length,'session')}</span></div>
     <ol class="pl-l">${R.map(row).join('')}</ol></section>`;
 }
 /* ---------- TODAY, fluid: rings, a timeline of the day, done cards folding away, motion with meaning ---------- */
