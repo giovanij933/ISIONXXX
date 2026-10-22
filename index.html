@@ -62,12 +62,16 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 #today .h{font-size:11px;letter-spacing:.16em;text-transform:uppercase;color:var(--amber)}#today .h::before{content:'> ';color:var(--dim)}
 #today .sub{color:var(--dim);font-size:12px}#today .sub b{font-weight:600}
 #today .pos{color:var(--green)}#today .neg{color:var(--red)}#today .amb{color:var(--amber)}
-.tg{display:grid;gap:12px;grid-template-columns:repeat(auto-fill,minmax(300px,1fr))}
 /* hero: greeting, one ring per app, next up */
 .hero{position:relative;overflow:hidden;background:radial-gradient(120% 90% at 0% 0%,rgba(255,176,0,.10),transparent 60%),var(--panel);border:1px solid var(--line);padding:18px 16px 16px;margin-bottom:12px;animation:tIn .4s cubic-bezier(.2,.8,.2,1) both}
 .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .hero h2{margin:0;font-size:20px;font-weight:600;letter-spacing:.02em}
 .hero-sub{margin:4px 0 0;color:var(--dim);font-size:12px}
+/* today's check-in, once saved: one line under the greeting, with Edit */
+.hero-ci{margin:6px 0 0;color:var(--dim);font-size:11.5px;line-height:1.6}.hero-ci b{color:var(--green);font-weight:600}
+.hero-ci button{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;min-height:24px;padding:0 6px;margin:-4px 0 -4px -2px;border-radius:6px;
+  font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--amber);-webkit-tap-highlight-color:transparent}
+.hero-ci button:hover{background:rgba(255,176,0,.08)}.hero-ci button:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
 .hero-n{margin:0;font-size:12px;color:var(--dim)}.hero-n b{font-size:30px;color:var(--amber);font-weight:600;margin-right:2px}
 .hero.perfect .hero-n b{color:var(--green)}
 .rings{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px;margin:16px 0 4px;padding:0;list-style:none}   /* one equal share each, edge to edge */
@@ -85,22 +89,10 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 .hero.burst::after{content:'';position:absolute;inset:-40%;background:radial-gradient(circle,rgba(51,255,102,.22),transparent 55%);animation:burst 1.4s ease-out forwards;pointer-events:none}
 @keyframes burst{from{opacity:0;transform:scale(.4)}25%{opacity:1}to{opacity:0;transform:scale(1.4)}}
 .hero .nx{margin-top:12px}
-/* timeline */
-.tl-wrap{background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin:12px 0}
-.tl{list-style:none;margin:6px 0 0;padding:0;position:relative}
-.tl::before{content:'';position:absolute;left:72px;top:8px;bottom:8px;width:1px;background:var(--line2)}
-.tl li{display:grid;grid-template-columns:64px 17px 1fr;align-items:baseline;gap:0;padding:6px 0;font-size:12.5px;animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}
-.tl time{color:var(--dim);font-size:11px;text-align:right;padding-right:4px;white-space:nowrap}
-.tl i{width:9px;height:9px;border-radius:50%;background:var(--amber);justify-self:center;align-self:center;position:relative;z-index:1;box-shadow:0 0 0 3px var(--panel)}
-.tl b{font-size:10px;letter-spacing:.12em;color:var(--dim);font-weight:600;margin-right:6px}
-:is(.tl-training,.pl-training) i{background:var(--green)}:is(.tl-nutrition,.pl-nutrition) i{background:#7f9cb0}:is(.tl-learn,.pl-learn) i{background:#c8b38a}:is(.tl-journal,.pl-journal) i{background:#9c8aa5}:is(.tl-rewire,.pl-rewire) i{background:#ff7a33}.tl-checkin i{background:var(--dim)}
-#today.drawn .tl li,#today.drawn .hero{animation:none}
-/* each entry opens its app (the check-in entry edits it) */
-.tl-go{all:unset;box-sizing:border-box;display:block;cursor:pointer;padding:2px 6px;margin:-2px -6px;line-height:1.45}
-.tl-go:hover{background:#121212}.tl-go:focus-visible{outline:2px solid var(--amber);outline-offset:1px}
-.tl-go em{font-style:normal;font-size:10.5px;letter-spacing:.08em;color:var(--amber);margin-left:8px;text-transform:uppercase}
-.ui-card.flash{animation:flash 1.1s ease-out}@keyframes flash{0%,30%{box-shadow:0 0 0 2px var(--amber)}to{box-shadow:0 0 0 2px transparent}}
-@media(prefers-reduced-motion:reduce){.ring .rf,.ring .ck,.ring.pop svg,.hero.burst::after,.ui-card.flash,.tl li,.hero{animation:none!important;transition:none!important}}
+/* each app's dot on the plan card */
+.pl-training i{background:var(--green)}.pl-nutrition i{background:#7f9cb0}.pl-learn i{background:#c8b38a}.pl-journal i{background:#9c8aa5}.pl-rewire i{background:#ff7a33}
+#today.drawn .hero{animation:none}
+@media(prefers-reduced-motion:reduce){.ring .rf,.ring .ck,.ring.pop svg,.hero.burst::after,.hero{animation:none!important;transition:none!important}}
 /* insights */
 .ins{background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin-bottom:12px;animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}
 .ins .in1{margin:8px 0 0;font-size:13px;line-height:1.5;padding-left:14px;position:relative}.ins .in1::before{content:'';position:absolute;left:0;top:.6em;width:6px;height:6px;background:var(--amber)}
@@ -118,35 +110,28 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
 .pl-a i{flex:none;width:7px;height:7px;border-radius:50%}:where(.pl-a) i{background:var(--amber)}
 .pl-a em{font-style:normal;font-weight:400;letter-spacing:.06em;color:var(--amber)}.pl-r.done .pl-a em:first-of-type{color:var(--green)}
 .pl-t{font-weight:600;font-size:13px;overflow-wrap:anywhere}.pl-s{color:var(--dim);font-size:12px;overflow-wrap:anywhere}
-.pl-r.done .pl-t,.pl-r.old .pl-t{color:var(--dim);font-weight:500}
+.pl-r.done .pl-t,.pl-r.old .pl-t,.pl-r.none .pl-t{color:var(--dim);font-weight:500}
 .pl-r .ui-btn{flex:none;min-width:96px}.pl-r .ui-btn.ui-secondary{border-color:rgba(255,176,0,.45);color:var(--amber)}
 /* morning check-in */
 .ci{background:var(--panel);border:1px solid var(--amber);padding:14px 16px 16px;margin-bottom:12px;animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}
-.ci.done{border-color:var(--line);padding-bottom:14px}
-.ci button.st{all:unset;cursor:pointer;font-size:10px;letter-spacing:.12em;padding:2px 6px;border:1px solid #1d6b3f;color:var(--green)}
 .ci-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
 .ci-l{font-size:12px;color:var(--dim)}.ci-l em{font-style:normal;color:var(--amber);margin-left:6px}
 .ci-w{display:flex;align-items:center;gap:6px}.ci-w input{width:86px;background:#0a0a0a;border:1px solid var(--line2);color:var(--tx);font:14px var(--f);padding:7px 8px;text-align:right}.ci-w input:focus{outline:0;border-color:var(--amber)}.ci-w span{font-size:11px;color:var(--dim)}
 /* wide screens: the check-in in two columns (sleep · quality / energy · weight) instead of a label at one edge of
    the page and its control at the other; TODAY's rings in a compact row instead of spread across the page */
 @media(min-width:900px){
-  #today .ci:not(.done){display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:40px;align-items:center}
-  #today .ci:not(.done)>.tch,#today .ci:not(.done)>.ui-actions{grid-column:1/-1}
+  #today .ci{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:40px;align-items:center}
+  #today .ci>.tch,#today .ci>.ui-actions{grid-column:1/-1}
 }
-/* wide screens: TODAY on the same four columns as its app cards (and the apps' stat cards). The hero splits into equal
-   halves with the grid's 12 px gap, so the Next up panel's frame sits on card 3's edge; the check-in's unframed rows use a
-   46 px gap so their text lines up with the text inside the cards (12 px gap + 17 px padding either side) */
-.ci-sum{display:grid;grid-template-columns:repeat(auto-fit,minmax(70px,1fr));gap:10px;margin-top:6px}
-.ci-sum b{display:block;font-size:16px;font-weight:600}.ci-sum span{font-size:10.5px;color:var(--dim);white-space:nowrap}
+/* wide screens: TODAY on the apps' four stat-card columns. The hero splits into equal halves with a 12 px gap, so the
+   Next up panel's frame sits on card 3's edge; the check-in's and the plan's unframed rows use a 46 px gap so their
+   columns line up with the text inside those cards (12 px gap + 17 px padding either side) */
 #today .acts{display:flex;align-items:center;gap:10px}
 #today h1.brand,#today h2.h{margin:0;font-weight:600}#today h2.h{font-weight:400}
-#today .tg>.ui-card,#today .tg>.tc-none{animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}#today.drawn .tg>*{animation:none}
-/* apps you haven't started: outlined, not faded (fading pushed their text under readable contrast) */
-.tc-none .ui-card{border-style:dashed;background:none}.tc-none .ui-card{height:100%}
 .ci-row .ui-rating{flex:1}.ci-row .ui-field-label{color:var(--dim)}
 .ld .ui-skeleton{width:min(420px,calc(100% - 32px))}
 #today .th .brand{white-space:nowrap}#today .th .dt b{font-weight:400}
-@media(max-width:420px){#today .th .dt i{display:none}.ci-sum{grid-template-columns:1fr 1fr}}
+@media(max-width:420px){#today .th .dt i{display:none}}
 .nx{all:unset;box-sizing:border-box;cursor:pointer;flex:1;text-align:center;padding:11px 8px;border:1px solid var(--line2);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--tx);-webkit-tap-highlight-color:transparent;transition:background-color .15s,border-color .15s,transform .12s}
 .nx:active{transform:scale(.97)}
 .nx:focus-visible{outline:1px solid var(--amber)}
@@ -163,27 +148,23 @@ nav button:focus-visible{outline:1px solid var(--amber);outline-offset:-4px}
   #today .hero>.nx b{font-size:13px;padding:10px 16px;background:var(--amber);color:#000;letter-spacing:.1em}
   #today .hero>.nx:hover b{filter:brightness(1.08)}
   #today .hero>.nx-none{border:1px solid var(--line);color:var(--green);font-size:12px;letter-spacing:.08em;text-transform:uppercase}
-}.tc.none .sub{margin-top:4px}
+}
 @keyframes tIn{from{opacity:0;transform:translateY(8px)}}
-#today.drawn .tc,#today.drawn .ci,#today.drawn .ins,#today.drawn .pl{animation:none}
+#today.drawn .ci,#today.drawn .ins,#today.drawn .pl{animation:none}
 .tch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
 .st{font-size:10px;letter-spacing:.12em;color:var(--dim);border:1px solid var(--line2);padding:2px 6px}
-/* the Today-so-far and Insights cards wear the same glass as every other card, their count badges are pills, and each
-   timeline dot sits beside the first line of its entry, so a two-line entry doesn't pull it down */
-html body :is(.tl-wrap,.ins,.pl){border-radius:var(--g-r);background:var(--g-card);border-color:var(--g-line);box-shadow:var(--g-hi),var(--g-drop)}
+/* the plan and Insights cards wear the same glass as every other card, and their count badges are pills */
+html body :is(.ins,.pl){border-radius:var(--g-r);background:var(--g-card);border-color:var(--g-line);box-shadow:var(--g-hi),var(--g-drop)}
 html body .ins.sto{border-color:rgba(255,176,0,.45)}html body .ins.sto.bad{border-color:var(--red)}
-html body :is(.st,.ci button.st){border-radius:999px;padding:3px 10px;border-color:var(--g-line2)}
-html body .ci button.st{border-color:#1d6b3f}
-.tl i{align-self:start;margin-top:7px}
-html body .tl-go{border-radius:8px}.st.ok{color:var(--green);border-color:#1d6b3f}.st.bad{color:var(--red);border-color:#6b1d1d}
+html body .st{border-radius:999px;padding:3px 10px;border-color:var(--g-line2)}
+.st.ok{color:var(--green);border-color:#1d6b3f}.st.bad{color:var(--red);border-color:#6b1d1d}
 /* seven labels on a small phone: NUTRITION is the longest */
 @media(max-width:400px){nav button{letter-spacing:.01em}}
 @media(min-width:900px){nav.away{transform:translate(-50%,calc(100% + 40px))}nav{left:50%;right:auto;transform:translateX(-50%);width:min(760px,calc(100% - 24px));height:56px}nav button{flex-direction:row;gap:8px;font-size:11px}}
 /* (placed last so it wins over the 700 px hero layout above) */
 @media(min-width:1001px){
   #today .hero{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:12px}
-  #today .ci:not(.done),#today .pl-l{column-gap:46px}
-  #today .tg{grid-template-columns:repeat(4,minmax(0,1fr))}
+  #today .ci,#today .pl-l{column-gap:46px}
 }
 body.app-on #isx-sync{display:none}
 </style>
@@ -441,19 +422,10 @@ function tRewire(t){
     dots:week7().map(d=>{const k=ymd(d);return sd.has(k)?'neg':d.getTime()>=start-864e5?'pos':''})};
 }
 
-// one-tap actions on each card: they open the app straight into that action (same as REWIRE's LOG IN buttons)
+// each app's one-tap actions: they open the app straight into that action (same as REWIRE's LOG IN buttons)
 const QA={mind:[['go','▶ Start session']],training:[['go','▶ Start workout'],['add','+ Log']],nutrition:[['quick','+ Food'],['cook','Cook bowl']],
   learn:[['startnext','▶ Next lesson']],journal:[['note',"✎ Today's notes"],['add','+ Trade']],rewire:[['urge','Urge']]};
-// TODAY's cards are the shared UI.card: the title opens the app, actions stay separate controls, the bars are
-// labelled progress bars and each day of the strip is read out (ui.js)
-const plain=h=>String(h??'').replace(/<[^>]+>/g,'').replace(/&amp;/g,'&');
-function card(c){
-  const st=c.slip?{text:'Slipped',tone:'bad'}:c.done?{text:'✓ Done',tone:'ok'}:c.rest?{text:'Rest'}:c.done===false?{text:'Not yet'}:null;
-  const m=x=>x&&{label:x.lb,value:x.v,max:x.max,display:x.val};
-  return UI.card({id:c.id,title:c.label,status:st,big:plain(c.big),bigTone:c.bigCls||null,sub:c.sub.map(plain),rows:(c.rows||[]).map(r=>r.map(plain)),
-    meters:[m(c.meter),m(c.meter2)],week:{days:week7().map((d,i)=>({date:d,state:c.dots[i]})),words:c.id==='rewire'?{pos:'clean',neg:'slip'}:c.id==='journal'?{pos:'green day',neg:'red day',on:'flat day'}:{}},
-    actions:(QA[c.id]||[]).map(([act,label],i)=>({act,label,variant:i===0&&(c.done===false||c.slip)?'primary':'secondary'}))});
-}
+// what each app is for, on its plan row until you start using it
 const EMPTY={mind:'Meditate, breathe or journal',training:'Log a workout',nutrition:'Log a meal',learn:'Study a lesson',journal:'Import or log trades',rewire:'Name a habit to break'};
 /* ---------- morning check-in: hours slept, sleep quality, energy, weight ----------
    One entry a day under isx.checkin.v1 (synced like the apps). It starts from your last answers, so most mornings it's
@@ -484,12 +456,7 @@ function ciAct(k,v){
 function ciHTML(){
   const t=ymd(new Date()),L=ciLog(),done=L.find(e=>e.day===t),h=new Date().getHours();
   if(CI&&CI.day!==t)CI=null;
-  if(done&&!CI){
-    const wk=L.filter(e=>e.day<t).sort((a,b)=>a.day<b.day?1:-1).slice(0,7),sl=avg(wk.map(e=>e.sleep)),wa=avg(wk.filter(e=>e.w).map(e=>e.w)),dw=done.w&&wa?r1(done.w-wa):null;
-    return `<section class="ci done"><div class="tch"><h2 class="h">Morning check-in</h2><button type="button" class="st ok" data-ci="edit">✓ Edit</button></div>
-      <div class="ci-sum"><div><b>${done.sleep} h</b><span>sleep${sl!=null?` · wk ${r1(sl)}`:''}</span></div><div><b>${QW[done.q]}</b><span>quality</span></div><div><b>${EW[done.energy]}</b><span>energy</span></div>
-      ${done.w?`<div><b>${done.w}</b><span>${done.u||wUnit()}${dw!=null?` · ${dw>0?'+':''}${dw} vs wk`:''}</span></div>`:''}</div></section>`;
-  }
+  if(done&&!CI)return '';   // saved: it's a line in the hero (ciLine), with Edit
   const d=CI||(CI=ciDraft(t));
 
   return `<section class="ci"><div class="tch"><h2 class="h">${h<12?'Good morning':h<18?'Good afternoon':'Good evening'} · check-in</h2><span class="st">10 SEC</span></div>
@@ -498,6 +465,14 @@ function ciHTML(){
     <div class="ci-row">${UI.rating({name:'ci-energy',label:'Energy',value:d.energy,words:EW})}</div>
     <div class="ci-row"><label class="ci-l" for="ciw">Weight <em>optional</em></label><div class="ci-w"><input id="ciw" type="number" inputmode="decimal" step="0.1" min="0" value="${d.w??''}" placeholder="—"><span>${wUnit()}</span></div></div>
     <div class="ui-actions">${done?UI.button({label:'Cancel',variant:'ghost',attrs:{'data-ci':'cancel'}}):''}${UI.button({label:done?'Update':'Save check-in',variant:'primary',attrs:{'data-ci':'save'}})}</div></section>`;
+}
+// today's saved check-in as one line: "7.5 h sleep · good sleep · steady energy · 180 lb (+1 vs wk)"
+function ciLine(t){
+  const L=ciLog(),ci=L.find(e=>e.day===t);if(!ci||CI)return '';
+  const lw=w=>w==='OK'?w:w.toLowerCase(),wa=avg(L.filter(e=>e.day<t&&e.w).sort((a,b)=>a.day<b.day?1:-1).slice(0,7).map(e=>e.w)),dw=ci.w&&wa?r1(ci.w-wa):null;
+  const txt=esc([`${ci.sleep} h sleep`,QW[ci.q]&&lw(QW[ci.q])+' sleep',EW[ci.energy]&&lw(EW[ci.energy])+' energy',
+    ci.w&&`${ci.w} ${ci.u||wUnit()}${dw?` (${dw>0?'+':''}${dw} vs wk)`:''}`].filter(Boolean).join(' · '));
+  return `<p class="hero-ci"><b>✓ Check-in</b> · ${txt} <button type="button" data-ci="edit" aria-label="Edit today's check-in: ${txt}">Edit</button></p>`;
 }
 const pd=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
 /* ---------- insights: what your check-ins line up with in the other apps ----------
@@ -572,7 +547,8 @@ function insHTML(){
    next meal, LEARN's whole session, a MOBILITY day, REWIRE's danger hour), so where the two differ the row says so: an
    app that's done offers what's next in it, and a planned session that's done while the ring isn't offers the hero's
    action for that app. Apps without a ring today (a rest day, a weekend's journal) go by the plan's tick. The filled
-   Start is only ever the hero's Next up (or, with no rings yet, the first session). */
+   Start is only ever the hero's Next up (or, with no rings yet, the first session). An app with no data and no plan
+   (you haven't started it) gets a "Not set up yet" row at the end that just opens it. */
 const hasWin=x=>typeof x.h0==='number'&&typeof x.h1==='number';
 const inWin=(x,h)=>x.h0<=x.h1?h>=x.h0&&h<x.h1:h>=x.h0||h<x.h1;   // h0 > h1 runs past midnight
 // the row for this hour: the first whose window holds it, else the first without one
@@ -591,17 +567,17 @@ function planLoad(){
   if(id&&!document.getElementById('f-'+id)){preload(id);const f=document.getElementById('f-'+id);if(f)redrawOnLoad(f)}
 }
 function planHTML(t,C,next){
-  const h=new Date().getHours(),R=[];
+  const h=new Date().getHours(),R=[],N=[];
   TABS.filter(a=>!a.pane).forEach(a=>{
     const p=UI.planOf(a.id),c=C.find(c=>c&&c.id===a.id);
-    if(!p){if(c){planAsk(a.id,'none');if(!document.getElementById('f-'+a.id)?.dataset.ready)R.push({a,c,wait:1,ok:c.done===true})}return}
+    if(!p){if(!c)N.push(a);else{planAsk(a.id,'none');if(!document.getElementById('f-'+a.id)?.dataset.ready)R.push({a,c,wait:1,ok:c.done===true})}return}
     if(!p.fresh)planAsk(a.id,UI.planSig(arr(p.src)));
     const x=planRow(arr(p.items),h);if(!x)return;
     // the plan's tick only counts for the day it was given (a plan from yesterday isn't done today)
     const pd=!!x.done&&dayAt(p.at)===t;
     R.push({a,c,x,pd,old:!p.fresh,ok:c?.done==null?pd:!!c.done});
   });
-  if(!R.length)return '';
+  if(!R.length&&!N.length)return '';
   const go=r=>!r.wait&&!r.old&&!r.ok,first=next?R.find(r=>r.a.id===next.id&&go(r)):C.some(c=>c&&c.done!=null)?null:R.find(go);
   // MIND's plan ticks its suggestion once anything is logged, so a done MIND row shows what you practiced instead
   const row=r=>{const{a,c,x}=r,l=a.label,did=r.ok&&c?.did,q=QA[a.id][0];
@@ -616,22 +592,25 @@ function planHTML(t,C,next){
     return `<li class="pl-r pl-${a.id}${r.ok?' done':''}${r.wait||r.old?' old':''}"><div class="pl-x"><span class="pl-a"><i aria-hidden="true"></i>${l}${r.ok?'<em>✓ Done</em>':''}${em?`<em>${em}</em>`:''}</span>
       <b class="pl-t">${esc(ti)}</b>${su?`<span class="pl-s">${esc(su)}</span>`:''}</div>
       ${UI.button({label:bl,act:act||null,variant:va,attrs:{'data-go':a.id,'aria-label':ar}})}</li>`};
+  // quiet next to real sessions; on a new device they're all there is, so they're outlined
+  const none=a=>`<li class="pl-r pl-${a.id} none"><div class="pl-x"><span class="pl-a"><i aria-hidden="true"></i>${a.label}</span>
+      <b class="pl-t">Not set up yet</b><span class="pl-s">${EMPTY[a.id]}</span></div>
+      ${UI.button({label:'Start',variant:R.length?'ghost':'secondary',attrs:{'data-go':a.id,'aria-label':`Start using ${a.label}: ${EMPTY[a.id]}`}})}</li>`;
   // a count, not a score: the hero keeps the score (apps without a ring or a plan would make the two differ)
-  const all=!next&&R.every(r=>r.ok);
-  return `<section class="pl" aria-labelledby="pl-h"><div class="tch"><h2 class="h" id="pl-h">Today's plan</h2><span class="st${all?' ok':''}">${all?'✓ All done':plural(R.length,'session')}</span></div>
-    <ol class="pl-l">${R.map(row).join('')}</ol></section>`;
+  const all=!next&&R.length&&R.every(r=>r.ok);
+  return `<section class="pl" aria-labelledby="pl-h"><div class="tch"><h2 class="h" id="pl-h">Today's plan</h2><span class="st${all?' ok':''}">${all?'✓ All done':R.length?plural(R.length,'session'):plural(N.length,'app')+' to set up'}</span></div>
+    <ol class="pl-l">${R.map(row).join('')}${N.map(none).join('')}</ol></section>`;
 }
-/* ---------- TODAY, fluid: rings, a timeline of the day, done cards folding away, motion with meaning ---------- */
-const TF=new Intl.DateTimeFormat('en-US',{hour:'numeric',minute:'2-digit'});
+/* ---------- TODAY, fluid: rings that fill as you go, motion with meaning ---------- */
 const reduced=()=>matchMedia('(prefers-reduced-motion: reduce)').matches;
 // how far each app is today, 0–1, for its ring: done = full; otherwise its goal bar
 const ringOf=c=>c.done||c.rest?1:c.meter&&c.meter.max>0?Math.max(0,Math.min(1,c.meter.v/c.meter.max)):0;
-const PREV={ring:{},big:{},done:{}};let firstDraw=true;
-function heroHTML(wins,next){
+const PREV={ring:{},done:{}};let firstDraw=true;
+function heroHTML(wins,next,t){
   const won=wins.filter(c=>c.done).length,all=wins.length&&won===wins.length,h=new Date().getHours();
   const hello=h<5?'Still up':h<12?'Good morning':h<18?'Good afternoon':'Good evening';
   return `<section class="hero${all?' perfect':''}" aria-labelledby="hero-h">
-    <div class="hero-top"><div><h2 id="hero-h">${hello}</h2><p class="hero-sub">${!wins.length?'Log something in any app to start your day.':all?'Everything done today. Perfect day.':won?`${won} of ${wins.length} done · ${wins.length-won} to go`:`${wins.length} to do today`}</p></div>
+    <div class="hero-top"><div><h2 id="hero-h">${hello}</h2><p class="hero-sub">${!wins.length?'Log something in any app to start your day.':all?'Everything done today. Perfect day.':won?`${won} of ${wins.length} done · ${wins.length-won} to go`:`${wins.length} to do today`}</p>${ciLine(t)}</div>
       ${wins.length?`<p class="hero-n" aria-hidden="true"><b>${won}</b>/${wins.length}</p>`:''}</div>
     ${wins.length?`<ul class="rings" aria-label="Today's progress">${wins.map(c=>{const f=ringOf(c),from=PREV.ring[c.id]??0;
       return `<li><button type="button" class="ring${c.done?' done':''}${c.rest?' rest':''}" data-go="${c.id}" data-act="today" aria-label="${c.label}: ${c.done?'done':c.rest?'rest day':Math.round(f*100)+'%'}, open today in ${c.label}">
@@ -640,58 +619,14 @@ function heroHTML(wins,next){
       :wins.length?`<p class="nx-none">${all?'Everything done today ✓':'Nothing else due today'}</p>`:''}
   </section>`;
 }
-/* everything logged today across the apps, oldest first */
+// MIND's kinds of session
 const KN={M:'Meditation',B:'Breathwork',S:'Body scan',V:'Visualization',F:'Focus',J:'Journaling'};
-function timeline(t){
-  const out=[],add=(at,app,text)=>{if(isFinite(at))out.push({at,app,text})};
-  arr(read('isx.mind.v1')?.log).filter(e=>dayAt(e.at)===t).forEach(e=>add(e.at,'mind',`${KN[e.kind]||'Session'} · ${Math.round(+e.mins||0)} min`));
-  // a workout is entries less than 90 min apart
-  let w=null;arr(read('isx.training.v1')?.log).filter(e=>dayAt(e.at)===t).sort((a,b)=>a.at-b.at).forEach(e=>{
-    if(!w||e.at-w.last>90*6e4){w={at:e.at,last:e.at,n:0,s:0,str:0};out.push(w)}w.last=e.at;e.type==='S'?w.str++:w.n++;w.s+=(+e.sets||0)*(+e.reps||0)*(+e.load||0)});
-  out.forEach(x=>{if(x.n!=null&&!x.app){x.app='training';x.text=x.n?`Workout · ${plural(x.n,'exercise')}${x.s?` · ${fi(x.s)} ${wUnit()}`:''}`:`Stretch · ${plural(x.str,'hold')}`}});
-  arr(read('nj.meals.v1')).filter(m=>dayAt(Date.parse(m.time))===t).forEach(m=>add(Date.parse(m.time),'nutrition',m.kind==='bowl'?`Balanced bowl${m.protein?' · '+m.protein:''}`:`${m.name||'Food'}${+m.kcal?` · ${fi(+m.kcal)} kcal`:''}`));
-  arr(read('xl.sessions.v1')).filter(x=>dayAt(Date.parse(x.time))===t).forEach(x=>add(Date.parse(x.time),'learn',`Study · ${Math.round(+x.min||0)} min`));
-  const js=read('isx.journal.v1'),roll=js?.roll??18,tday=ms=>{const d=new Date(ms);if(roll&&d.getHours()>=roll)d.setDate(d.getDate()+1);return ymd(d)};
-  const tr=arr(js?.trades).filter(x=>tday(x.close)===t);
-  if(tr.length){const pnl=tr.reduce((a,x)=>a+(x.exit-x.entry)*(x.side==='Short'?-1:1)*x.qty*x.mult-(+x.fee||0)-(+x.comm||0),0);add(Math.max(...tr.map(x=>x.close)),'journal',`${plural(tr.length,'trade')} · ${money(pnl)}`)}
-  const rw=read('isx.rewire.v1'),bn=id=>arr(rw?.bad).find(b=>b.id===id)?.name||'';
-  arr(rw?.log).filter(e=>dayAt(e.at)===t).forEach(e=>add(e.at,'rewire',e.t==='slip'?`Slipped · ${bn(e.b)}`:e.t==='resist'?`Beat an urge · ${bn(e.b)}`:`${e.g||'Good habit'} ✓`));
-  const L=ciLog(),ci=L.find(e=>e.day===t),lw=w=>w==='OK'?w:w.toLowerCase();
-  if(ci){const wa=avg(L.filter(e=>e.day<t&&e.w).sort((a,b)=>a.day<b.day?1:-1).slice(0,7).map(e=>e.w)),dw=ci.w&&wa?r1(ci.w-wa):null;
-    add(ci.at,'checkin',[`${ci.sleep} h sleep`,QW[ci.q]&&lw(QW[ci.q])+' sleep',EW[ci.energy]&&lw(EW[ci.energy])+' energy',
-      ci.w&&`${ci.w} ${ci.u||'lb'}${dw?` (${dw>0?'+':''}${dw} vs wk)`:''}`].filter(Boolean).join(' · '))}
-  return out.filter(x=>x.app).sort((a,b)=>a.at-b.at);
-}
-const TL={mind:'MIND',training:'TRAIN',nutrition:'NUTRITION',learn:'LEARN',journal:'JOURNAL',rewire:'REWIRE',checkin:'CHECK-IN'};
-function timelineHTML(t){
-  const T=timeline(t);
-  return `<section class="tl-wrap" aria-labelledby="tl-h"><div class="tch"><h2 class="h" id="tl-h">Today so far</h2><span class="st">${T.length?plural(T.length,'entry').replace('entrys','entries'):'—'}</span></div>
-    ${T.length?`<ol class="tl">${T.map(x=>`<li class="tl-${x.app}"><time>${TF.format(x.at)}</time><i aria-hidden="true"></i><button type="button" class="tl-go" ${x.app==='checkin'?'data-ci="edit" aria-label="Edit check-in: ':`data-go="${x.app}" data-act="today" aria-label="Open today in ${TL[x.app]}: `}${esc(x.text)}"><b>${TL[x.app]}</b> ${esc(x.text)}${x.app==='checkin'?'<em>Edit</em>':''}</button></li>`).join('')}</ol>`
-      :'<p class="sub">Your day shows up here as you log: sessions, workouts, meals, study, trades and habits, in order.</p>'}</section>`;
-}
-/* after a redraw: rings fill from where they were, numbers count up, finished things celebrate, cards glide to their
-   new place (FLIP). All skipped under Reduce Motion. */
-function animateToday(el,rects){
+/* after a redraw: rings fill from where they were and finished things celebrate. Skipped under Reduce Motion. */
+function animateToday(el){
   const calm=reduced();
   el.querySelectorAll('.rf[data-to]').forEach(r=>{const to=r.dataset.to;calm?r.setAttribute('stroke-dasharray',`${to} 100`):requestAnimationFrame(()=>requestAnimationFrame(()=>r.setAttribute('stroke-dasharray',`${to} 100`)))});
-  el.querySelectorAll('[data-card]').forEach(c=>{
-    const id=c.dataset.card,big=c.querySelector('.ui-big');
-    if(big){const now=big.textContent,was=PREV.big[id];PREV.big[id]=now;if(!calm&&was!==now)countUp(big,was??null,now)}
-    const r=rects[id];if(!r||calm)return;const n=c.getBoundingClientRect(),dy=r.top-n.top;
-    if(Math.abs(dy)>2){c.style.transform=`translateY(${dy}px)`;c.style.transition='none';requestAnimationFrame(()=>{c.style.transition='transform .5s cubic-bezier(.2,.8,.2,1)';c.style.transform=''})}
-  });
 }
-// counts the first number in a value up from its old value (or 0): "1,420 kcal", "12 min", "+$340"
-function countUp(node,from,to){
-  const re=/-?\d[\d,]*(\.\d+)?/,m=to.match(re);if(!m)return;
-  const end=+m[0].replace(/,/g,''),fm=from&&from.match(re),start=fm?+fm[0].replace(/,/g,''):0,dp=(m[1]||'').length-(m[1]?1:0);
-  if(start===end)return;
-  const fmt=v=>{const s=Math.abs(v).toFixed(dp),[i,f]=s.split('.');return (v<0?'-':'')+(m[0].includes(',')||Math.abs(end)>=1000?Number(i).toLocaleString('en-US'):i)+(f?'.'+f:'')};
-  const t0=performance.now(),D=650;
-  const step=now=>{const k=Math.min(1,(now-t0)/D),e=1-Math.pow(1-k,3);node.textContent=to.replace(re,fmt(start+(end-start)*e));if(k<1&&node.isConnected)requestAnimationFrame(step);else node.textContent=to};
-  requestAnimationFrame(step);
-}
-// something just got done: its ring and card pop, and the whole day gets a moment when it's complete
+// something just got done: its ring pops, and the whole day gets a moment when it's complete
 function celebrate(el,wins){
   if(firstDraw){wins.forEach(c=>PREV.done[c.id]=!!c.done);return}
   const fresh=wins.filter(c=>c.done&&PREV.done[c.id]===false);wins.forEach(c=>PREV.done[c.id]=!!c.done);
@@ -706,26 +641,17 @@ function drawToday(){
   const el=$('#today');if(!el)return;
   if(document.activeElement?.id==='ciw')return;   // don't redraw under you while you type your weight
   const t=ymd(new Date()),C=[tMind(t),tTrain(t),tFuel(t),tExtract(t),tJournal(),tRewire(t)];
-  const ids=['mind','training','nutrition','learn','journal','rewire'],used=C.filter(Boolean),wins=used.filter(c=>c.done!=null),won=wins.filter(c=>c.done).length;
+  const wins=C.filter(c=>c&&c.done!=null);
   const next=wins.find(c=>!c.done&&!c.rest);
   const d=new Date(),date=d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'}).toUpperCase();
-  const card0=(c,i)=>c?card(c):`<div class="tc-none">${UI.card({id:ids[i],title:TABS.find(x=>x.id===ids[i]).label,status:{text:'Start'},sub:[EMPTY[ids[i]]],openLabel:`Start using ${TABS.find(x=>x.id===ids[i]).label}`})}</div>`;
-  // still to do (and neutral: journal, rest day) on top; finished apps leave the page (their ring shows ✓ and the
-  // timeline has what you did); apps you haven't started at the very end
-  const rank=c=>!c?3:c.done===false||c.slip?0:c.done?2:1,idx=C.map((c,i)=>[rank(c),i]).sort((a,b)=>a[0]-b[0]||a[1]-b[1]);
-  const group=r=>idx.filter(x=>x[0]===r||(r===0&&x[0]===1)).map(x=>card0(C[x[1]],x[1])).join('');
-  const ciDone=ciLog().some(e=>e.day===t)&&!CI,ci=ciHTML(),todo=group(0),unused=group(3);
+  const ci=ciHTML();
   const html=`<div class="in"><header class="th top"><h1 class="brand">ISIONXXX <b>//</b> TODAY<span class="cur" aria-hidden="true"></span></h1><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>
-    ${stoHTML()}${ciDone?'':ci}${heroHTML(wins,next)}${planHTML(t,C,next)}
-    ${todo?`<div class="tg">${todo}</div>`:''}
-    ${timelineHTML(t)}
-    ${insHTML()}
-    ${unused?`<div class="tg">${unused}</div>`:''}</div>`;
-  // only touch the page when something changed; then animate from the old layout to the new one
+    ${stoHTML()}${ci}${heroHTML(wins,next,t)}${planHTML(t,C,next)}
+    ${insHTML()}</div>`;
+  // only touch the page when something changed
   if(html!==lastToday){
-    const rects={};el.querySelectorAll('[data-card]').forEach(c=>rects[c.dataset.card]=c.getBoundingClientRect());
     lastToday=html;el.innerHTML=html;
-    animateToday(el,rects);celebrate(el,wins);UI.animate(el);firstDraw=false;
+    animateToday(el);celebrate(el,wins);UI.animate(el);firstDraw=false;
   }
   wins.forEach(c=>PREV.ring[c.id]=ringOf(c));
   if(!el.classList.contains('drawn'))requestAnimationFrame(()=>setTimeout(()=>el.classList.add('drawn'),400));
@@ -739,8 +665,7 @@ document.addEventListener('visibilitychange',()=>{if(!document.hidden&&todayOn()
 setInterval(()=>{if(todayOn()&&!document.hidden)drawToday()},60e3);
 addEventListener('isx-sync',()=>{if(todayOn())drawToday()});
 $('#today').addEventListener('input',e=>{if(e.target.id==='ciw'&&CI)CI.w=e.target.value===''?null:Math.max(0,+e.target.value)});
-$('#today').addEventListener('click',e=>{const j=e.target.closest('[data-jump]');if(j){const k=$(`#today [data-card="${j.dataset.jump}"]`);if(k){k.scrollIntoView({behavior:reduced()?'auto':'smooth',block:'center'});k.classList.remove('flash');void k.offsetWidth;k.classList.add('flash');k.querySelector('.ui-card-open')?.focus({preventScroll:true})}else show(j.dataset.jump);return}
-  const c=e.target.closest('[data-ci]');if(c)return ciAct(c.dataset.ci,c.dataset.v);const a=e.target.closest('[data-go]');if(a)return openAct(a.dataset.go,a.dataset.act);const b=e.target.closest('[data-open]');if(b)show(b.dataset.open)});
+$('#today').addEventListener('click',e=>{const c=e.target.closest('[data-ci]');if(c)return ciAct(c.dataset.ci,c.dataset.v);const a=e.target.closest('[data-go]');if(a)return openAct(a.dataset.go,a.dataset.act);const b=e.target.closest('[data-open]');if(b)show(b.dataset.open)});
 UI.mount($('#today'));
 $('#today').addEventListener('ui-change',e=>{const k={'ci-sleep':'sleep','ci-q':'q','ci-energy':'energy'}[e.detail.name];if(k&&CI){CI[k]=e.detail.value;UI.keepFocus(drawToday)}});
 { // the bar hides on scroll here too
@@ -759,7 +684,7 @@ addEventListener('message',e=>{
   openAct(t.id,e.data.act);
 });
 // switch to an app and straight into an action there (REWIRE's LOG IN TRAINING opens TRAINING's START), once it has loaded
-// act 'today' (rings, timeline): the app opens filtered to today
+// act 'today' (rings): the app opens filtered to today
 function openAct(id,act){
   id=pick(id).id;show(id);const f=document.getElementById('f-'+id);
   if(act&&f){const go=()=>f.contentWindow.postMessage({isx:'do',act},location.origin);f.dataset.ready?go():f.addEventListener('load',()=>setTimeout(go,60),{once:true})}
