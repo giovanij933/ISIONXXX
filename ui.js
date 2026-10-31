@@ -245,7 +245,7 @@
     if (start === end) return;
     const fmt = v => { const s = Math.abs(v).toFixed(dp), [i, f] = s.split('.'); return (v < 0 ? '-' : '') + (m[0].includes(',') ? Number(i).toLocaleString('en-US') : i) + (f ? '.' + f : '') };
     const t0 = performance.now(), D = 650;
-    const step = now => { const k = Math.min(1, (now - t0) / D), e = 1 - Math.pow(1 - k, 3); node.textContent = to.replace(re, fmt(start + (end - start) * e)); if (k < 1 && node.isConnected) requestAnimationFrame(step); else node.textContent = to };
+    const step = now => { const k = Math.min(1, Math.max(0, (now - t0) / D)), e = 1 - Math.pow(1 - k, 3); node.textContent = to.replace(re, fmt(start + (end - start) * e)); if (k < 1 && node.isConnected) requestAnimationFrame(step); else node.textContent = to };
     requestAnimationFrame(step);
   }
   function animate(root = document, { onDone } = {}) {
@@ -537,7 +537,8 @@
   const moreOpen = () => document.querySelector('.ui-more-btn[aria-expanded=true]');
   document.addEventListener('click', e => {
     const btn = e.target.closest('.ui-more-btn'), open = moreOpen();
-    if (open && open !== btn) moreSet(open, false);
+    // a picked item hands focus back to ···: a dialog it opens returns focus there on close, not to the hidden item
+    if (open && open !== btn) { moreSet(open, false); if (open.parentNode.contains(e.target)) open.focus() }
     if (btn) moreSet(btn, btn.getAttribute('aria-expanded') !== 'true', e.detail === 0);
   });
   document.addEventListener('keydown', e => {

@@ -221,10 +221,16 @@
       for (const k of KEYS) {
         const remoteText = await fileText(g.files[fname(k)]);
         const remote = remoteText ? await open(remoteText) : null;
-        const base = await baseGet(k), local = get(k), baseDel = new Set(get(DEL(k), []));
+        const base = await baseGet(k), local = get(k), rDel = new Set(remote?.del || []);
+        // a deletion lasts as long as the gist lists it: once another device brings the record back (below), this one
+        // forgets it too instead of deleting the record again. Deletions made here since are in gone
+        const baseDel = new Set(get(DEL(k), []).filter(i => !remote || rDel.has(i)));
         // ids that were in the last synced copy and are gone here were deleted on this device
         const gone = [...ids(base)].filter(i => !ids(local).has(i));
-        const del = new Set([...baseDel, ...gone, ...(remote?.del || [])]);
+        // ids deleted before and here again since the last sync were brought back on purpose (a backup restored after
+        // Clear all): they stay. A device with no synced copy yet can't tell, so its deletions still apply
+        const back = base == null ? new Set() : new Set([...ids(local)].filter(i => !ids(base).has(i)));
+        const del = new Set([...baseDel, ...gone, ...rDel].filter(i => !back.has(i)));
         const rData = remote ? remote.data : null;
         const merged = dedupe(local == null ? rData : rData == null ? local : merge(base, local, rData, del), del);
         if (merged == null) continue;
@@ -341,7 +347,7 @@
       if (cfg) {
         d.innerHTML = `<h3>SYNC</h3><p>Status: <b class="${state === 'error' ? 'err' : 'ok'}">${state === 'error' ? esc(msg) : state === 'ok' ? (ago(last) === 'now' ? 'synced just now' : 'synced ' + ago(last) + ' ago') : esc(state)}</b></p>
           <p>All ISIONXXX apps on this site share this setup. Your data is encrypted before it leaves this device.</p>
-          <label>Sync code for your other devices</label><textarea rows="3" readonly>${esc(code(cfg))}</textarea>
+          <label for="isx-sd-out">Sync code for your other devices</label><textarea id="isx-sd-out" rows="3" readonly>${esc(code(cfg))}</textarea>
           <p>Paste it on another device to connect it. Treat it like a password: it opens your data.</p>
           <div class="row"><button type="button" data-x="off">DISCONNECT</button><button type="button" data-x="copy">COPY CODE</button><button type="button" data-x="now">SYNC NOW</button><button type="button" class="pri" data-x="close">DONE</button></div>`;
       } else {
@@ -349,10 +355,10 @@
           <div class="tabs"><button type="button" data-m="new" class="${mode === 'new' ? 'on' : ''}">FIRST DEVICE</button><button type="button" data-m="code" class="${mode === 'code' ? 'on' : ''}">I HAVE A SYNC CODE</button></div>
           ${mode === 'new' ? `<p>Your data goes to a private, encrypted gist on your GitHub. You need a GitHub token that can only touch gists:
             <a href="https://github.com/settings/tokens/new?scopes=gist&description=ISIONXXX%20sync" target="_blank" rel="noopener">create one here</a> (classic token, scope <b>gist</b>, no expiry or a long one).</p>
-            <label>GitHub token</label><input name="token" autocomplete="off" spellcheck="false" placeholder="ghp_…">
-            <label>Passphrase (encrypts your data; write it down)</label><input name="pass" type="password" autocomplete="new-password">
-            <label>Existing gist id (optional, leave blank to create one)</label><input name="gist" autocomplete="off" spellcheck="false">`
-          : `<label>Sync code from your other device</label><textarea name="code" rows="4" spellcheck="false"></textarea>`}
+            <label for="isx-sd-token">GitHub token</label><input id="isx-sd-token" name="token" autocomplete="off" spellcheck="false" placeholder="ghp_…">
+            <label for="isx-sd-pass">Passphrase (encrypts your data; write it down)</label><input id="isx-sd-pass" name="pass" type="password" autocomplete="new-password">
+            <label for="isx-sd-gist">Existing gist id (optional, leave blank to create one)</label><input id="isx-sd-gist" name="gist" autocomplete="off" spellcheck="false">`
+          : `<label for="isx-sd-code">Sync code from your other device</label><textarea id="isx-sd-code" name="code" rows="4" spellcheck="false"></textarea>`}
           <p class="err">${esc(note)}</p>
           <div class="row"><button type="button" data-x="close">CANCEL</button><button type="button" class="pri" data-x="go">CONNECT</button></div>`;
       }
