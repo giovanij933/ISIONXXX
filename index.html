@@ -230,7 +230,8 @@ function room(f){
     f.contentDocument.documentElement.style.setProperty('--isx-tabs',Math.round(a.bottom-n.top)+'px');
   }catch(e){}
 }
-function roomToday(){const n=$('#tabs').getBoundingClientRect(),a=apps.getBoundingClientRect();$('#today').style.setProperty('--isx-tabs',Math.round(a.bottom-n.top)+'px')}
+// on the root, so TODAY's toast (in body) clears the bar too
+function roomToday(){const n=$('#tabs').getBoundingClientRect(),a=apps.getBoundingClientRect();document.documentElement.style.setProperty('--isx-tabs',Math.round(a.bottom-n.top)+'px')}
 addEventListener('resize',()=>{document.querySelectorAll('#apps iframe').forEach(room);roomToday()});
 
 /* hide the bar while scrolling down, show it on the way up (iOS style). It also stays out of the way while a
@@ -257,8 +258,8 @@ const modalOpen=f=>{try{return !!f.contentDocument.querySelector('dialog[open], 
 let wasModal=false;
 setInterval(()=>{
   if(document.querySelector('body>dialog[open]')){setBar(true);wasModal=true;return}   // the shell's own sync dialog
-  const f=document.querySelector('#apps iframe.on');if(!f)return;
-  const m=modalOpen(f);
+  // on TODAY there's no frame, but the bar still has to come back once that dialog closes
+  const f=document.querySelector('#apps iframe.on'),m=!!f&&modalOpen(f);
   if(m)setBar(true);else if(wasModal)setBar(false);
   wasModal=m;
 },300);
@@ -311,14 +312,17 @@ const fi=n=>FMT.n0.format(Math.round(n||0));
 const money=v=>(v<0?'-':v>0?'+':'')+'$'+FMT.n0.format(Math.abs(v));
 const span=ms=>{ms=Math.max(0,ms);const d=Math.floor(ms/864e5),h=Math.floor(ms%864e5/36e5),m=Math.floor(ms%36e5/6e4);return d?`${d}d ${h}h`:h?`${h}h ${m}m`:`${m}m`};
 // a timestamp's day, remembered per 15-minute slot (every time zone is a multiple of 15 min, so a slot never spans
-// midnight): TODAY asks thousands of times per redraw. Capped so it can't grow forever.
+// midnight): TODAY asks thousands of times per redraw. Capped so it can't grow forever, and forgotten when the time zone
+// changes while the app is open (travel), or every day near midnight would stay in the old zone's day
+let DTZ=null;const dacZone=()=>{const o=new Date().getTimezoneOffset();if(o!==DTZ){DTZ=o;DAC.clear()}};
 const DAC=new Map(),dayAt=ms=>{const k=Math.floor(ms/9e5);let d=DAC.get(k);if(d===undefined){if(DAC.size>50000)DAC.clear();d=ymd(new Date(k*9e5));DAC.set(k,d)}return d};
 // the last seven days, oldest first, ending today
 function week7(){const out=[],d=new Date();d.setHours(12,0,0,0);for(let i=6;i>=0;i--){const x=new Date(d);x.setDate(d.getDate()-i);out.push(x)}return out}
-// MIND and TRAINING count their weeks from Sunday
+// MIND and TRAINING count their weeks from Monday
 const wkStart=()=>{const d=new Date();d.setHours(0,0,0,0);d.setDate(d.getDate()-(d.getDay()+6)%7);return d.getTime()};
 function streakOf(set){let c=0;const d=new Date();if(!set.has(ymd(d)))d.setDate(d.getDate()-1);while(set.has(ymd(d))&&c<3650){c++;d.setDate(d.getDate()-1)}return c}
-const arr=x=>Array.isArray(x)?x:[];
+// a null in a saved list (a hole JSON.stringify wrote) would stop TODAY from drawing at all, so it's skipped
+const arr=x=>Array.isArray(x)?x.filter(e=>e!=null):[];
 const plural=(n,w)=>`${n} ${w}${n===1?'':'s'}`;
 
 function tMind(t){
@@ -407,7 +411,9 @@ function lkToday(g,t){
 function tRewire(t){
   const s=read('isx.rewire.v1'),B=arr(s?.bad),G=arr(s?.good),L=arr(s?.log);if(!B.length&&!G.length)return null;
   const now=Date.now(),slips=L.filter(e=>e.t==='slip'),slipT=slips.some(e=>dayAt(e.at)===t);
-  const clean=B.map(b=>{const last=Math.max(b.start||0,...slips.filter(e=>e.b===b.id).map(e=>e.at));return{b,ms:now-last}});
+  // same clock as REWIRE: wall-clock time, so a DST change doesn't add or take away an hour; a slip dated in the future doesn't count
+  const wc=x=>x-new Date(x).getTimezoneOffset()*6e4;
+  const clean=B.map(b=>{const last=Math.max(b.start||0,...slips.filter(e=>e.b===b.id&&e.at<=now).map(e=>e.at));return{b,ms:Math.max(0,wc(now)-wc(last))}});
   // same count as REWIRE: what the linked app logged, plus anything ticked off in REWIRE itself
   const good=G.map(g=>(LK[g.link]?lkToday(g,t):0)+L.filter(e=>dayAt(e.at)===t&&e.g===g.name&&(e.t==='done'||(e.t==='resist'&&!e.lk))).length);
   const gd=G.reduce((a,g,i)=>a+Math.min(good[i],g.target||1),0),gt=G.reduce((a,g)=>a+(g.target||1),0);
@@ -445,17 +451,22 @@ function ciSave(){
   // one id per day, so the same day checked in on two devices merges instead of doubling
   const e={id:'ci-'+CI.day,day:CI.day,at:Date.now(),sleep:CI.sleep,q:CI.q,energy:CI.energy,w:CI.w,u:wUnit()};
   if(i>=0)s.log[i]=e;else s.log.push(e);
-  localStorage.setItem(CIK,JSON.stringify(s));CI=null;drawToday();
+  // a full disk: sync.js says so, and the form keeps your answers
+  try{localStorage.setItem(CIK,JSON.stringify(s))}catch(x){return false}
+  CI=null;drawToday();return true;
 }
 function ciAct(k,v){
-  if(k==='save')return ciSave();
-  if(k==='edit'){CI=ciDraft(ymd(new Date()));return drawToday()}
-  if(k==='cancel'){CI=null;return drawToday()}
-  drawToday();
+  if(k==='save'){if(!ciSave())return}
+  else if(k==='edit'){CI={...ciDraft(ymd(new Date())),ed:1};drawToday()}   // ed: opened on purpose, so a sync doesn't fold it
+  else if(k==='cancel'){CI=null;drawToday()}
+  else return drawToday();
+  // the form opens or folds away under the button you pressed: keep the keyboard's place there
+  $(CI?'#today .ci output':'#today [data-ci=edit]')?.focus({preventScroll:true});
 }
 function ciHTML(){
   const t=ymd(new Date()),L=ciLog(),done=L.find(e=>e.day===t),h=new Date().getHours();
-  if(CI&&CI.day!==t)CI=null;
+  // a new day, or today's check-in arrived from another device: the draft gives way (a form opened with Edit stays)
+  if(CI&&(CI.day!==t||done&&!CI.ed))CI=null;
   if(done&&!CI)return '';   // saved: it's a line in the hero (ciLine), with Edit
   const d=CI||(CI=ciDraft(t));
 
@@ -463,7 +474,7 @@ function ciHTML(){
     <div class="ci-row"><span class="ci-l" aria-hidden="true">Sleep</span>${UI.stepper({name:'ci-sleep',label:'Hours slept',value:d.sleep,min:0,max:14,step:.5,unit:'h'})}</div>
     <div class="ci-row">${UI.rating({name:'ci-q',label:'Sleep quality',value:d.q,words:QW})}</div>
     <div class="ci-row">${UI.rating({name:'ci-energy',label:'Energy',value:d.energy,words:EW})}</div>
-    <div class="ci-row"><label class="ci-l" for="ciw">Weight <em>optional</em></label><div class="ci-w"><input id="ciw" type="number" inputmode="decimal" step="0.1" min="0" value="${d.w??''}" placeholder="—"><span>${wUnit()}</span></div></div>
+    <div class="ci-row"><label class="ci-l" for="ciw">Weight <em>optional</em></label><div class="ci-w"><input id="ciw" type="text" inputmode="decimal" autocomplete="off" value="${esc(d.w??'')}" placeholder="—"><span>${esc(wUnit())}</span></div></div>
     <div class="ui-actions">${done?UI.button({label:'Cancel',variant:'ghost',attrs:{'data-ci':'cancel'}}):''}${UI.button({label:done?'Update':'Save check-in',variant:'primary',attrs:{'data-ci':'save'}})}</div></section>`;
 }
 // today's saved check-in as one line: "7.5 h sleep · good sleep · steady energy · 180 lb (+1 vs wk)"
@@ -488,7 +499,7 @@ function insights(){
   const js=read('isx.journal.v1'),roll=js?.roll??18,tday=ms=>{const d=new Date(ms);if(roll&&d.getHours()>=roll)d.setDate(d.getDate()+1);return ymd(d)};
   const pnl={};arr(js?.trades).forEach(x=>{const d=tday(x.close);pnl[d]=(pnl[d]||0)+(x.exit-x.entry)*(x.side==='Short'?-1:1)*x.qty*x.mult-(+x.fee||0)-(+x.comm||0)});
   const rw=read('isx.rewire.v1'),slip={};arr(rw?.log).filter(e=>e.t==='slip').forEach(e=>{slip[day(e.at)]=1});const rwStart=Math.min(...arr(rw?.bad).map(b=>b.start||Infinity));
-  const today=ymd(new Date()),past=C.filter(e=>e.day<today);   // today isn't over yet
+  const today=ymd(new Date()),past=C.filter(e=>typeof e.day==='string'&&e.day<today);   // today isn't over yet
   const good=past.filter(e=>e.sleep>=7),short=past.filter(e=>e.sleep<7),hi=past.filter(e=>e.energy>=4),lo=past.filter(e=>e.energy<=2);
   const mean=(a,f)=>{const v=a.map(f).filter(x=>x!=null);return v.length?{v:v.reduce((s,x)=>s+x,0)/v.length,n:v.length}:{v:null,n:0}};
   const out=[],ok=(a,b)=>a.n>=4&&b.n>=4;
@@ -640,7 +651,7 @@ let lastToday='';
 function drawToday(){
   const el=$('#today');if(!el)return;
   if(document.activeElement?.id==='ciw')return;   // don't redraw under you while you type your weight
-  const t=ymd(new Date()),C=[tMind(t),tTrain(t),tFuel(t),tExtract(t),tJournal(),tRewire(t)];
+  dacZone();const t=ymd(new Date()),C=[tMind(t),tTrain(t),tFuel(t),tExtract(t),tJournal(),tRewire(t)];
   const wins=C.filter(c=>c&&c.done!=null);
   const next=wins.find(c=>!c.done&&!c.rest);
   const d=new Date(),date=d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'}).toUpperCase();
@@ -664,7 +675,9 @@ let tdT=0;addEventListener('storage',()=>{if(todayOn()){clearTimeout(tdT);tdT=se
 document.addEventListener('visibilitychange',()=>{if(!document.hidden&&todayOn())drawToday()});
 setInterval(()=>{if(todayOn()&&!document.hidden)drawToday()},60e3);
 addEventListener('isx-sync',()=>{if(todayOn())drawToday()});
-$('#today').addEventListener('input',e=>{if(e.target.id==='ciw'&&CI)CI.w=e.target.value===''?null:Math.max(0,+e.target.value)});
+// a text field, so "80,5" is 80.5 everywhere (a number field reads it as 805, or as nothing, depending on the browser);
+// a body weight in lb or kg: anything else (0, negative, 1e6, junk) isn't saved
+$('#today').addEventListener('input',e=>{if(e.target.id==='ciw'&&CI){const w=+e.target.value.trim().replace(',','.');CI.w=w>0&&w<1500?w:null}});
 $('#today').addEventListener('click',e=>{const c=e.target.closest('[data-ci]');if(c)return ciAct(c.dataset.ci,c.dataset.v);const a=e.target.closest('[data-go]');if(a)return openAct(a.dataset.go,a.dataset.act);const b=e.target.closest('[data-open]');if(b)show(b.dataset.open)});
 UI.mount($('#today'));
 $('#today').addEventListener('ui-change',e=>{const k={'ci-sleep':'sleep','ci-q':'q','ci-energy':'energy'}[e.detail.name];if(k&&CI){CI[k]=e.detail.value;UI.keepFocus(drawToday)}});
