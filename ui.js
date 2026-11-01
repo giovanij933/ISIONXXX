@@ -9,7 +9,8 @@
    - Styles live in ui.css; tokens are --ui-* custom properties so an app can retheme without touching the file.
 
    Components: card, meter, week, status, segmented, rating, choiceList, stepper, button, emptyState, skeleton,
-   plus UI.toast(message) for announcements. See ui.html for every component, its props and its states.
+   plus UI.toast(message) for announcements, and UI.confirm / UI.ask / UI.undo in place of the browser's confirm() and
+   prompt(). See ui.html for every component, its props and its states.
 */
 (() => {
   'use strict';
@@ -143,6 +144,60 @@
     if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'ui-toast'; toastEl.setAttribute('role', 'status'); toastEl.setAttribute('aria-live', 'polite'); document.body.appendChild(toastEl) }
     toastEl.textContent = msg; toastEl.className = 'ui-toast ui-on' + (tone ? ' ui-' + tone : '');
     clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('ui-on'), 3000);
+  }
+
+  /* ---------- confirm, ask, undo: the app's own versions of confirm(), prompt() and "are you sure?" ----------
+     The browser's dialogs are grey system alerts titled with the site's address, on an iPhone home-screen app too.
+       UI.confirm({ title, body, ok = 'OK', cancel = 'Cancel', danger }) → Promise<boolean>
+       UI.ask({ title, body, value, placeholder, ok, cancel }) → Promise<string | null>   (null when cancelled)
+       UI.undo(message, undoFn, { ms = 6000 })   a toast with an Undo button (⌘Z / Ctrl+Z too) while it shows
+     A single delete should happen at once and offer UI.undo; UI.confirm is for what can't be taken back (delete
+     everything, replace from a backup, discard a session in progress). The sheet is a <dialog>, so it gets the
+     apps' glass, rises as a sheet on phones, closes on Escape, a tap outside or a swipe down, and gives focus back. */
+  function sheet({ title, body, ok, cancel, danger, input }) {
+    return new Promise(resolve => {
+      const back = document.activeElement, d = document.createElement('dialog'), id = uid('cf'), no = input ? null : false;
+      d.className = 'ui-cf'; d.setAttribute('aria-labelledby', id + 't'); if (body) d.setAttribute('aria-describedby', id + 'b');
+      d.innerHTML = `<form><h3 id="${id}t" class="ui-cf-t">${esc(title)}</h3>${body ? `<p id="${id}b" class="ui-cf-b">${esc(body)}</p>` : ''}${input
+        ? `<input class="ui-cf-in" type="text" autocomplete="off" aria-labelledby="${id}t" value="${esc(input.value ?? '')}" placeholder="${esc(input.placeholder || '')}">` : ''}
+        <div class="ui-cf-a"><button type="button" class="ui-btn ui-secondary" data-cf="no">${esc(cancel)}</button><button type="submit" class="ui-btn ${danger ? 'ui-danger-fill' : 'ui-primary'}" data-cf="yes">${esc(ok)}</button></div></form>`;
+      const inp = d.querySelector('input');
+      let done = false;
+      const finish = v => {
+        if (done) return; done = true; if (d.open) d.close(); setTimeout(() => d.remove(), 400);
+        try { if (back && back.isConnected) back.focus({ preventScroll: true }) } catch (e) {}
+        resolve(v);
+      };
+      d.querySelector('form').addEventListener('submit', e => { e.preventDefault(); finish(input ? inp.value.trim() : true) });
+      d.querySelector('[data-cf=no]').addEventListener('click', () => finish(no));
+      d.addEventListener('close', () => finish(no));   // Escape, a swipe down, or closed by the page
+      d.addEventListener('click', e => {               // a tap on the backdrop, outside the sheet
+        if (e.target !== d) return; const r = d.getBoundingClientRect();
+        if (e.clientY < r.top || e.clientY > r.bottom || e.clientX < r.left || e.clientX > r.right) finish(no);
+      });
+      document.body.appendChild(d); d.showModal();
+      // the safe choice has focus: Cancel when it destroys something, the field when asking
+      (inp || (danger ? d.querySelector('[data-cf=no]') : d.querySelector('[data-cf=yes]'))).focus();
+      if (inp) inp.select();
+    });
+  }
+  const confirmSheet = ({ title, body, ok = 'OK', cancel = 'Cancel', danger = false } = {}) => sheet({ title, body, ok, cancel, danger });
+  const ask = ({ title, body, value = '', placeholder = '', ok = 'OK', cancel = 'Cancel' } = {}) => sheet({ title, body, ok, cancel, input: { value, placeholder } });
+  let undoEl, undoT, undoFn;
+  function undoHide() { clearTimeout(undoT); undoFn = null; if (undoEl) undoEl.classList.remove('ui-on') }
+  function undo(msg, fn, { ms = 6000 } = {}) {
+    if (!undoEl) {
+      undoEl = document.createElement('div'); undoEl.className = 'ui-toast ui-undo'; undoEl.setAttribute('role', 'status');
+      undoEl.innerHTML = '<span></span><button type="button" class="ui-undo-b">Undo</button>'; document.body.appendChild(undoEl);
+      undoEl.lastChild.addEventListener('click', () => { const f = undoFn; undoHide(); if (f) f() });
+      document.addEventListener('keydown', e => {
+        if (!undoFn || !(e.metaKey || e.ctrlKey) || e.shiftKey || e.key.toLowerCase() !== 'z' || e.target.closest('input,textarea,select,[contenteditable]')) return;
+        e.preventDefault(); const f = undoFn; undoHide(); f();
+      });
+    }
+    if (!undoEl.isConnected) document.body.appendChild(undoEl);
+    clearTimeout(undoT); undoFn = fn; undoEl.firstChild.textContent = msg;
+    requestAnimationFrame(() => undoEl.classList.add('ui-on')); undoT = setTimeout(undoHide, ms);
   }
 
   /* ---------- behaviour ---------- */
@@ -323,20 +378,22 @@
         for (const r of ms) {
           if (r.type === 'childList') { watch(m); continue }
           const was = /\bhidden\b/.test(r.oldValue || ''), now = m.classList.contains('hidden');
-          if (!was && now && m.__box && m.__rect) { ghost(m.__box, m.__rect, { sheet: m.__sheet, cls: m.__sheet ? 'ss' : '' }); m.__rect = null }
-          else if (was && !now) requestAnimationFrame(() => keep(m));
+          if (!was && now && m.__box && m.__rect) { ghost(m.__box, m.__rect, { sheet: m.__sheet, cls: m.__sheet ? 'ss' : '', dy: m.__dy || 0 }); m.__rect = null; m.__dy = 0 }
+          else if (was && !now) { m.__dirty = false; requestAnimationFrame(() => keep(m)) }
         }
       }).observe(m, { attributes: true, attributeFilter: ['class'], attributeOldValue: true, childList: true });
     });
     addEventListener('resize', () => document.querySelectorAll('.modal:not(.hidden)').forEach(keep), { passive: true });
-    // swipe down to dismiss
+    // swipe down to dismiss: <dialog>s, and the .modal > .box sheets NUTRITION and LEARN draw (those close through the
+    // Escape key both apps already handle). Not once something was typed, not a full-screen session sheet (.ss)
     let drag = null;
-    document.addEventListener('input', e => { const d = e.target.closest && e.target.closest('dialog'); if (d) d.__dirty = true }, true);
+    document.addEventListener('input', e => { const d = e.target.closest && e.target.closest('dialog,.modal'); if (d) d.__dirty = true }, true);
     document.addEventListener('touchstart', e => {
-      const d = e.target.closest && e.target.closest('dialog[open]');
-      if (!d || d.classList.contains('ss') || d.__dirty || d.scrollTop > 0 || e.touches.length > 1) return;
-      if (e.target.closest('input,textarea,select,[contenteditable],.tw,pre')) return;
-      drag = { d, y0: e.touches[0].clientY, t0: Date.now(), dy: 0 };
+      const t = e.target.closest ? e.target : null; if (!t || e.touches.length > 1) return;
+      const dlg = t.closest('dialog[open]'), box = dlg ? null : t.closest('.modal:not(.hidden)>.box'), d = dlg || box;
+      if (!d || d.classList.contains('ss') || (box ? box.parentElement.__dirty : d.__dirty) || d.scrollTop > 0) return;
+      if (t.closest('input,textarea,select,[contenteditable],.tw,pre')) return;
+      drag = { d, box, y0: e.touches[0].clientY, t0: Date.now(), dy: 0 };
     }, { passive: true });
     document.addEventListener('touchmove', e => {
       if (!drag) return; const dy = e.touches[0].clientY - drag.y0;
@@ -344,11 +401,18 @@
       drag.dy = dy; drag.d.style.transition = 'none'; drag.d.style.transform = `translateY(${dy * .85}px)`;
     }, { passive: true });
     document.addEventListener('touchend', () => {
-      if (!drag) return; const { d, dy, t0 } = drag; drag = null;
+      if (!drag) return; const { d, box, dy, t0 } = drag; drag = null;
       const fast = dy > 60 && dy / (Date.now() - t0) > .6;
       if (dy > 140 || fast) {
-        const ev = new Event('cancel', { cancelable: true });
-        if (d.dispatchEvent(ev)) { d.__dy = dy * .85; d.close(); return }
+        if (box) {
+          const m = box.parentElement; m.__dy = dy * .85;
+          box.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));   // from the sheet: apps read e.target
+          if (m.classList.contains('hidden')) { box.style.transition = ''; box.style.transform = ''; return }
+          m.__dy = 0;   // the app kept it open: spring back below
+        } else {
+          const ev = new Event('cancel', { cancelable: true });
+          if (d.dispatchEvent(ev)) { d.__dy = dy * .85; d.close(); return }
+        }
       }
       d.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1)'; d.style.transform = '';
       setTimeout(() => { d.style.transition = '' }, 260);
@@ -658,5 +722,5 @@
   addEventListener('isx-sync', replan);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) replan() });
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, mount, version: '1.0.0' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.1.0' };
 })();

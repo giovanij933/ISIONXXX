@@ -77,6 +77,10 @@ are radio groups: Tab in, arrows / Home / End to choose.</p>
 <p class="lede"><code>button({label, act, variant, busy, disabled})</code> — busy keeps the width, shows a spinner, sets
 <code>aria-busy</code> and blocks clicks. <code>skeleton({label, lines})</code> announces loading once. <code>UI.toast(text)</code> is read
 politely by screen readers.</p>
+<p class="lede">In place of the browser's <code>confirm()</code> and <code>prompt()</code>: <code>UI.undo(text, fn)</code> for a delete that
+happens at once (an Undo button, or ⌘Z, for 6 s); <code>UI.confirm({title, body, ok, danger})</code> → <code>Promise&lt;boolean&gt;</code> for what
+can't be undone; <code>UI.ask({title, body, value})</code> → <code>Promise&lt;string|null&gt;</code>. Both sheets close on Escape, a tap outside
+or a swipe down, and give focus back.</p>
 <div class="demo" id="misc"></div>
 </main>
 <script src="ui.js"></script>
@@ -117,11 +121,15 @@ function draw(){
     box('buttons',`<div class="ui-actions">${UI.button({label:'Save',variant:'primary',act:'save'})}${UI.button({label:'Saving',variant:'primary',busy:true})}${UI.button({label:'Cancel',variant:'ghost'})}${UI.button({label:'Disabled',disabled:true})}</div>`)+
     box('loading',UI.skeleton({label:'Loading TRAINING',lines:3}))+
     box('empty',UI.emptyState({title:'Nothing logged yet',body:'Log a meal or cook today\'s bowl.',action:{label:'+ Food',act:'quick'}}))+
-    box('toast',UI.button({label:'Show a toast',act:'toast'}));
+    box('toast',UI.button({label:'Show a toast',act:'toast'}))+
+    box('undo · confirm · ask',UI.button({label:'Delete (undo)',act:'undo'})+' '+UI.button({label:'Delete all…',act:'confirm'})+' '+UI.button({label:'Rename…',act:'ask'}));
 }
 draw();
 root.addEventListener('ui-change',e=>{const{name,value}=e.detail;S[name]=value;$('#log').textContent=`ui-change → ${name} = ${JSON.stringify(value)}`;if(['q','energy2'].includes(name))UI.keepFocus(draw)});
-root.addEventListener('click',e=>{const b=e.target.closest('[data-act=toast]');if(b)UI.toast('Saved');const o=e.target.closest('[data-open],[data-go]');if(o)$('#log').textContent=o.dataset.open?`open ${o.dataset.open}`:`${o.dataset.go} → ${o.dataset.act}`});
+root.addEventListener('click',e=>{const b=e.target.closest('[data-act=toast]');if(b)UI.toast('Saved');const a=e.target.closest('[data-act]')?.dataset.act;
+  if(a==='undo')UI.undo('Entry deleted',()=>$('#log').textContent='undo → entry restored');
+  if(a==='confirm')UI.confirm({title:'Delete everything?',body:'Every entry on this device is deleted.',ok:'Delete all',danger:true}).then(v=>$('#log').textContent=`confirm → ${v}`);
+  if(a==='ask')UI.ask({title:'Rename',value:'Morning run'}).then(v=>$('#log').textContent=`ask → ${JSON.stringify(v)}`);const o=e.target.closest('[data-open],[data-go]');if(o)$('#log').textContent=o.dataset.open?`open ${o.dataset.open}`:`${o.dataset.go} → ${o.dataset.act}`});
 </script>
 </body>
 </html>

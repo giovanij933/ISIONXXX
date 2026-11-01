@@ -82,6 +82,18 @@ t('animate: first render never celebrates',()=>{html(UI.hero({key:'first',title:
 // keepFocus
 t('keepFocus: focus returns to the same control after a re-render',()=>{const render=v=>html(UI.segmented({name:'k',label:'K',value:v,options:[{value:1,label:'1'},{value:2,label:'2'}]}));render(1);stage.querySelectorAll('[role=radio]')[1].focus();UI.keepFocus(()=>render(2));return document.activeElement.dataset.value==='2'});
 
+// confirm, ask, undo
+t('confirm: an in-app sheet with the text escaped, Cancel focused when it destroys something, closed by Cancel',()=>{
+  UI.confirm({title:'<b>Delete?</b>',body:'<i>gone</i>',ok:'Delete',danger:true});const d=document.querySelector('dialog.ui-cf[open]');
+  const ok=d&&d.querySelector('.ui-cf-t').textContent==='<b>Delete?</b>'&&!d.querySelector('b,i')&&d.querySelector('.ui-danger-fill')&&document.activeElement===d.querySelector('[data-cf=no]');
+  d.querySelector('[data-cf=no]').click();return !!ok&&!d.open});
+t('ask: the field starts with the value, selected and focused',()=>{
+  UI.ask({title:'Account',value:'ACME'});const d=document.querySelector('dialog.ui-cf[open]'),i=d&&d.querySelector('input');
+  const ok=i&&i.value==='ACME'&&document.activeElement===i&&i.selectionEnd-i.selectionStart===4;d.querySelector('[data-cf=no]').click();return !!ok});
+t('undo: the toast\'s button runs the callback once, then hides',()=>{
+  let n=0;UI.undo('Deleted',()=>n++);const b=document.querySelector('.ui-undo .ui-undo-b');b.click();b.click();
+  return n===1&&!document.querySelector('.ui-undo').classList.contains('ui-on')});
+
 document.getElementById('sum').textContent=`${pass} passed, ${fail} failed`;document.getElementById('sum').className=fail?'no':'ok';
 window.UI_TEST={pass,fail};
 </script>

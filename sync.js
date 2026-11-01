@@ -368,7 +368,12 @@
         if (x === 'close') return d.close();
         if (x === 'now') { await sync(); return draw() }
         if (x === 'copy') { try { await navigator.clipboard.writeText(code(cfg)); b.textContent = 'COPIED' } catch (e) { d.querySelector('textarea').select() } return }
-        if (x === 'off') { if (confirm('Stop syncing on this device? Your data stays here and in the gist.')) { disconnect(); draw('new') } return }
+        if (x === 'off') {
+          const msg = 'Your data stays here and in the gist.', go = ok => { if (ok) { disconnect(); draw('new') } };
+          if (window.UI && UI.confirm) UI.confirm({ title: 'Stop syncing on this device?', body: msg, ok: 'Stop syncing', danger: true }).then(go);
+          else go(confirm('Stop syncing on this device? ' + msg));
+          return;
+        }
         if (x === 'go') {
           let c;
           try { c = mode === 'code' ? uncode(v('code')) : { token: v('token'), pass: v('pass'), gist: v('gist') } } catch (e) { return draw(mode, 'That sync code is not valid') }

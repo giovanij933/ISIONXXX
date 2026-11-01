@@ -94,7 +94,7 @@
 @keyframes ui-shimmer{to{background-position:-200% 0}}
 
 /* toast */
-.ui-toast{position:fixed;left:50%;bottom:calc(var(--isx-tabs,24px) + 16px);transform:translate(-50%,8px);max-width:min(90vw,420px);padding:10px 14px;background:var(--ui-panel);border:1px solid var(--ui-amber);color:var(--ui-amber);font:12px var(--ui-f);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s var(--ui-ease);z-index:50}
+.ui-toast{position:fixed;left:50%;bottom:calc(var(--isx-tabs,24px) + 16px);transform:translate(-50%,8px);width:max-content;max-width:min(90vw,420px);box-sizing:border-box;padding:10px 14px;background:var(--ui-panel);border:1px solid var(--ui-amber);color:var(--ui-amber);font:12px var(--ui-f);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s var(--ui-ease);z-index:50}
 .ui-toast.ui-on{opacity:1;transform:translate(-50%,0)}.ui-toast.ui-bad{border-color:var(--ui-red);color:var(--ui-red)}
 
 /* focus: always visible for keyboard users, never for taps */
@@ -103,6 +103,19 @@
 
 /* small screens: rating scales take the full row */
 @media(max-width:420px){.ui-rating .ui-seg{flex-basis:100%}}
+/* confirm / ask sheet and the undo toast (UI.confirm, UI.ask, UI.undo) */
+dialog.ui-cf{color:var(--ui-tx);font-family:var(--ui-f);border:1px solid var(--ui-line2);padding:22px 20px 18px;width:min(400px,calc(100vw - 24px));max-width:calc(100vw - 24px)}
+.ui-cf form{margin:0}
+.ui-cf-t{margin:0 0 8px;font:600 14px/1.4 var(--ui-f);letter-spacing:.02em;color:var(--ui-tx)}
+.ui-cf-b{margin:0 0 18px;font-size:12.5px;line-height:1.55;color:var(--ui-dim)}
+.ui-cf-in{display:block;width:100%;box-sizing:border-box;margin:0 0 18px;padding:10px 12px;font:14px var(--ui-f);color:var(--ui-tx);background:var(--ui-panel);border:1px solid var(--ui-line2)}
+.ui-cf-a{display:flex;gap:10px;justify-content:flex-end}.ui-cf-a .ui-btn{min-width:104px}
+.ui-btn.ui-danger-fill{background:var(--ui-red);border-color:var(--ui-red);color:#000}
+.ui-btn.ui-danger-fill:hover:not(:disabled){filter:brightness(1.08);color:#000}
+@media (max-width:640px){.ui-cf-a .ui-btn{flex:1}}
+.ui-undo{display:flex;align-items:center;gap:16px;color:var(--ui-tx);pointer-events:none}.ui-undo.ui-on{pointer-events:auto}
+.ui-undo-b{background:none;border:0;color:var(--ui-amber);font:600 12px var(--ui-f);letter-spacing:.12em;text-transform:uppercase;padding:10px 8px;margin:-10px -8px -10px 0;cursor:pointer;min-height:40px}
+.ui-undo-b:focus-visible{outline:2px solid var(--ui-amber);outline-offset:2px}
 /* motion + forced colours */
 @media(prefers-reduced-motion:reduce){.ui-status i,.ui-week i.ui-live,.ui-skeleton i,.ui-btn.ui-busy::after{animation:none}.ui-meter-bar i,.ui-btn,.ui-toast{transition:none}}
 @media(forced-colors:active){.ui-meter-bar,.ui-week i{border:1px solid CanvasText}.ui-meter-bar i,.ui-week i.ui-on,.ui-week i.ui-pos{background:Highlight}.ui-seg>button[aria-checked=true],.ui-list>button[aria-checked=true]{outline:2px solid Highlight}}
@@ -309,6 +322,15 @@ html body svg.chart rect:not(.hit){rx:2px}
 /* controls */
 html body :is(button,.btn,select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea):not(.ui-lf):not(.tl-go):not(.cd):not(.cell):not(.ui-seg>*):not(nav *):not(.ui-stat){border-radius:var(--g-r3)}
 html body :is(select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea){background-color:rgba(255,255,255,.035);border-color:var(--g-line2)}
+/* dropdowns draw their own chevron, so they look the same on iPhone, Android and desktop (each browser's native arrow
+   differs, and iOS draws its own grey control); the native picker still opens */
+html body select:not([multiple]):not([size]){-webkit-appearance:none;appearance:none;padding-right:32px;background-repeat:no-repeat;background-position:right 12px center;background-size:10px 6px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238f8a7e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+/* a text field with suggestions (input list=…) gets the same chevron; Chrome's own ▼ stays clickable over it, unseen */
+html body input[list]{padding-right:32px;background-repeat:no-repeat;background-position:right 12px center;background-size:10px 6px;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238f8a7e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+html body input[list]::-webkit-calendar-picker-indicator{opacity:0;cursor:pointer}
+html body select:not([multiple]):not([size]):focus{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23ffb000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 /* the field being typed in keeps its amber edge (the glass rule above outranks the apps' own :focus colours) */
 html body :is(select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea):focus{border-color:var(--ui-amber,#ffb000)}
 /* the open list of a dropdown: Chrome on Windows paints it from the select's own, nearly clear background over white,
@@ -378,6 +400,7 @@ html body{--gl-sheen:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,2
 html body :is(button.pri,.btn.go,.ui-btn.ui-primary),html body .ui-seg>button[aria-checked=true]{background:var(--gl-sheen),rgba(255,176,0,.9);border-color:rgba(255,176,0,.95);color:#000;
   box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 6px 18px -12px var(--gl-a)}
 html body :is(button.pri,.btn.go,.ui-btn.ui-primary):hover:not(:disabled){background:var(--gl-sheen),rgba(255,176,0,1);color:#000;filter:none}
+html body .ui-btn.ui-danger-fill{background:var(--gl-sheen),rgba(255,90,90,.9);border-color:rgba(255,90,90,.95);color:#000;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 6px 18px -12px rgba(255,69,69,.35)}
 /* bars and dots: the fill shows a little of the card through it */
 html body :is(.hb i,.ui-meter-bar i,.ui-week i:is(.ui-on,.ui-pos,.ui-neg)){background-image:var(--gl-sheen);opacity:.78;box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
 html body .dot:is(.bgp,.bgn,.bga,.bgm,[style]){opacity:.85}
