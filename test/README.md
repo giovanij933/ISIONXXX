@@ -13,6 +13,12 @@ For each app, in Chromium at 390 px and 1440 px:
 3. **Offline.** The service worker installs, and the app starts again with the network off.
 4. **Corrupted data.** Each saved `localStorage` key is set to broken JSON (`{"broken`) and then to a wrong-typed
    value (`42`). The app must still start.
+5. **Touch targets** (390 px, as a touch screen). No labelled control is under 30 px. `ui.css`'s touch rules aim
+   for 44 px, Apple's guideline.
+6. **Mouse moves stay cheap** (1440 px). Moving the mouse must not restyle the whole page every frame. A value
+   that every element inherits from the root does that: the background glow's `--gx`/`--gy` once did, and so did a
+   `::selection` rule that also matched `<html>`. The check counts the elements restyled, not milliseconds, so it
+   gives the same answer on any machine.
 
 Two checks run once per run:
 - **Shared files.** `ui.js`, `ui.css` and `sync.js` must be byte-identical in all seven apps.
@@ -23,8 +29,8 @@ start without them anyway.
 
 | Severity | Meaning | Fails the run |
 |---|---|---|
-| high | A crash, a missing file, offline start-up broken, shared files drifted, layout overflow | yes |
-| medium | Serious accessibility issues, manifest gaps | no, shown as warnings |
+| high | A crash, a missing file, offline start-up broken, shared files drifted, layout overflow, whole-page restyles on mouse moves | yes |
+| medium | Serious accessibility issues, manifest gaps, small touch targets | no, shown as warnings |
 | low | Minor accessibility issues, polish | no, listed in the log |
 
 Zoom is turned off on purpose, so axe's `meta-viewport` rule is ignored (`ACCEPTED` in `ship.js`).

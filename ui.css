@@ -133,7 +133,8 @@
 .ui-tl::before{content:'';position:absolute;left:72px;top:8px;bottom:8px;width:1px;background:var(--ui-line2)}
 .ui-tl li{display:grid;grid-template-columns:64px 17px 1fr;align-items:baseline;padding:6px 0;font-size:12.5px}
 .ui-tl time{color:var(--ui-dim);font-size:11px;text-align:right;padding-right:4px;white-space:nowrap}
-.ui-tl i{width:9px;height:9px;border-radius:50%;background:var(--ui-amber);justify-self:center;align-self:center;position:relative;z-index:1;box-shadow:0 0 0 3px var(--ui-panel)}
+/* the dot sits on the first line, level with the time, also when the entry wraps onto a second line */
+.ui-tl i{width:9px;height:9px;border-radius:50%;background:var(--ui-amber);justify-self:center;align-self:baseline;top:1.5px;position:relative;z-index:1;box-shadow:0 0 0 3px var(--ui-panel)}
 .ui-tl li.ui-pos i{background:var(--ui-green)}.ui-tl li.ui-neg i{background:var(--ui-red)}
 .ui-tl b{font-size:10px;letter-spacing:.12em;color:var(--ui-dim);font-weight:600;margin-right:4px;text-transform:uppercase}
 @media(prefers-reduced-motion:reduce){.ui-rf,.ui-ck,.ui-ring.ui-pop svg{animation:none!important;transition:none!important}}
@@ -215,6 +216,9 @@ button.ui-danger{color:var(--ui-red);border-color:rgba(255,69,69,.45)}button.ui-
 /* from 1280 px the side panel of a pair is narrow enough to give the main card (calendar, chart) three columns;
    below that it keeps half, so its label · value rows still fit. Either way the edges stay on the grid */
 @media (min-width:1280px){:is(#app,#top) .g21>:first-child,:is(#app,#top) .gm>:first-child{grid-column:span 3}}
+/* filter dropdowns on phones share each row evenly (two to a row at 390 px, one at 320 px) instead of wrapping at
+   their text's width */
+@media (max-width:640px){.bar>select{flex:1 1 9.5em;min-width:0}}
 /* label · value rows in narrow side panels: the value stays on one line, the label wraps if it must */
 @media (min-width:1280px){#app .ev>b{white-space:nowrap}}
 
@@ -270,9 +274,12 @@ button.ui-stat:focus-visible{outline:1px solid var(--ui-amber);outline-offset:2p
   --g-float:rgba(18,18,18,.72);--g-blur:saturate(170%) blur(24px);--g-hi:inset 0 1px 0 rgba(255,255,255,.055);
   --g-drop:0 18px 40px -22px rgba(0,0,0,.95);--g-spring:cubic-bezier(.32,.72,0,1)}
 /* a faint amber glow behind everything, so the glass has something to pick up. With a mouse it drifts after the
-   pointer (ui.js sets --gx/--gy); registered so the move eases instead of jumping */
-@property --gx{syntax:'<length-percentage>';inherits:true;initial-value:8%}
-@property --gy{syntax:'<length-percentage>';inherits:true;initial-value:-12%}
+   pointer (ui.js sets --gx/--gy); registered so the move eases instead of jumping. Not inherited: only the page
+   background and the light over it read them (they inherit explicitly), so a mouse move restyles those two, not
+   every element on the page (in JOURNAL that was ~1,700 elements a frame, 30x the style work) */
+@property --gx{syntax:'<length-percentage>';inherits:false;initial-value:8%}
+@property --gy{syntax:'<length-percentage>';inherits:false;initial-value:-12%}
+html body,html body::after{--gx:inherit;--gy:inherit}
 html{transition:--gx 1.2s var(--g-spring),--gy 1.2s var(--g-spring)}
 @media (prefers-reduced-motion:reduce){html{transition:none}}
 html body{background:radial-gradient(1100px 620px at var(--gx) var(--gy),rgba(255,176,0,.075),transparent 62%),radial-gradient(900px 560px at 108% 4%,rgba(255,122,51,.05),transparent 60%),var(--bg,#070707) fixed}
@@ -302,6 +309,8 @@ html body svg.chart rect:not(.hit){rx:2px}
 /* controls */
 html body :is(button,.btn,select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea):not(.ui-lf):not(.tl-go):not(.cd):not(.cell):not(.ui-seg>*):not(nav *):not(.ui-stat){border-radius:var(--g-r3)}
 html body :is(select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea){background-color:rgba(255,255,255,.035);border-color:var(--g-line2)}
+/* the field being typed in keeps its amber edge (the glass rule above outranks the apps' own :focus colours) */
+html body :is(select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea):focus{border-color:var(--ui-amber,#ffb000)}
 /* the open list of a dropdown: Chrome on Windows paints it from the select's own, nearly clear background over white,
    which leaves light text on light grey; options get a solid dark background instead */
 html body select :is(option,optgroup){background-color:#141311;color:#d9d5c8}
@@ -322,6 +331,9 @@ html body :is(.ui-toast,.toast,#isx-full){border-radius:14px;background:rgba(20,
 @media (max-width:640px){
   html body dialog[open]:not(#isx-sd){margin:auto 0 0;width:100%;max-width:100%;max-height:calc(100dvh - 24px);border-radius:22px 22px 0 0;border-width:1px 0 0;padding-top:26px;
     padding-bottom:calc(20px + env(safe-area-inset-bottom));animation:g-sheet .45s var(--g-spring) both}
+  /* a full-screen sheet's action bar is pinned to the bottom and pads for the home indicator itself: without this the
+     sheet's own padding left a strip of scrolling content showing under the buttons */
+  html body dialog.ss[open]:not(#isx-sd){padding-bottom:0}
   html body dialog[open]:not(#isx-sd)::before{content:'';position:absolute;top:9px;left:50%;width:38px;height:5px;margin-left:-19px;border-radius:3px;background:rgba(255,255,255,.22)}
   html body .modal>.box{border-radius:22px 22px 0 0;align-self:flex-end;animation:g-sheet .45s var(--g-spring) both}
   html body .modal>.box{position:relative;padding-top:26px;border-width:1px 0 0;max-height:calc(100dvh - 24px);overflow:auto}
@@ -339,6 +351,21 @@ html.g-boot body :is(.g,.grid,section)>:nth-child(4){animation-delay:.12s}
 @media (prefers-reduced-motion:reduce){html body :is(.card,.ui-card,.ui-hero,dialog,.modal>.box){animation:none!important}html body :is(button,.btn):active{transform:none}}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){html body :is(dialog,.modal>.box,#isx-sd,.ui-lf-pop,.ui-toast,.toast,#isx-full){background:#141414}}
 
+/* touch screens: targets a thumb can hit (Apple's guideline is 44 pt). The labelled buttons grow to 44 px; small
+   controls inside dense rows (row actions, tap-to-filter legend rows, month arrows) get as much as the row allows.
+   Mouse and trackpad layouts keep their denser sizes */
+@media (pointer:coarse){
+  html body :is(.btn,button.pri,header.top .acts>button,.calf button){padding-top:12.5px;padding-bottom:12.5px}
+  /* every labelled button in a dialog or sheet; chips, segments, list rows, menu options and steppers keep their own
+     size (:where adds no specificity, so an app's own rule for a component still wins) */
+  :is(dialog,.modal) :is(button,.btn):where(:not(.chips>*,.chip,.lnk,.li,.tmr,.ui-sel-opt,[role=radio],[role=checkbox],[role=tab],[role=menuitem],.ui-seg>*,.step>*)){padding-top:12.5px;padding-bottom:12.5px}
+  html body :is(.chips>button,.chip){padding-top:10px;padding-bottom:10px}
+  html body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=color]):not([type=file]),select){min-height:44px}
+  /* arrows: previous/next month, page and day */
+  html body :is(.calf,.rvh) :is(button,.btn){min-width:44px}
+  html body :is(td .acts button,td.r button){min-height:36px;min-width:36px}
+  html body :is(.lg,.lr,.ev,.hb,.er).pick{min-height:36px}
+}
 /* touch screens: form fields at 16px, so iOS doesn't zoom the page in when you tap one (it does for anything
    smaller). !important because some fields set their size with id-level rules (the sync dialog's); pinch-zoom still
    works, since nothing blocks it in the viewport tag */
@@ -372,7 +399,7 @@ html body header.top:not(.th)::before{content:'';position:absolute;z-index:-1;in
   border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 30px -18px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.05);
   -webkit-backdrop-filter:saturate(1.6) blur(18px);backdrop-filter:saturate(1.6) blur(18px)}
 html body header.top:not(.th) .brand{line-height:22px}
-.ui-more{position:relative;flex:none}
+.ui-more{position:relative;flex:none;display:flex;align-self:stretch}
 html body .ui-more-btn{min-width:44px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
 /* the three dots are drawn, not typed, so they sit centred and round in every app and font */
 .ui-more-h,.ui-more-v{display:block;flex:none;background:radial-gradient(circle,currentColor 1.7px,transparent 2.2px)}
