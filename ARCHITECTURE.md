@@ -132,7 +132,13 @@ standalone installs. Copies, plus a drift check in the test suite, are cheaper t
 
 ## Testing
 
-Playwright drives Chromium against a local `python3 -m http.server`, with every repo checked out side by side.
-- `ui.js` has unit tests in `test/ui.test.html`.
-- The rest is covered by behaviour scripts (TODAY, check-in, quick actions, motion, swipe), an axe pass per app at
-  390 px, and A/B performance scripts that run old and new code side by side.
+Every pull request in every repo runs the **release check** (`test/`, described in `test/README.md`, run by
+`.github/workflows/release-check.yml`). Playwright drives Chromium through the app and the TODAY shell, served side
+by side from one local origin the way GitHub Pages serves them:
+- on an empty device and with sample data, at 390 px and 1440 px, with an axe pass;
+- offline, after the service worker installs;
+- with each saved key corrupted.
+
+The run fails on any high-severity issue, including drift between the copies of the shared files. `ui.js`'s unit
+tests (`test/ui.test.html`) run as part of the shell's check. Feature work is also checked with one-off behaviour
+and A/B performance scripts. Those aren't kept.

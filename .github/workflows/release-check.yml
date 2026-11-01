@@ -1,0 +1,29 @@
+# Release check (test/README.md): all seven apps in Chromium, on an empty device and with sample data, offline
+# and with corrupted saved data, plus the shared files and the ui.js unit tests. Any high-severity issue fails the run.
+name: Release check
+on:
+  pull_request:
+  push:
+    branches: [main]
+  workflow_dispatch:
+permissions:
+  contents: read
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+jobs:
+  check:
+    # the Playwright pinned in ISIONXXX/test/package.json (1.56) installs its browser on Ubuntu up to 24.04
+    runs-on: ubuntu-24.04
+    timeout-minutes: 25
+    steps:
+      - uses: actions/checkout@v5
+        with:
+          path: self
+      - uses: actions/setup-node@v5
+        with:
+          node-version: 22
+      - name: Release check
+        env:
+          BRANCH: ${{ github.head_ref || github.ref_name }}
+        run: bash self/test/ci.sh ISIONXXX self
