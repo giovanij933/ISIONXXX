@@ -46,7 +46,7 @@ const settle=async(p,ms)=>{await p.waitForLoadState('load').catch(()=>{});await 
   for(const [app,cfg] of Object.entries(APPS)){if(only.length&&!only.includes(app))continue;
     const R={app,issues:[],notes:[]};all.push(R);const I=(sev,area,msg)=>{if(!ACCEPTED.some(x=>x.test(msg))&&!R.issues.some(i=>i.area===area&&i.msg===msg))R.issues.push({sev,area,msg})};
     const DIR=path.join(SITE,app);if(!fs.existsSync(DIR)){I('high','site',`${DIR} is missing`);continue}
-    const mk=async(w,sw)=>{const c=await b.newContext({viewport:{width:w,height:900},serviceWorkers:sw?'allow':'block'});await c.route(EXT,r=>r.abort());const p=await c.newPage();
+    const mk=async(w,sw)=>{const c=await b.newContext({viewport:{width:w,height:900},hasTouch:w<700,serviceWorkers:sw?'allow':'block'});await c.route(EXT,r=>r.abort());const p=await c.newPage();
       p._errs=[];p._bad=[];p.on('pageerror',e=>p._errs.push(e.message.slice(0,200)));
       p.on('console',m=>{if(m.type()==='error'&&!/net::ERR_FAILED|Failed to load resource/.test(m.text()))p._errs.push('console: '+m.text().slice(0,200))});
       p.on('response',r=>{if(r.status()>=400&&!EXT.test(r.url()))p._bad.push(r.status()+' '+r.url().replace(BASE,''))});p.on('dialog',d=>d.accept());return {c,p}};
@@ -70,6 +70,18 @@ const settle=async(p,ms)=>{await p.waitForLoadState('load').catch(()=>{});await 
       if(app==='ISIONXXX'){await loadSamples(p);await p.goto(URL+'#today');await settle(p,2000)}
       else if(cfg.sample){try{await p.evaluate(cfg.sample)}catch(e){I('high','sample',`sample loader failed: ${e.message.slice(0,120)}`)}await settle(p,1200)}
       await st('sample');
+      // a touch screen: no labelled control under 30 px (ui.css's touch rules aim for 44; Apple's guideline is 44 pt)
+      if(w<700){const small=await p.evaluate(()=>[...document.querySelectorAll('button,a[href],select,input:not([type=checkbox]):not([type=radio]):not([type=hidden]),[role=button]')].filter(e=>{const r=e.getBoundingClientRect(),cs=getComputedStyle(e);
+          return r.width>0&&r.height>0&&cs.visibility==='visible'&&!e.closest('svg')&&!(e.tagName==='A'&&cs.display==='inline')&&Math.min(r.width,r.height)<30})
+          .map(e=>{const r=e.getBoundingClientRect();return `${(e.getAttribute('aria-label')||e.textContent||e.tagName).trim().replace(/\s+/g,' ').slice(0,28)} ${Math.round(r.width)}×${Math.round(r.height)}`}));
+        if(small.length)I('medium','touch',`@${w}: ${small.length} control${small.length>1?'s':''} under 30 px on a touch screen, e.g. ${[...new Set(small)].slice(0,4).join('; ')}`)}
+      // with a mouse: moving it must not restyle the whole page each frame (what a root-level value every element
+      // inherits did: the background glow's --gx/--gy, or a ::selection rule that also matched <html>)
+      if(w>=1440){await p.mouse.move(5,5);await p.waitForTimeout(400);await b.startTracing(p,{categories:['devtools.timeline']});
+        for(let i=0;i<8;i++){await p.mouse.move(20+i*150,300+(i%3)*80);await p.waitForTimeout(40)}await p.waitForTimeout(300);
+        const T=JSON.parse(await b.stopTracing()).traceEvents,n=await p.evaluate(()=>document.querySelectorAll('*').length);
+        const full=T.filter(e=>e.name==='UpdateLayoutTree'&&(e.args?.elementCount||0)>n*.5).length;
+        if(full>=3)I('high','perf',`moving the mouse restyles the whole page: ${full} frames recomputed over half of its ${n} elements`)}
       p._errs.forEach(e=>I('high','js',`@${w}: ${e}`));[...new Set(p._bad)].forEach(u=>I('high','network',`@${w}: ${u}`));
       await c.close()}
     // 2. manifest, icons and the service worker's precache list point at files that exist
