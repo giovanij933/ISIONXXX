@@ -1,0 +1,12 @@
+{
+  "name": "isionxxx-release-check",
+  "private": true,
+  "description": "Release checks for the seven ISIONXXX apps. See README.md.",
+  "scripts": {
+    "check": "node ship.js"
+  },
+  "dependencies": {
+    "axe-core": "4.10.2",
+    "playwright": "1.56.1"
+  }
+}
