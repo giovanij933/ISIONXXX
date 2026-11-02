@@ -24,6 +24,9 @@ This matches the existing GitHub Pages layout. The site uses the repository's
 ## Behavior
 
 - All seven links work without JavaScript; JavaScript enables filtering and notes.
+- The way back: every app's name in its header ("ISIONXXX // MIND", just "MIND" on
+  phones) links here. `../ui.js` adds the link, so all seven apps get it. Inside the
+  TODAY shell it opens this page in the whole window, not inside the app's frame.
 - The intention uses only `isx.personal.intention.v1` in localStorage. It is not
   synced to GitHub and does not read or change the apps' records.
 - A note is shown only for the date it was saved, using the browser's local date.

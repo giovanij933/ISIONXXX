@@ -588,10 +588,15 @@
     }), Object.assign(document.createElement('hr'), { className: 'ui-more-sep' }));
     acts.append(wrap);
   }
-  // on phones the bar shows the app name without the ISIONXXX // prefix (ui.css), so it fits on one line
+  // on phones the bar shows the app name without the ISIONXXX // prefix (ui.css), so it fits on one line. The name
+  // links to the personal homepage, which sits beside the apps the way GitHub Pages serves them
+  // (/ISIONXXX/personal/). Inside the TODAY shell the whole window goes there, not the app's frame.
   const brandInit = () => document.querySelectorAll('header.top:not(.th) .brand').forEach(h => {
     const t = h.firstChild, b = t?.nextSibling;
     if (t?.nodeType === 3 && b?.tagName === 'B') { const s = document.createElement('span'); s.className = 'ui-brand-pre'; h.insertBefore(s, t); s.append(t, b) }
+    if (h.querySelector('.ui-brand-a')) return;
+    const a = document.createElement('a'); a.className = 'ui-brand-a'; a.href = '../ISIONXXX/personal/'; a.target = '_top';
+    a.title = 'ISIONXXX homepage'; a.append(...h.childNodes); h.append(a);
   });
   const shown = pop => [...pop.querySelectorAll('button')].filter(b => b.offsetParent);
   const moreSet = (btn, on, focus) => {
@@ -722,5 +727,5 @@
   addEventListener('isx-sync', replan);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) replan() });
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.1.0' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.2.0' };
 })();

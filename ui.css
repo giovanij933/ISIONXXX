@@ -455,6 +455,13 @@ html body .ui-more-pop>button:focus-visible{outline:1px solid var(--ui-amber);ou
    the sync dot. The everyday buttons show as the first items of the menu instead. */
 .ui-more-v,html body .ui-more-pop>.ui-more-m,.ui-more-sep{display:none}
 .ui-more-sep{border:0;border-top:1px solid rgba(255,255,255,.08);margin:4px 6px}
+/* the app's name links to the personal homepage (ui.js). 44 px tall without moving anything: the link's padding is
+   taken back by its margin, and the name's own padding lets the phone layout (which clips it, below) show all of it */
+html body header.top:not(.th) .brand{padding:11px 6px;margin:-11px -6px}
+html body .brand>.ui-brand-a{display:inline-block;box-sizing:border-box;max-width:calc(100% + 12px);padding:11px 6px;margin:-11px -6px;vertical-align:top;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:inherit;text-decoration:none;border-radius:6px;transition:color .15s;-webkit-tap-highlight-color:transparent}
+html body .brand>.ui-brand-a:focus-visible{outline:2px solid var(--ui-amber,#ffb000);outline-offset:-2px}
+html body .brand>.ui-brand-a:active{opacity:.7}
+@media (hover:hover){html body .brand>.ui-brand-a:hover{color:var(--ui-amber,#ffb000)}}
 @media (max-width:640px){
   html body header.top:not(.th){flex-wrap:nowrap;padding:7px 6px 7px 14px;gap:8px}
   html body header.top:not(.th) .brand{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
