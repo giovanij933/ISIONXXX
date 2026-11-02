@@ -31,6 +31,9 @@ body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-are
 .header { display: flex; align-items: center; gap: 24px; min-height: 76px; margin-bottom: 12px; border-bottom: 1px solid var(--line); }
 .wordmark { display: inline-flex; align-items: center; min-height: 44px; gap: 9px; white-space: nowrap; font-size: 15px; font-weight: 600; letter-spacing: .12em; }
 .wordmark b { color: var(--amber); font-weight: 600; }
+/* the ISIONXXX mark (../ui.css): a fixed size here, since the wordmark's text shrinks on small screens */
+.wordmark .ui-brand-mark { width: 25px; height: 24px; margin: 0; }
+footer .wordmark .ui-brand-mark { width: 21px; height: 20px; }
 .cursor { width: .6em; height: 1.05em; background: var(--amber); }
 .main-nav { display: flex; gap: 6px; margin-left: auto; text-transform: uppercase; font-size: 11px; letter-spacing: .1em; color: var(--dim); }
 .main-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; }

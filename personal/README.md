@@ -30,8 +30,9 @@ This matches the existing GitHub Pages layout. The site uses the repository's
   opens the shell. The shell's service worker keeps this page, so it opens with no
   signal too. The page also links the app's manifest and icons, so installing
   from here installs the same app.
-- The way back: every app's name in its header ("ISIONXXX // MIND", just "MIND" on
-  phones) links here. `../ui.js` adds the link, so all seven apps get it. Inside the
+- The way back: every app's name in its header links here. It shows the ISIONXXX
+  mark (the app icon's monogram, from `../ui.css`) then the app's name: "// MIND"
+  on wider screens, "MIND" on phones. `../ui.js` adds the link, so all seven apps get it. Inside the
   TODAY shell it opens this page in the whole window, not inside the app's frame.
 - The intention uses only `isx.personal.intention.v1` in localStorage. It is not
   synced to GitHub and does not read or change the apps' records.
