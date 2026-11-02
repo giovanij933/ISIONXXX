@@ -24,6 +24,9 @@ Two checks run once per run:
 - **Shared files.** `ui.js`, `ui.css` and `sync.js` must be byte-identical in all seven apps.
 - **ui.js unit tests.** The shell's run executes `test/ui.test.html`.
 
+Every run also runs `personal.test.js`, the tests for the personal homepage (`personal/`). It links into every
+app, so a change in any repo can break it. Any failure there fails the run. See `personal/README.md`.
+
 The CDN, fonts and video hosts are blocked in every run, so results don't depend on the network. The apps must
 start without them anyway.
 
@@ -53,6 +56,7 @@ A full run of all seven apps takes about 4 minutes.
 cd test && npm ci
 BRANCH=main bash site.sh nutrition ../../nutrition   # site/ with every app; nutrition from your checkout
 SITE=$PWD/site node ship.js nutrition ISIONXXX        # or no app names for all seven
+SITE=$PWD/site node personal.test.js                 # the personal homepage
 ```
 
 - `site.sh` clones the other apps from GitHub.

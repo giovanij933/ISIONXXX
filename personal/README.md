@@ -41,4 +41,10 @@ CHROME=/usr/bin/chromium node personal.test.js
 
 The test starts and closes its own local server and uses the repository's pinned
 Playwright and axe-core dependencies. Set `CHROME` to a different Chromium binary
-if needed, or omit it when Playwright's bundled browser is installed.
+if needed, or omit it when Playwright's bundled browser is installed. It serves
+the folder above this checkout; set `SITE` to serve a different folder that
+holds all seven apps.
+
+Every repo's release check runs it too (`test/ci.sh`). On phones it holds the page
+to the apps' standard: no text under 11 px, no control under 44 px, and the
+intention editor closes with a swipe down. The swipe comes from `../ui.js`.

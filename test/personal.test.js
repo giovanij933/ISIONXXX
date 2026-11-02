@@ -7,7 +7,8 @@ const fs = require('node:fs/promises');
 const http = require('node:http');
 const path = require('node:path');
 const { chromium } = require('playwright');
-const SITE = path.resolve(__dirname, '../..');
+// The folder holding all seven checkouts by their Pages names: $SITE (ci.sh sets it), else this checkout's parent.
+const SITE = path.resolve(process.env.SITE || path.join(__dirname, '../..'));
 const KEY = 'isx.personal.intention.v1';
 const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json', '.json': 'application/json', '.png': 'image/png' };
 
@@ -107,6 +108,35 @@ async function main() {
     assert.deepEqual(violations, [], 'editor accessibility');
     await page.locator('#close-focus').click();
     pass('axe accessibility passes for page and open editor');
+
+    // Phones: the apps' floor of 11 px text and 44 px targets, and the editor sheet closes with a swipe down (ui.js).
+    const phone = await browser.newContext({ timezoneId: 'UTC', viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    await phone.route(/fonts\.g|gstatic|cdnjs|jsdelivr|youtube|ytimg/, route => route.abort());
+    const mobile = await phone.newPage();
+    mobile.on('pageerror', error => errors.push(error.message));
+    await mobile.goto(home);
+    // measured once the cards' entrance animations have landed (the cursor blink never ends, so it's left out)
+    await mobile.evaluate(() => Promise.all(document.getAnimations().filter(a => a.effect.getComputedTiming().endTime < Infinity).map(a => a.finished)));
+    const cramped = await mobile.evaluate(() => {
+      const shown = el => { const r = el.getBoundingClientRect(); return r.width > 1 && r.height > 1 && getComputedStyle(el).visibility !== 'hidden'; };
+      const small = [...document.querySelectorAll('a,button,textarea')].filter(shown).map(el => [el, el.getBoundingClientRect()])
+        .filter(([, r]) => Math.min(r.width, r.height) < 44).map(([el, r]) => `target ${el.className || el.tagName} ${Math.round(r.width)}x${Math.round(r.height)}`);
+      const tiny = [...document.querySelectorAll('body *')].filter(shown)
+        .filter(el => [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) && parseFloat(getComputedStyle(el).fontSize) < 11)
+        .map(el => `text ${el.className || el.tagName}: ${el.textContent.trim().slice(0, 24)}`);
+      return small.concat(tiny);
+    });
+    assert.deepEqual(cramped, [], 'phone text and touch targets');
+    await mobile.locator('#edit-focus').tap();
+    const box = await mobile.locator('#focus-dialog h2').boundingBox();
+    const cdp = await phone.newCDPSession(mobile);
+    const touch = (type, y) => cdp.send('Input.dispatchTouchEvent', { type, touchPoints: type === 'touchEnd' ? [] : [{ x: box.x + 20, y }] });
+    await touch('touchStart', box.y);
+    for (let i = 1; i <= 8; i++) { await touch('touchMove', box.y + i * 30); await mobile.waitForTimeout(16); }
+    await touch('touchEnd');
+    await mobile.locator('#focus-dialog').waitFor({ state: 'hidden' });
+    await phone.close();
+    pass('phones: 11 px text, 44 px targets, and the editor swipes closed');
 
     for (const [hash, app] of [['today', null], ['mind', 'MEDITATE'], ['training', 'TRAINING'], ['nutrition', 'nutrition'], ['learn', 'data-analytics'], ['journal', 'JOURNAL'], ['rewire', 'rewire']]) {
       await page.goto(home);

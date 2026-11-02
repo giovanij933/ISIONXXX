@@ -11,4 +11,9 @@ bash "$HERE/site.sh" "$APP" "$SELF"
 T=$SITE/ISIONXXX/test
 npm ci --prefix "$T" --no-audit --no-fund
 "$T/node_modules/.bin/playwright" install --with-deps chromium
-if [ "$APP" = ISIONXXX ]; then node "$T/ship.js"; else node "$T/ship.js" "$APP" ISIONXXX; fi
+# both run, so one failing doesn't hide the other's result
+rc=0
+if [ "$APP" = ISIONXXX ]; then node "$T/ship.js" || rc=$?; else node "$T/ship.js" "$APP" ISIONXXX || rc=$?; fi
+# the personal homepage (ISIONXXX/personal) links into every app, so each repo's run checks it too
+node "$T/personal.test.js" || rc=$?
+exit $rc
