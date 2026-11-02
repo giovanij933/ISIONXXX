@@ -150,6 +150,16 @@ async function main() {
       } else await page.locator('#today.on').waitFor();
     }
     pass('all seven card links open their matching shell tabs and app content');
+
+    // and back: every app's name in its header (ui.js) opens this page, taking the whole window when inside the shell
+    for (const hash of ['today', 'mind', 'training', 'nutrition', 'learn', 'journal', 'rewire']) {
+      await page.goto(origin + '/ISIONXXX/#' + hash);
+      const scope = hash === 'today' ? page.locator('#today') : page.frameLocator(`#f-${hash}`);
+      await scope.locator('header.top .brand a').click({ position: { x: 12, y: 14 } });
+      await page.waitForURL(home);
+      await page.locator('#hero-title').waitFor();
+    }
+    pass('every app’s name opens the homepage, from inside the shell too');
     assert.deepEqual(errors, [], 'browser page errors');
     pass('no browser JavaScript errors');
     console.log(`PASS: ${checks} personal-site checks`);
