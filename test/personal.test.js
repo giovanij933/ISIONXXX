@@ -13,7 +13,11 @@ const KEY = 'isx.personal.intention.v1';
 const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json', '.json': 'application/json', '.png': 'image/png' };
 
 async function main() {
+  // no signal: the server drops every connection. (context.setOffline doesn't reach the service worker's own requests,
+  // so it can't show whether the app really opens from its cache.)
+  let offline = false;
   const server = http.createServer(async (req, res) => {
+    if (offline) { req.socket.destroy(); return; }
     try {
       const pathname = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
       let file = path.resolve(SITE, '.' + pathname);
@@ -160,6 +164,33 @@ async function main() {
       await page.locator('#hero-title').waitFor();
     }
     pass('every app’s name opens the homepage, from inside the shell too');
+
+    // the installed app (navigator.standalone, as on an iPhone's home screen) opens on this page, once per launch,
+    // with no signal too: the shell's service worker keeps it
+    const app = await browser.newContext({ timezoneId: 'UTC', viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
+    await app.route(/fonts\.g|gstatic|cdnjs|jsdelivr|youtube|ytimg/, route => route.abort());
+    await app.addInitScript(() => Object.defineProperty(Navigator.prototype, 'standalone', { get: () => true, configurable: true }));
+    const launch = async () => {
+      const tab = await app.newPage();
+      tab.on('pageerror', error => errors.push(error.message));
+      await tab.goto(origin + '/ISIONXXX/');
+      await tab.waitForURL(home);
+      await tab.locator('#hero-title').waitFor();
+      return tab;
+    };
+    const first = await launch();
+    await first.locator('.header-cta').tap();
+    await first.waitForURL(origin + '/ISIONXXX/#today');
+    await first.locator('#today.on').waitFor();
+    await first.goto(origin + '/ISIONXXX/');
+    await first.locator('#today.on').waitFor();
+    assert.ok(!first.url().includes('/personal/'), 'the shell, not the homepage, later in the same launch');
+    await first.evaluate(() => navigator.serviceWorker.ready);
+    offline = true;
+    await (await launch()).close();
+    offline = false;
+    await app.close();
+    pass('the installed app opens on the homepage once per launch, offline too');
     assert.deepEqual(errors, [], 'browser page errors');
     pass('no browser JavaScript errors');
     console.log(`PASS: ${checks} personal-site checks`);

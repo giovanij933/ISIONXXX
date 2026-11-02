@@ -10,7 +10,8 @@ For each app, in Chromium at 390 px and 1440 px:
 1. **Empty device, then sample data.** No page errors, no failed requests, no horizontal overflow, no near-empty
    page, and an axe accessibility pass.
 2. **PWA files.** The manifest, its icons, the apple-touch-icon and every file in `sw.js`'s precache list exist.
-3. **Offline.** The service worker installs, and the app starts again with the network off.
+3. **Offline.** The service worker installs, and the app starts again with no network. The test server drops every
+   connection for this step, because the browser's offline switch doesn't block a service worker's own requests.
 4. **Corrupted data.** Each saved `localStorage` key is set to broken JSON (`{"broken`) and then to a wrong-typed
    value (`42`). The app must still start.
 5. **Touch targets** (390 px, as a touch screen). No labelled control is under 30 px. `ui.css`'s touch rules aim

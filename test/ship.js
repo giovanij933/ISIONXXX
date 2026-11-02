@@ -22,7 +22,10 @@ if(bad.length){console.error(`unknown app: ${bad.join(', ')} (one of ${Object.ke
 // a static server like GitHub Pages: a folder answers with its index.html, and without a trailing slash redirects
 const MIME={'.html':'text/html; charset=utf-8','.js':'text/javascript; charset=utf-8','.css':'text/css; charset=utf-8','.json':'application/json',
   '.webmanifest':'application/manifest+json','.svg':'image/svg+xml','.png':'image/png','.ico':'image/x-icon','.txt':'text/plain; charset=utf-8','.md':'text/plain; charset=utf-8'};
-function serve(root){return new Promise(res=>{const s=http.createServer((q,r)=>{let u;try{u=decodeURIComponent(new URL(q.url,'http://x').pathname)}catch{r.writeHead(400);return r.end()}
+// no signal (the offline check): every connection is dropped. context.setOffline alone doesn't reach a service worker's
+// own requests, so a file missing from its cache would still load from here and the check would pass anyway
+let OFFLINE=false;
+function serve(root){return new Promise(res=>{const s=http.createServer((q,r)=>{if(OFFLINE){q.socket.destroy();return}let u;try{u=decodeURIComponent(new URL(q.url,'http://x').pathname)}catch{r.writeHead(400);return r.end()}
   let f=path.join(root,u);if(f!==root&&!f.startsWith(root+path.sep)){r.writeHead(403);return r.end()}
   fs.stat(f,(e,st)=>{if(!e&&st.isDirectory()){if(!u.endsWith('/')){r.writeHead(301,{Location:u+'/'});return r.end()}f=path.join(f,'index.html')}
     fs.readFile(f,(e2,b)=>{if(e2){r.writeHead(404,{'content-type':'text/plain'});return r.end('not found')}
@@ -100,8 +103,8 @@ const settle=async(p,ms)=>{await p.waitForLoadState('load').catch(()=>{});await 
     // 3. offline: the service worker installs, then the app starts with the network off
     {const {c,p}=await mk(390,true);await p.goto(URL);await settle(p,500);
       const ok=await p.evaluate(async()=>{if(!navigator.serviceWorker)return 'no sw api';try{await Promise.race([navigator.serviceWorker.ready,new Promise((_,j)=>setTimeout(()=>j('timeout'),10000))]);return 'ready'}catch(e){return 'not ready: '+e}});
-      if(ok!=='ready')I('high','offline',`service worker ${ok}`);else{await p.reload();await settle(p,1000);await c.setOffline(true);p._errs.length=0;
-        try{await p.reload({timeout:15000});await p.waitForTimeout(1500);const t=await p.evaluate(()=>document.body.innerText.length);if(t<40)I('high','offline','offline reload shows a nearly empty page');p._errs.forEach(e=>I('high','offline',`offline: ${e}`))}catch(e){I('high','offline','offline reload failed: '+e.message.slice(0,120))}}
+      if(ok!=='ready')I('high','offline',`service worker ${ok}`);else{await p.reload();await settle(p,1000);await c.setOffline(true);OFFLINE=true;p._errs.length=0;
+        try{await p.reload({timeout:15000});await p.waitForTimeout(1500);const t=await p.evaluate(()=>document.body.innerText.length);if(t<40)I('high','offline','offline reload shows a nearly empty page');p._errs.forEach(e=>I('high','offline',`offline: ${e}`))}catch(e){I('high','offline','offline reload failed: '+e.message.slice(0,120))}OFFLINE=false}
       await c.close()}
     // 4. corrupted saved data: each key as broken JSON and as a wrong-typed value; the app must still start
     {const {c,p}=await mk(1440);await p.goto(URL);await p.evaluate(()=>localStorage.clear());
