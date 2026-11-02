@@ -2,8 +2,10 @@
 
 A responsive, static homepage for the seven apps. The page includes an app map,
 Body / Mind / Growth filters, and a daily intention saved locally in the browser.
-It uses plain HTML, CSS, and JavaScript, with local SVG artwork and system fonts.
-There is no build step, external asset dependency, or backend.
+It uses plain HTML, CSS, and JavaScript. The homepage shares `../ui.css`, the
+shell's icon, and the apps' IBM Plex Mono typography, dark glass panels, amber
+controls, and app accent colors. The optional Google Fonts stylesheet falls back
+to system monospace when unavailable. There is no build step or backend.
 
 ## Run locally
 
@@ -16,8 +18,8 @@ python3 -m http.server 8000 --bind 127.0.0.1 --directory /workspace
 The homepage is at `/ISIONXXX/personal/`. Its links open the existing Today shell
 at `/ISIONXXX/#today`, `#mind`, `#training`, `#nutrition`, `#learn`, `#journal`, and
 `#rewire`. The other apps must be available beside ISIONXXX on the same origin.
-This matches the existing GitHub Pages layout. No deployment was performed as
-part of building this page.
+This matches the existing GitHub Pages layout. The site uses the repository's
+`main` branch at `/ISIONXXX/personal/`.
 
 ## Behavior
 
