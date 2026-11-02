@@ -24,6 +24,12 @@ This matches the existing GitHub Pages layout. The site uses the repository's
 ## Behavior
 
 - All seven links work without JavaScript; JavaScript enables filtering and notes.
+- The installed app opens here. Launched from the home screen, the shell (`../`)
+  sends its first page of the launch to this one, unless the address names a tab
+  (`#today`), so "Open my day" doesn't bounce back. A browser tab on `../` still
+  opens the shell. The shell's service worker keeps this page, so it opens with no
+  signal too. The page also links the app's manifest and icons, so installing
+  from here installs the same app.
 - The way back: every app's name in its header ("ISIONXXX // MIND", just "MIND" on
   phones) links here. `../ui.js` adds the link, so all seven apps get it. Inside the
   TODAY shell it opens this page in the whole window, not inside the app's frame.

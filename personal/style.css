@@ -22,6 +22,8 @@ svg { width: 24px; height: 24px; fill: none; stroke: currentColor; stroke-width:
 h1, h2, h3, p { margin-top: 0; }
 .icon-library { position: absolute; width: 0; height: 0; overflow: hidden; }
 .page-wrap { max-width: 1440px; margin: auto; padding: 0 16px; }
+/* the installed app draws under the status bar and the home indicator (viewport-fit=cover): keep the page clear */
+body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-area-inset-bottom) env(safe-area-inset-left); }
 .skip { position: fixed; top: 12px; left: 12px; z-index: 20; background: var(--amber); color: #000; padding: 14px; transform: translateY(-150%); }
 .skip:focus { transform: translateY(0); }
 

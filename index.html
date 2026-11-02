@@ -8,6 +8,12 @@
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 <meta name="apple-mobile-web-app-title" content="ISIONXXX">
 <title>ISIONXXX</title>
+<script>
+// the installed app opens on the personal homepage (personal/), once per launch. A launch is the first page of a
+// session with no #tab in the address: links back from the homepage carry one (#today) and a reload keeps the
+// session, so neither bounces back. A browser tab opens this page as before.
+try{if((navigator.standalone||matchMedia('(display-mode: standalone)').matches)&&!sessionStorage.getItem('isx.launched')){sessionStorage.setItem('isx.launched','1');if(!location.hash)location.replace('personal/')}}catch(e){}
+</script>
 <link rel="manifest" href="manifest.webmanifest">
 <link rel="icon" href="icon-st.svg" type="image/svg+xml">
 <link rel="apple-touch-icon" sizes="180x180" href="apple-touch-icon-st.png">

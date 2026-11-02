@@ -108,3 +108,6 @@ window.addEventListener('focus', refreshFocus);
 // Update an open page across midnight without carrying yesterday's note forward.
 setInterval(() => { if (document.querySelector('#today-date').dateTime !== localDay()) refreshFocus(); }, 60000);
 refreshFocus();
+// the shell's service worker (scope /ISIONXXX/) keeps this page for opening with no signal; registering from here
+// covers a first visit that starts on this page
+if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('../sw.js').catch(() => {}));
