@@ -46,6 +46,17 @@ async function main() {
     assert.equal(await page.locator('.app-card').count(), 7);
     pass('homepage loads all seven tools');
 
+    // the app map and cards use the same seven icons as the TODAY shell's tab bar (TABS in ISIONXXX/index.html)
+    const html = await fs.readFile(path.join(SITE, 'ISIONXXX/personal/index.html'), 'utf8');
+    const shell = await fs.readFile(path.join(SITE, 'ISIONXXX/index.html'), 'utf8');
+    for (const id of ['today', 'mind', 'training', 'nutrition', 'learn', 'journal', 'rewire']) {
+      const tab = (shell.match(new RegExp(`\\{id:'${id}',[^}]*?icon:'([^']*)'\\}`)) || [])[1];
+      const copy = (html.match(new RegExp(`<symbol id="i-${id}" viewBox="0 0 24 24"><g [^>]*>([\\s\\S]*?)</g></symbol>`)) || [])[1];
+      assert.ok(tab, `no ${id} tab icon in ISIONXXX/index.html`);
+      assert.equal(copy, tab, `personal/index.html's ${id} icon differs from the tab bar's: copy it over`);
+    }
+    pass('the seven app icons match the tab bar');
+
     for (const [filter, count] of [['body', 2], ['mind', 2], ['growth', 2], ['all', 7]]) {
       await page.locator(`[data-filter="${filter}"]`).click();
       assert.equal(await page.locator('.app-card:visible').count(), count);
