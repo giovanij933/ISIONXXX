@@ -664,7 +664,7 @@ function drawToday(){
   const next=wins.find(c=>!c.done&&!c.rest);
   const d=new Date(),date=d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'}).toUpperCase();
   const ci=ciHTML();
-  const html=`<div class="in"><header class="th top"><h1 class="brand"><a class="ui-brand-a" href="personal/" title="ISIONXXX homepage">ISIONXXX <b>//</b> TODAY<span class="cur" aria-hidden="true"></span></a></h1><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>
+  const html=`<div class="in"><header class="th top"><h1 class="brand"><a class="ui-brand-a" href="personal/" title="ISIONXXX homepage"><span class="ui-brand-mark" role="img" aria-label="ISIONXXX"></span><b>//</b> TODAY<span class="cur" aria-hidden="true"></span></a></h1><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>
     ${stoHTML()}${ci}${heroHTML(wins,next,t)}${planHTML(t,C,next)}
     ${insHTML()}</div>`;
   // only touch the page when something changed

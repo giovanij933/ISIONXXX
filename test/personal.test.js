@@ -159,11 +159,13 @@ async function main() {
     for (const hash of ['today', 'mind', 'training', 'nutrition', 'learn', 'journal', 'rewire']) {
       await page.goto(origin + '/ISIONXXX/#' + hash);
       const scope = hash === 'today' ? page.locator('#today') : page.frameLocator(`#f-${hash}`);
+      // the name shows as the ISIONXXX mark, still named for screen readers
+      assert.equal(await scope.getByRole('img', { name: 'ISIONXXX' }).count(), 1, `${hash}: the ISIONXXX mark`);
       await scope.locator('header.top .brand a').click({ position: { x: 12, y: 14 } });
       await page.waitForURL(home);
       await page.locator('#hero-title').waitFor();
     }
-    pass('every app’s name opens the homepage, from inside the shell too');
+    pass('every app’s header shows the ISIONXXX mark and opens the homepage, from inside the shell too');
 
     // the installed app (navigator.standalone, as on an iPhone's home screen) opens on this page, once per launch,
     // with no signal too: the shell's service worker keeps it
