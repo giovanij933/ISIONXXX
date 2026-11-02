@@ -94,7 +94,7 @@
 @keyframes ui-shimmer{to{background-position:-200% 0}}
 
 /* toast */
-.ui-toast{position:fixed;left:50%;bottom:calc(var(--isx-tabs,24px) + 16px);transform:translate(-50%,8px);width:max-content;max-width:min(90vw,420px);box-sizing:border-box;padding:10px 14px;background:var(--ui-panel);border:1px solid var(--ui-amber);color:var(--ui-amber);font:12px var(--ui-f);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s var(--ui-ease);z-index:50}
+.ui-toast{position:fixed;left:50%;bottom:calc(var(--isx-tabs,24px) + 16px + env(safe-area-inset-bottom));transform:translate(-50%,8px);width:max-content;max-width:min(90vw,420px);box-sizing:border-box;padding:10px 14px;background:var(--ui-panel);border:1px solid var(--ui-amber);color:var(--ui-amber);font:12px var(--ui-f);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s var(--ui-ease);z-index:50}
 .ui-toast.ui-on{opacity:1;transform:translate(-50%,0)}.ui-toast.ui-bad{border-color:var(--ui-red);color:var(--ui-red)}
 
 /* focus: always visible for keyboard users, never for taps */
@@ -388,6 +388,19 @@ html.g-boot body :is(.g,.grid,section)>:nth-child(4){animation-delay:.12s}
   html body :is(td .acts button,td.r button){min-height:36px;min-width:36px}
   html body :is(.lg,.lr,.ev,.hb,.er).pick{min-height:36px}
 }
+/* phones: labels, tags, badges, section heads and chart axis labels at 11 px, Apple's minimum for legible text (they
+   were 10 px). The calendar's per-day figures and TODAY's tab bar stay smaller: they have to fit seven to a row */
+@media (max-width:640px){
+  html body :is(.ui-stat .ui-stat-l,.ui-tl b,.pl-a,.sec,.pill,.pr,.hl,.ev h4){font-size:11px}
+}
+/* taps: no grey browser flash (iOS draws it square, over rounded controls, and late); buttons already shrink a little when
+   pressed, and rows, cells and tap-to-filter items light up instead */
+html{-webkit-tap-highlight-color:transparent}
+html body :is(.pick,[role=button],div[data-act],div[data-a],span[data-act],li[data-act],tr[data-act],tr[data-a]):not(button):active{filter:brightness(1.35)}
+/* the apps' own toasts (#toast): above the iPhone's home indicator in a standalone app, and as wide as their text
+   (centred at left:50% they could only use half the screen, so short messages wrapped) */
+html body #toast{margin-bottom:env(safe-area-inset-bottom);width:max-content;box-sizing:border-box}
+html body .toast{width:max-content;box-sizing:border-box}
 /* touch screens: form fields at 16px, so iOS doesn't zoom the page in when you tap one (it does for anything
    smaller). !important because some fields set their size with id-level rules (the sync dialog's); pinch-zoom still
    works, since nothing blocks it in the viewport tag */
