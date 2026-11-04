@@ -73,6 +73,13 @@ const settle=async(p,ms)=>{await p.waitForLoadState('load').catch(()=>{});await 
       if(app==='ISIONXXX'){await loadSamples(p);await p.goto(URL+'#today');await settle(p,2000)}
       else if(cfg.sample){try{await p.evaluate(cfg.sample)}catch(e){I('high','sample',`sample loader failed: ${e.message.slice(0,120)}`)}await settle(p,1200)}
       await st('sample');
+      // opening the app with its data must not jump: nothing moves after the first frame (ui.css keeps the page hidden
+      // until the app has drawn itself). CPU 4x slower, where a slow load shows it; timing varies, so it is reported, not failed
+      if(w<700){await p.addInitScript(()=>{window.__cls=0;try{new PerformanceObserver(l=>{for(const e of l.getEntries())if(!e.hadRecentInput)window.__cls+=e.value}).observe({type:'layout-shift',buffered:true})}catch(e){}});
+        const cdp=await c.newCDPSession(p);await cdp.send('Emulation.setCPUThrottlingRate',{rate:4});
+        await p.goto(app==='ISIONXXX'?URL+'#today':URL);await settle(p,1500);const cls=await p.evaluate(()=>window.__cls||0);
+        await cdp.send('Emulation.setCPUThrottlingRate',{rate:1});
+        if(cls>0.05)I('medium','layout',`@${w}: the page jumps while it opens (layout shift ${cls.toFixed(2)}; under 0.1 is good)`)}
       // a touch screen: no labelled control under 30 px (ui.css's touch rules aim for 44; Apple's guideline is 44 pt)
       if(w<700){const small=await p.evaluate(()=>[...document.querySelectorAll('button,a[href],select,input:not([type=checkbox]):not([type=radio]):not([type=hidden]),[role=button]')].filter(e=>{const r=e.getBoundingClientRect(),cs=getComputedStyle(e);
           return r.width>0&&r.height>0&&cs.visibility==='visible'&&!e.closest('svg')&&!(e.tagName==='A'&&cs.display==='inline')&&Math.min(r.width,r.height)<30})
