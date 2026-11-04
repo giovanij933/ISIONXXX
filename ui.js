@@ -300,7 +300,9 @@
     if (start === end) return;
     const fmt = v => { const s = Math.abs(v).toFixed(dp), [i, f] = s.split('.'); return (v < 0 ? '-' : '') + (m[0].includes(',') ? Number(i).toLocaleString('en-US') : i) + (f ? '.' + f : '') };
     const t0 = performance.now(), D = 650;
-    const step = now => { const k = Math.min(1, Math.max(0, (now - t0) / D)), e = 1 - Math.pow(1 - k, 3); node.textContent = to.replace(re, fmt(start + (end - start) * e)); if (k < 1 && node.isConnected) requestAnimationFrame(step); else node.textContent = to };
+    // the number gets its own layer while it counts (ui.css .ui-counting), so each frame repaints the number, not the page
+    node.classList.add('ui-counting');
+    const step = now => { const k = Math.min(1, Math.max(0, (now - t0) / D)), e = 1 - Math.pow(1 - k, 3); node.textContent = to.replace(re, fmt(start + (end - start) * e)); if (k < 1 && node.isConnected) requestAnimationFrame(step); else { node.textContent = to; node.classList.remove('ui-counting') } };
     requestAnimationFrame(step);
   }
   function animate(root = document, { onDone } = {}) {
@@ -317,13 +319,27 @@
     root.querySelectorAll('.ui-tl li, .tl li').forEach(li => {
       const k = li.textContent; if (MEM.tlInit && !MEM.tl.has(k) && !calm) li.classList.add('ui-new'); MEM.tl.add(k);
     }); MEM.tlInit = true;
-    // charts draw themselves in when they first appear or their data changes: lines trace, bars grow, areas fade
+    // charts draw themselves in when they first appear or their data changes: lines trace, bars grow, areas fade.
+    // While it draws, the chart is its own layer (ui.css svg.ui-draw), so each frame repaints the chart, not the page;
+    // the class comes off once the last bar has grown. Shapes you can't see (the apps' transparent tap areas) don't fade
+    // Reads first, then writes: reading a style or a size right after a change forces the browser to recompute the page,
+    // and doing that per chart and per shape cost 100-240 ms (CPU 4x slower) of every app's first draw.
+    const draw = [];
     root.querySelectorAll('svg.chart').forEach((c, i) => {
       const sig = c.innerHTML.length + ':' + c.innerHTML.slice(0, 160), k = (root.id || 'r') + i;
       if (MEM.chart.get(k) === sig) return; MEM.chart.set(k, sig); if (calm) return;
-      c.querySelectorAll('polyline, path').forEach(l => { const f = l.getAttribute('fill'); if (l.tagName === 'polyline' || f === 'none') l.classList.add('ui-trace') });
-      const bars = c.querySelectorAll('rect'); bars.forEach((r, j) => { r.classList.add('ui-grow'); r.style.animationDelay = Math.min(j * 18, 400) + 'ms' });
-      c.classList.remove('ui-draw'); void c.getBoundingClientRect(); c.classList.add('ui-draw');
+      const lines = [...c.querySelectorAll('polyline, path')].filter(l => l.tagName.toLowerCase() === 'polyline' || l.getAttribute('fill') === 'none');
+      // the apps' transparent tap areas (.hit) have nothing to fade; checked by class, since reading each shape's
+      // computed fill cost up to 120 ms on charts with hundreds of them
+      const shapes = [...c.querySelectorAll('polygon, path')].filter(l => !lines.includes(l) && !l.classList.contains('hit') && !/^(none|transparent)$/.test(l.getAttribute('fill') || ''));
+      draw.push({ c, lines, shapes, bars: c.querySelectorAll('rect') });
+    });
+    const again = draw.filter(d => d.c.classList.contains('ui-draw'));
+    again.forEach(d => d.c.classList.remove('ui-draw')); if (again.length) void root.offsetWidth;   // restart a chart already drawing in
+    draw.forEach(({ c, lines, shapes, bars }) => {
+      lines.forEach(l => l.classList.add('ui-trace')); shapes.forEach(l => l.classList.add('ui-fadein'));
+      bars.forEach((r, j) => { r.classList.add('ui-grow'); r.style.animationDelay = Math.min(j * 18, 400) + 'ms' });
+      c.classList.add('ui-draw'); clearTimeout(c.__drawn); c.__drawn = setTimeout(() => c.classList.remove('ui-draw'), 1500);
     });
     root.querySelectorAll('[data-count]').forEach(n => { const k = n.dataset.count, now = n.textContent, was = MEM.count.get(k); MEM.count.set(k, now); if (!calm && was !== now) countUp(n, was ?? null, now) });
     if (fresh.length && onDone) onDone(fresh);
@@ -422,6 +438,11 @@
     HTMLDialogElement.prototype.showModal = function () { this.__dirty = false; this.style.transform = ''; return show.call(this) };
   }
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', installFluid); else installFluid();
+  // no half-built first frame: the page stays hidden (ui.css) until it has parsed and the app's own script, which runs
+  // before DOMContentLoaded, has drawn it. Otherwise a slow load paints the header and an empty page, then everything
+  // jumps when the content lands (in NUTRITION that moved the whole page)
+  const ready = () => document.documentElement.classList.add('ui-ready');
+  if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
 
   /* ---------- keepFocus: re-render without losing the keyboard user's place ----------
      UI.keepFocus(render) — apps re-render with innerHTML after a change, which drops focus to <body>. This puts it
@@ -732,5 +753,5 @@
   addEventListener('isx-sync', replan);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) replan() });
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.3.0' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.4.0' };
 })();
