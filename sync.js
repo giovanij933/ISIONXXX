@@ -154,7 +154,9 @@
 
   /* ---------- crypto ---------- */
   const enc = new TextEncoder(), dec = new TextDecoder();
-  const b64 = u => btoa(String.fromCharCode(...new Uint8Array(u)));
+  // in slices: spreading every byte as an argument overflows the call stack once a key's data passes ~65 KB (Safari's
+  // argument limit), and then nothing syncs
+  const b64 = u => { const a = new Uint8Array(u); let s = ''; for (let i = 0; i < a.length; i += 0x8000) s += String.fromCharCode.apply(null, a.subarray(i, i + 0x8000)); return btoa(s) };
   const unb64 = s => Uint8Array.from(atob(s), c => c.charCodeAt(0));
   let ck = null, ckFor = '';
   async function key() {
