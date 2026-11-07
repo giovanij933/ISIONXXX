@@ -441,7 +441,8 @@
   // no half-built first frame: the page stays hidden (ui.css) until it has parsed and the app's own script, which runs
   // before DOMContentLoaded, has drawn it. Otherwise a slow load paints the header and an empty page, then everything
   // jumps when the content lands (in NUTRITION that moved the whole page)
-  const ready = () => document.documentElement.classList.add('ui-ready');
+  // With db.js the app's script can start a moment after parsing (it waits for the database): show the page once it has
+  const ready = () => (window.ISXDB?.started || Promise.resolve()).then(() => document.documentElement.classList.add('ui-ready'));
   if (document.readyState === 'loading') document.addEventListener('DOMContentLoaded', ready); else ready();
 
   /* ---------- keepFocus: re-render without losing the keyboard user's place ----------
@@ -753,5 +754,5 @@
   addEventListener('isx-sync', replan);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) replan() });
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.4.0' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.4.1' };
 })();

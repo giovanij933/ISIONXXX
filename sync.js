@@ -214,6 +214,8 @@
   function setState(s, m = '') { state = s; msg = m; paint() }
   async function sync() {
     if (!cfg || !KEYS.length) return;
+    // with db.js, data that lives in the database alone reads as empty until it has been opened
+    await window.ISXDB?.ready;
     if (busy) { again = true; return }
     if (!navigator.onLine) return setState('offline');
     busy = true; setState('busy');
@@ -363,6 +365,11 @@
           : `<label for="isx-sd-code">Sync code from your other device</label><textarea id="isx-sd-code" name="code" rows="4" spellcheck="false"></textarea>`}
           <p class="err">${esc(note)}</p>
           <div class="row"><button type="button" data-x="close">CANCEL</button><button type="button" class="pri" data-x="go">CONNECT</button></div>`;
+      }
+      // where this device keeps the data (db.js): the browser's database, and whether the browser has promised to keep it
+      if (window.ISXDB) {
+        const p = document.createElement('p'); p.className = 'db'; d.querySelector('h3').after(p);
+        ISXDB.info().then(i => { p.textContent = i.on ? `On this device, all ISIONXXX data is saved in the browser's database (IndexedDB): ${kb(i.chars)}${i.persisted ? ', kept even when the device runs low on space' : ''}.` : 'On this device, ISIONXXX data is saved in local storage (this browser has no database for the site).' }).catch(() => p.remove());
       }
       d.querySelectorAll('[data-m]').forEach(b => b.onclick = () => draw(b.dataset.m));
       d.querySelectorAll('[data-x]').forEach(b => b.onclick = async () => {

@@ -24,8 +24,17 @@ For each app, in Chromium at 390 px and 1440 px:
    gives the same answer on any machine.
 
 Two checks run once per run:
-- **Shared files.** `ui.js`, `ui.css` and `sync.js` must be byte-identical in all seven apps.
+- **Shared files.** `ui.js`, `ui.css`, `sync.js` and `db.js` must be byte-identical in all seven apps.
 - **ui.js unit tests.** The shell's run executes `test/ui.test.html`.
+
+Every run also runs `db.test.js`, the tests for `db.js`, the layer that keeps every app's data in IndexedDB.
+They cover:
+- existing data moving into the database;
+- saves landing in both the database and the localStorage copy;
+- writes by an app that hasn't updated being taken in;
+- a key outgrowing localStorage and living in the database alone, read back on open and by the other apps;
+- other tabs hearing about changes, including a key moving mid-read;
+- a browser without IndexedDB.
 
 Every run also runs `personal.test.js`, the tests for the personal homepage (`personal/`). It links into every
 app, so a change in any repo can break it. Any failure there fails the run. See `personal/README.md`.

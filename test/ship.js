@@ -11,7 +11,7 @@ const GH=!!process.env.GITHUB_ACTIONS;
 // sample: how each app loads its sample data (the shell has none of its own: it reads the others')
 const APPS={ISIONXXX:{},JOURNAL:{sample:"document.querySelector('[data-a=sample]').click()"},MEDITATE:{sample:"document.querySelector('[data-a=sample]').click()"},
   TRAINING:{sample:"document.querySelector('[data-a=sample]').click()"},nutrition:{sample:"doAct('demo')"},'data-analytics':{sample:'sample()'},rewire:{sample:"document.querySelector('[data-a=sample]').click()"}};
-const SHARED=['ui.js','ui.css','sync.js'];
+const SHARED=['ui.js','ui.css','sync.js','db.js'];
 // deliberate product choices, not bugs: zoom is turned off at the owner's request
 const ACCEPTED=[/meta-viewport/];
 // the CDN, fonts and video hosts are blocked so every run sees the same thing (the apps must start without them)
