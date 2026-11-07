@@ -16,4 +16,6 @@ rc=0
 if [ "$APP" = ISIONXXX ]; then node "$T/ship.js" || rc=$?; else node "$T/ship.js" "$APP" ISIONXXX || rc=$?; fi
 # the personal homepage (ISIONXXX/personal) links into every app, so each repo's run checks it too
 node "$T/personal.test.js" || rc=$?
+# db.js, the database layer every app loads first
+node "$T/db.test.js" || rc=$?
 exit $rc

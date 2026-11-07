@@ -13,10 +13,11 @@ giovanij933.github.io
 ├── /JOURNAL/         JOURNAL      │
 └── /rewire/          REWIRE      ─┘
 
-         ┌──────────────── one origin = one localStorage, one quota ────────────────┐
+         ┌──────── one origin = one IndexedDB database + one localStorage ──────────┐
  shell   │ TODAY reads every app's keys (read-only, memoized by raw string)         │
  iframes │ each app reads/writes only its own keys; 'storage' events keep frames    │
-         │ in step; sync.js mirrors each app's keys to one encrypted gist          │
+         │ in step; db.js keeps every key in IndexedDB (localStorage holds a copy   │
+         │ while it fits); sync.js mirrors each app's keys to one encrypted gist    │
          └─────────────────────────────────────────────────────────────────────────┘
 ```
 
@@ -26,10 +27,11 @@ giovanij933.github.io
 |---|---|---|
 | App | `index.html` (one per repo) | its data model, `render()`, its own dialogs |
 | UI kit | `ui.js` + `ui.css` | stateless components, `UI.animate`, dialog motion, swipe to dismiss |
+| Database | `db.js` | where data lives: IndexedDB, with a localStorage copy while it fits; routes `localStorage.getItem/setItem/removeItem`; starts the app's script once its data can be read |
 | Data | `sync.js` | the `localStorage` write path (`Storage.prototype.setItem`), the storage budget, gist sync |
 | Offline | `sw.js` | precache + revalidate, one cache name per app (`isx-<app>-vN`) |
 
-`ui.js`, `ui.css` and `sync.js` are **shared files**: byte-identical in all seven repos and copied there on every
+`ui.js`, `ui.css`, `sync.js` and `db.js` are **shared files**: byte-identical in all seven repos and copied there on every
 change. A copy that drifts is a bug.
 
 ## Contracts
@@ -91,10 +93,24 @@ only speaks for the app's own data keys; a background cache that fails raises th
 
 Apps also wrap their own `save()`, so a full disk never aborts a click handler half way.
 
-*Not done, on purpose:* moving app data to IndexedDB. It is the real long-term fix (quota in the hundreds of MB),
-but every app reads its state synchronously at start-up. A migration means an in-memory cache with async write-through
-in all six apps and in `sync.js`. That is a project of its own, and the warning above buys the time to do it with
-care.
+*Later:* app data moved to IndexedDB (decision 1b), so the warning above now only appears on a browser without one.
+
+**1b. Every app's data lives in IndexedDB; localStorage keeps a copy while it fits.**
+IndexedDB is the browser's database for a site, with room for hundreds of MB. But every app reads its state
+synchronously at start-up, and IndexedDB only answers asynchronously. `db.js` (shared, loaded first) bridges the two
+without touching the apps' storage code:
+- It routes `localStorage.getItem/setItem/removeItem`. Every write goes to the localStorage copy at once and to the
+  database a moment later. Reads come from the copy, which is instant. The copy also protects a change made just
+  before the page closes, and keeps an app that hasn't updated yet working on the same data.
+- On open it compares the two. A copy that differs from the database was written by such an app, or after a database
+  write was cut short, so it is taken in. A key missing from the copy was deleted that way.
+- A key that doesn't fit in localStorage any more lives in the database alone. It is listed in `isx.db.only`, kept in
+  both stores so a lost list can't make it look deleted. Its copy is removed, and the save succeeds instead of
+  failing. On the next open the app's script, marked `<script type="isx/app">`, waits the few ms it takes to read it
+  back. `ui.js` keeps the page hidden until it has run. Other tabs hear about such keys over a `BroadcastChannel`.
+  A tab that sees the copy vanish keeps reading the old value until the new one arrives, so data never reads as empty.
+- Without IndexedDB everything stays in localStorage, as before. `sync.js` waits for the database before its first sync.
+- `test/db.test.js` covers the migration, write-through, older apps, the overflow, other tabs and the fallback.
 
 **2. No polling in the shared UI kit.**
 `ui.js` remembered the position of open `.modal` boxes with a 250 ms `setInterval`, so their exit animation could

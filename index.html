@@ -181,9 +181,10 @@ body.app-on #isx-sync{display:none}
 <main id="apps"><section id="today" class="pane" aria-label="Today"></section></main>
 <nav id="tabs" aria-label="Apps"></nav>
 <!-- the morning check-in is the shell's own data; TODAY re-reads it, so a change from another device redraws instead of reloading -->
+<script src="db.js"></script>
 <script src="sync.js" data-keys="isx.checkin.v1" data-noreload></script>
 <script src="ui.js"></script>
-<script>
+<script type="isx/app">
 'use strict';
 // the apps live next to this one on GitHub Pages (giovanij933.github.io/<repo>/), so they share this site's storage:
 // installing this one app gives all six one storage, one sync setup, and REWIRE can see the others' logs
