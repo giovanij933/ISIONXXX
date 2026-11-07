@@ -753,5 +753,5 @@
   addEventListener('isx-sync', replan);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) replan() });
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.5.0' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.4.0' };
 })();
