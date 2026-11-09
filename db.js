@@ -19,7 +19,8 @@
      few milliseconds it takes to read it back.
    - The apps keep calling localStorage.getItem / setItem / removeItem: this file routes them. Other open tabs and the
      apps inside TODAY hear about changes as before (a 'storage' event, sent over a BroadcastChannel for keys that live
-     in the database alone).
+     in the database alone). A key another page deletes reaches them a second later: that long, the deletion may still
+     turn out to be a move into the database.
    - Without IndexedDB (rare: some private modes) everything stays in localStorage, as before this file existed.
    ISXDB.ready resolves once the database has been read; ISXDB.started once the app's script has run; ISXDB.info()
    reports what is stored. */
@@ -31,6 +32,7 @@
   const readOnly = () => new Set(list(raw.get.call(ls, ONLYK)));
   const ONLY = readOnly();            // keys that live in the database alone
   const MEM = new Map();              // their values, once read
+  const HELD = new Map();             // keys another page deleted, until this page knows whether they moved (below)
   let db = null, hydrated = false, broken = false;
   const idb = (() => { try { return window.indexedDB || null } catch (e) { return null } })();
   let ok, fail; const ready = new Promise(r => { ok = r });
@@ -74,11 +76,12 @@
     if (!mine(this)) return raw.get.call(this, k);
     k = String(k);
     if (ONLY.has(k)) return MEM.has(k) ? MEM.get(k) : null;
+    if (HELD.has(k)) return HELD.get(k).v;
     return raw.get.call(this, k);
   };
   P.setItem = function (k, v) {
     if (!mine(this)) return raw.set.call(this, k, v);
-    k = String(k); v = String(v);
+    k = String(k); v = String(v); unhold(k);
     if (k === ONLYK) return raw.set.call(this, k, v);
     // before the database has been read, a key that lives in it alone can't be written: that would replace data
     // this page hasn't seen yet
@@ -96,26 +99,40 @@
   };
   P.removeItem = function (k) {
     if (!mine(this)) return raw.del.call(this, k);
-    k = String(k);
+    k = String(k); unhold(k);
     raw.del.call(this, k);
     if (ONLY.has(k)) { ONLY.delete(k); MEM.delete(k); saveOnly(); tellOthers(k, null) }
     queue(k, null);
   };
 
+  const unhold = k => { const h = HELD.get(k); if (h) { clearTimeout(h.t); HELD.delete(k) } return h };
   // another page changed a key that lives in the database alone (or moved one there)
   chan && (chan.onmessage = e => {
     const { k, v } = e.data || {}; if (typeof k !== 'string') return;
-    const old = MEM.get(k) ?? null;
-    const now = readOnly(); ONLY.clear(); now.forEach(x => ONLY.add(x));
-    if (v == null) MEM.delete(k); else MEM.set(k, v);
+    const h = unhold(k), old = MEM.get(k) ?? h?.v ?? null;
+    // only added to: this page's copy of the list may be behind, and a key leaves the list only with a message of its own
+    readOnly().forEach(x => ONLY.add(x));
+    // a value is only ever sent for a key that lives in the database alone, even when the list hasn't caught up yet
+    if (v == null) { ONLY.delete(k); MEM.delete(k) } else { ONLY.add(k); MEM.set(k, v) }
     fire(k, old, v);
   });
   // another page moved a key into the database alone: its localStorage copy disappears, which reaches this page as a
-  // deletion, maybe before the message above. Registered before the app's own listener, this makes the key read as
-  // what it was until the new value arrives, so the app never sees its data vanish
+  // deletion. When a page runs in another browser process, the deletion, the new list and the message above reach it
+  // one by one, in any order. Registered before the app's own listener, this keeps the key reading as what it was
+  // until the new value arrives, so the app never sees its data vanish
   addEventListener('storage', e => {
-    if (e.storageArea !== ls || !e.isTrusted || e.key == null || e.newValue != null) return;
-    if (!ONLY.has(e.key) && readOnly().has(e.key)) { ONLY.add(e.key); if (!MEM.has(e.key) && e.oldValue != null) MEM.set(e.key, e.oldValue) }
+    if (e.storageArea !== ls || !e.isTrusted || e.key == null) return;
+    const k = e.key;
+    // the list arrived: a key it lists moved into the database alone
+    if (k === ONLYK) { const now = readOnly(); HELD.forEach((h, x) => { if (now.has(x)) { unhold(x); ONLY.add(x); if (!MEM.has(x)) MEM.set(x, h.v) } }); return }
+    if (e.newValue != null) { unhold(k); return }
+    if (ONLY.has(k)) return;
+    if (readOnly().has(k)) { ONLY.add(k); if (!MEM.has(k) && e.oldValue != null) MEM.set(k, e.oldValue); return }
+    if (e.oldValue == null) return;
+    // not listed (yet): the app hears of the deletion only if neither the list nor the new value arrives in a second,
+    // when it was a real deletion
+    e.stopImmediatePropagation(); unhold(k);
+    HELD.set(k, { v: e.oldValue, t: setTimeout(() => { if (unhold(k)) fire(k, e.oldValue, null) }, 1000) });
   }, true);
 
   /* ---------- open: read the database, compare it with localStorage ---------- */
