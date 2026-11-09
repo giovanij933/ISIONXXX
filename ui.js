@@ -269,8 +269,8 @@
       <div class="ui-hero-top"><div><h2>${esc(title)}</h2>${sub ? `<p class="ui-sub">${esc(sub)}</p>` : ''}</div>
         ${big ? `<p class="ui-hero-big"><b data-count="${esc(key)}:big"${big.tone === 'pos' || big.tone === 'neg' ? ` class="ui-${big.tone}"` : ''}>${esc(big.value)}</b>${big.label ? `<span>${esc(big.label)}</span>` : ''}</p>` : ''}</div>
       ${rings.length ? `<ul class="ui-rings">${rings.map(ring).join('')}</ul>` : ''}
-      ${stats.length ? `<div class="ui-stats">${stats.map(st => { const tag = st.attrs ? 'button' : 'div';
-        return `<${tag} class="ui-stat${st.on ? ' ui-on' : ''}"${st.attrs ? ` type="button" ${attr(st.attrs)}${st.on != null ? ` aria-pressed="${!!st.on}"` : ''}` : ''}><span class="ui-stat-l">${esc(st.label)}</span><b${st.tone === 'pos' || st.tone === 'neg' ? ` class="ui-${st.tone}"` : ''}>${esc(st.value)}</b>${st.sub ? `<small>${esc(st.sub)}</small>` : ''}</${tag}>` }).join('')}</div>` : ''}
+      ${stats.length ? `<div class="ui-stats-c"><div class="ui-stats">${stats.map(st => { const tag = st.attrs ? 'button' : 'div';
+        return `<${tag} class="ui-stat${st.on ? ' ui-on' : ''}"${st.attrs ? ` type="button" ${attr(st.attrs)}${st.on != null ? ` aria-pressed="${!!st.on}"` : ''}` : ''}><span class="ui-stat-l">${esc(st.label)}</span><b${st.tone === 'pos' || st.tone === 'neg' ? ` class="ui-${st.tone}"` : ''}>${esc(st.value)}</b>${st.sub ? `<small>${esc(st.sub)}</small>` : ''}</${tag}>` }).join('')}</div></div>` : ''}
       ${action ? `<div class="ui-actions">${button({ variant: 'primary', ...action })}</div>` : ''}
       ${(() => {
         // today's entries, in a side panel on wide screens (header + count, or a placeholder until there are some)
@@ -754,5 +754,5 @@
   addEventListener('isx-sync', replan);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) replan() });
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.4.1' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.4.2' };
 })();
