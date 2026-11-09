@@ -273,6 +273,10 @@ button.ui-danger{color:var(--ui-red);border-color:rgba(255,69,69,.45)}button.ui-
 
 /* hero stat tiles: figures side by side (e.g. today / week / month); a tile with attrs is a button */
 .ui-stats{display:grid;grid-template-columns:repeat(auto-fit,minmax(0,1fr));gap:8px;margin:16px 0 4px}
+/* four tiles (Today, Week, Month, Year) go two by two when their column is narrow (a phone, or the card's half on a
+   tablet), so no figure is cut off; three stay in a row */
+.ui-stats-c{container-type:inline-size}
+@container (max-width:480px){.ui-stats:has(>:nth-child(4)){grid-template-columns:repeat(2,minmax(0,1fr))}}
 .ui-stat{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:3px;min-width:0;padding:10px clamp(8px,2.4vw,12px);border:1px solid var(--ui-line);background:rgba(255,255,255,.02);font-family:var(--ui-f);color:var(--ui-tx);border-radius:12px}
 .ui-stat .ui-stat-l{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ui-dim)}
 .ui-stat b{font-size:clamp(15px,4.2vw,21px);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ui-stat b.ui-pos{color:var(--ui-green)}.ui-stat b.ui-neg{color:var(--ui-red)}
