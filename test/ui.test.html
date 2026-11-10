@@ -94,6 +94,35 @@ t('undo: the toast\'s button runs the callback once, then hides',()=>{
   let n=0;UI.undo('Deleted',()=>n++);const b=document.querySelector('.ui-undo .ui-undo-b');b.click();b.click();
   return n===1&&!document.querySelector('.ui-undo').classList.contains('ui-on')});
 
+// paint: redraw a page without redoing what didn't change. The page here is a column of cards, each one screen tall,
+// so the first is on screen, the second within half a screen of it, and the rest off screen
+{const R=document.createElement('div');R.id='pt';R.style.cssText='position:absolute;top:0;left:0;width:300px;visibility:hidden;pointer-events:none';document.body.append(R);
+  const H=innerHeight,card=(t,x='')=>`<div class="card" style="height:${H}px">${t}${x}</div>`,page=a=>`<section class="g">${a.slice(0,2).map(t=>card(t)).join('')}</section><section class="g">${a.slice(2,4).map(t=>card(t)).join('')}</section>${card(a[4])}`;
+  const cards=()=>[...R.querySelectorAll('.card')],txt=()=>cards().map(c=>c.textContent).join();
+  t('paint: the first draw leaves what innerHTML would',()=>{const h=page(['a','b','c','d','e']);UI.paint(R,h);const x=document.createElement('div');x.innerHTML=h;return R.innerHTML===x.innerHTML&&cards().length===5});
+  t('paint: the same HTML again touches nothing',()=>{const was=cards();UI.paint(R,page(['a','b','c','d','e']));return cards().every((c,i)=>c===was[i])});
+  t('paint: a card that changed on screen is replaced at once; the ones that did not change keep their elements',()=>{const was=cards();UI.paint(R,page(['A','b','c','d','e']));const now=cards();
+    return txt()==='A,b,c,d,e'&&now[0]!==was[0]&&now.slice(1).every((c,i)=>c===was[i+1])});
+  t('paint: a card that changed off screen is replaced later, and flush() does it now',()=>{const was=cards();UI.paint(R,page(['A','B','c','D','E']));const mid=txt();UI.paint.flush();const now=cards();
+    return mid==='A,B,c,d,e'&&txt()==='A,B,c,D,E'&&now[2]===was[2]&&now[3]!==was[3]});
+  t('paint: a second redraw before the first has finished ends on the newest HTML',()=>{UI.paint(R,page(['A','B','c','x','y']));UI.paint(R,page(['A','B','c','D2','E']));const mid=txt();UI.paint.flush();return mid==='A,B,c,D,E'&&txt()==='A,B,c,D2,E'});
+  t('paint: going back to what is on the page drops the pending change',()=>{const was=cards();UI.paint(R,page(['A','B','c','zzz','E']));UI.paint(R,page(['A','B','c','D2','E']));UI.paint.flush();return txt()==='A,B,c,D2,E'&&cards()[3]===was[3]});
+  t('paint: { now: true } replaces what changed off screen at once',()=>{UI.paint(R,page(['A','B','c','D3','E3']),{now:true});return txt()==='A,B,c,D3,E3'});
+  t('paint: different rows replace the whole page',()=>{const h=`<section class="g">${card('p')}</section>${card('q')}`;UI.paint(R,h);return txt()==='p,q'&&R.children.length===2});
+  t('paint: if something else changed the page, it is replaced whole (never left half old)',()=>{R.querySelector('.card').remove();UI.paint(R,`<section class="g">${card('p')}</section>${card('q2')}`);return txt()==='p,q2'});
+  t('paint: text straight inside the page is not a card: the whole page is replaced each time',()=>{UI.paint(R,'loose <b>text</b>');UI.paint(R,'loose <b>text 2</b>');return R.innerHTML==='loose <b>text 2</b>'});
+  const chart=n=>`<svg class="chart" viewBox="0 0 10 10"><rect x="0" y="0" width="${n}" height="5"></rect><polyline points="0,0 ${n},5"></polyline></svg>`;
+  t('paint + animate: a chart replaced on screen draws in; one replaced off screen is simply there',()=>{
+    const pg=n=>`<section class="g">${card('a',chart(n))}${card('b')}</section><section class="g">${card('c')}${card('d',chart(n))}</section>`;
+    UI.paint(R,pg(1));UI.animate(R);UI.paint.flush();R.querySelectorAll('.ui-draw').forEach(c=>c.classList.remove('ui-draw'));
+    UI.paint(R,pg(2));UI.animate(R);UI.paint.flush();const [on,off]=R.querySelectorAll('svg.chart');
+    return on.classList.contains('ui-draw')&&on.querySelector('rect').classList.contains('ui-grow')&&!off.classList.contains('ui-draw')&&off.querySelector('rect').getAttribute('width')==='2'});
+  t('paint + animate: a chart that did not change does not draw in again',()=>{R.querySelectorAll('.ui-draw').forEach(c=>c.classList.remove('ui-draw'));
+    const pg=x=>`<section class="g">${card('a'+x,chart(2))}${card('b')}</section><section class="g">${card('c')}${card('d',chart(2))}</section>`;UI.paint(R,pg('!'));UI.animate(R);
+    return R.querySelector('.card').textContent==='a!'&&!R.querySelector('.ui-draw')});
+  R.remove()}
+t('hero: the same data gives the same HTML (no running ids), so paint can tell that nothing changed',()=>{const o={key:'k',title:'Today',stats:[{label:'A',value:'1'}],log:[{at:Date.now(),label:'x'}]};return UI.hero(o)===UI.hero(o)});
+
 document.getElementById('sum').textContent=`${pass} passed, ${fail} failed`;document.getElementById('sum').className=fail?'no':'ok';
 window.UI_TEST={pass,fail};
 </script>

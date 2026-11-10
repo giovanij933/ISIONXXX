@@ -303,11 +303,18 @@ button.ui-stat:focus-visible{outline:1px solid var(--ui-amber);outline-offset:2p
 html body,html body::after{--gx:inherit;--gy:inherit}
 html{transition:--gx 1.2s var(--g-spring),--gy 1.2s var(--g-spring)}
 @media (prefers-reduced-motion:reduce){html{transition:none}}
-html body{background:radial-gradient(1100px 620px at var(--gx) var(--gy),rgba(255,176,0,.075),transparent 62%),radial-gradient(900px 560px at 108% 4%,rgba(255,122,51,.05),transparent 60%),var(--bg,#070707) fixed}
+/* The glow is one screen tall, at the top of the page. Left to size itself it stretches over the whole document, so it
+   was a different picture whenever the page got longer or shorter, and a card changing height (the calendar going
+   from five weeks to six) made the browser redraw every pixel of the page: 150-380 ms a tap, more than the app's
+   own work. It also slid down the page as a year of data made it longer; now it sits where an empty app shows it */
+html body{background:radial-gradient(1100px 620px at var(--gx) var(--gy),rgba(255,176,0,.075),transparent 62%) 0 0/100% max(100vh,700px) no-repeat,
+  radial-gradient(900px 560px at 108% 4%,rgba(255,122,51,.05),transparent 60%) 0 0/100% max(100vh,700px) no-repeat,var(--bg,#070707)}
 /* and a soft light over the whole page, cards included, that sits on the pointer while a mouse is moving */
 html body::after{content:'';position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;mix-blend-mode:screen;
   background:radial-gradient(520px circle at var(--gx) var(--gy),rgba(255,176,0,.075),rgba(255,176,0,.025) 45%,transparent 70%);transition:opacity .6s}
 html.g-ptr body::after{opacity:1}
+/* only a mouse shows it (ui.js), so a touch screen doesn't carry a screen-sized blended layer it never sees */
+@media not (pointer:fine){html body::after{display:none}}
 @media (prefers-reduced-transparency:reduce){html body::after{display:none}}
 /* cards */
 html body :is(.card,.ui-card){border-radius:var(--g-r);background:var(--g-card);border-color:var(--g-line);box-shadow:var(--g-hi),var(--g-drop);

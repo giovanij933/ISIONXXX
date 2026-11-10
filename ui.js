@@ -274,7 +274,7 @@
       ${action ? `<div class="ui-actions">${button({ variant: 'primary', ...action })}</div>` : ''}
       ${(() => {
         // today's entries, in a side panel on wide screens (header + count, or a placeholder until there are some)
-        const n = log.filter(x => x && isFinite(x.at)).length, rows = tlRows(log), when = esc(String(title).toLowerCase()), hid = uid('hl');
+        const n = log.filter(x => x && isFinite(x.at)).length, rows = tlRows(log), when = esc(String(title).toLowerCase()), hid = 'ui-hl-' + String(key).replace(/[^\w-]/g, '_');   // from the key, not a running count: the same data gives the same HTML, so UI.paint can tell nothing changed
         return `<div class="ui-hero-side${n ? '' : ' ui-empty'}"><div class="ui-hero-side-h"><span id="${hid}">Logged ${when}</span>${n ? `<span>${n} ${n === 1 ? 'entry' : 'entries'}</span>` : ''}</div>
           ${n ? `<ol class="ui-tl ui-hero-log" aria-labelledby="${hid}">${rows}</ol>` : `<p class="ui-hero-none">Nothing logged yet ${when}. It shows up here as you go.</p>`}</div>`;
       })()}</section>`;
@@ -324,16 +324,26 @@
     // the class comes off once the last bar has grown. Shapes you can't see (the apps' transparent tap areas) don't fade
     // Reads first, then writes: reading a style or a size right after a change forces the browser to recompute the page,
     // and doing that per chart and per shape cost 100-240 ms (CPU 4x slower) of every app's first draw.
-    const draw = [];
-    root.querySelectorAll('svg.chart').forEach((c, i) => {
-      const sig = c.innerHTML.length + ':' + c.innerHTML.slice(0, 160), k = (root.id || 'r') + i;
-      if (MEM.chart.get(k) === sig) return; MEM.chart.set(k, sig); if (calm) return;
+    const draw = [], vh = innerHeight, seen = el => { const r = el.getBoundingClientRect(); return r.bottom > 0 && r.top < vh };
+    const chart = (c, k, show) => {
+      const h = c.innerHTML, sig = h.length + ':' + h.slice(0, 160);
+      if (MEM.chart.get(k) === sig) return; MEM.chart.set(k, sig); if (calm || !show) return;
       const lines = [...c.querySelectorAll('polyline, path')].filter(l => l.tagName.toLowerCase() === 'polyline' || l.getAttribute('fill') === 'none');
       // the apps' transparent tap areas (.hit) have nothing to fade; checked by class, since reading each shape's
       // computed fill cost up to 120 ms on charts with hundreds of them
       const shapes = [...c.querySelectorAll('polygon, path')].filter(l => !lines.includes(l) && !l.classList.contains('hit') && !/^(none|transparent)$/.test(l.getAttribute('fill') || ''));
       draw.push({ c, lines, shapes, bars: c.querySelectorAll('rect') });
+    };
+    const st = PAINT.get(root);
+    // a page drawn by UI.paint: only the cards it has just replaced can have changed, and only the ones on screen draw
+    // in. A chart drawing in is repainted every frame, and most of a page's charts are below the screen
+    if (st) st.slots.forEach((s, i) => {
+      const f = s.fresh; if (!f) return; s.fresh = 0;
+      const cs = chartsIn(s.el); if (!cs.length) return;
+      const show = f === 1 || (f === 2 && seen(s.el));
+      cs.forEach((c, j) => chart(c, chartKey(root, i, j), show));
     });
+    else root.querySelectorAll('svg.chart').forEach((c, i) => chart(c, (root.id || 'r') + i, true));
     const again = draw.filter(d => d.c.classList.contains('ui-draw'));
     again.forEach(d => d.c.classList.remove('ui-draw')); if (again.length) void root.offsetWidth;   // restart a chart already drawing in
     draw.forEach(({ c, lines, shapes, bars }) => {
@@ -341,10 +351,111 @@
       bars.forEach((r, j) => { r.classList.add('ui-grow'); r.style.animationDelay = Math.min(j * 18, 400) + 'ms' });
       c.classList.add('ui-draw'); clearTimeout(c.__drawn); c.__drawn = setTimeout(() => c.classList.remove('ui-draw'), 1500);
     });
-    root.querySelectorAll('[data-count]').forEach(n => { const k = n.dataset.count, now = n.textContent, was = MEM.count.get(k); MEM.count.set(k, now); if (!calm && was !== now) countUp(n, was ?? null, now) });
+    // a number counts up only where you can see it
+    root.querySelectorAll('[data-count]').forEach(n => { const k = n.dataset.count, now = n.textContent, was = MEM.count.get(k); MEM.count.set(k, now); if (!calm && was !== now && seen(n)) countUp(n, was ?? null, now) });
     if (fresh.length && onDone) onDone(fresh);
     return fresh;
   }
+
+  /* ---------- paint: redraw a page without redoing what didn't change ----------
+     UI.paint(root, html) leaves root as root.innerHTML = html would, but does less to get there. An app draws its whole
+     page from its data on every tap; most of that page is off screen, and much of it comes out the same.
+     - A card whose HTML is what it was last time is left alone.
+     - A card that changed and is on screen, or within half a screen below it, is replaced at once.
+     - A card that changed farther away is replaced between the next frames, nearest first, so the tap is answered as
+       soon as what you're looking at is ready. Scrolling towards one replaces it at once, and one above the screen
+       that comes out a different height doesn't move what you're looking at.
+     A card is a child of root, or a child of one of root's rows (section, .g, .grid). When the rows themselves differ
+     from last time, or something else has changed root's children, the whole page is replaced, as innerHTML would.
+     { now: true } replaces everything that changed at once: for a small area, or one with rings (UI.animate fills
+     them and reports the ones that turned done). UI.paint.flush() finishes what is pending; so do printing and Tab.
+     UI.animate(root), called afterwards as before, moves only what was just replaced on screen.               */
+  const PAINT = new WeakMap(), LATER = new Set();   // root → its cards; the roots with cards still to replace
+  const ROW = 'section,.g,.grid';
+  const looseText = n => { for (const k of n.childNodes) if (k.nodeType === 3 && k.data.trim()) return true; return false };
+  function cardsOf(parent) {
+    if (looseText(parent)) return null;
+    const list = [], shape = [];
+    for (const n of parent.children) {
+      if (n.matches(ROW) && n.childElementCount && !looseText(n)) { shape.push(n.cloneNode(false).outerHTML + n.childElementCount); list.push(...n.children) }
+      else { shape.push('1'); list.push(n) }
+    }
+    return { list, shape: shape.join('|') };
+  }
+  const chartsIn = el => el.matches('svg.chart') ? [el] : el.querySelectorAll('svg.chart');
+  const chartKey = (root, i, j) => (root.id || 'r') + '/' + i + '/' + j;
+  function paint(root, html, { now = false } = {}) {
+    let st = PAINT.get(root);
+    const sound = !!st && st.n === root.childElementCount && st.slots.every(s => root.contains(s.el));
+    if (sound && st.html === html) return;
+    const t = document.createElement('template'); t.innerHTML = html;
+    const nu = cardsOf(t.content);
+    if (!sound || !nu || nu.shape !== st.shape || nu.list.length !== st.slots.length) {
+      root.replaceChildren(t.content); LATER.delete(root);
+      if (nu) PAINT.set(root, { html, shape: nu.shape, n: root.childElementCount, slots: nu.list.map(el => ({ el, src: el.outerHTML, next: null, fresh: 2 })) });
+      else PAINT.delete(root);
+      return;
+    }
+    // not drawn at all (the tab is in the background, or the app's frame inside TODAY is hidden): nothing to be quick
+    // for and no frames to wait between, so everything is replaced now and nothing moves
+    const hid = document.hidden || !root.getClientRects().length, vh = innerHeight, M = vh / 2, todo = [];
+    // reads first (where each changed card is), then the writes
+    nu.list.forEach((el, i) => {
+      const s = st.slots[i], src = el.outerHTML;
+      if (src === s.src) { s.next = null; return }
+      todo.push([s, el, src, hid || now ? null : s.el.getBoundingClientRect()]);
+    });
+    for (const [s, el, src, r] of todo) {
+      if (!r) put(s, el, src, hid ? 3 : 2);
+      // on screen, or within half a screen below it. A card wholly above the screen waits like the far ones: it can't
+      // be seen, and put in later it is put in with the page held still (putLater)
+      else if (r.bottom > 0 && r.top < vh + M && (r.width || r.height)) put(s, el, src, r.top < vh ? 1 : 3);
+      else s.next = { el, src };
+    }
+    st.html = html;
+    if (st.slots.some(s => s.next)) { LATER.add(root); paintSoon() }
+  }
+  // fresh: 1 = replaced on screen (UI.animate draws its charts in), 2 = replaced, whether on screen not yet known
+  // (UI.animate looks), 3 = replaced off screen (nothing moves), 0 = seen to
+  function put(s, el, src, fresh) { s.el.replaceWith(el); s.el = el; s.src = src; s.next = null; s.fresh = fresh }
+  // a card replaced later, off screen: it is simply there. What UI.animate remembers is brought up to date, so the
+  // next change to it animates from here
+  function putLater(root, st, s, r) {
+    const { el, src } = s.next, i = st.slots.indexOf(s);
+    // above the screen: if it comes out a different height, everything you're looking at would move with it. Chrome
+    // holds the page still by itself (scroll anchoring, applied as soon as the layout is read); Safari doesn't
+    const above = r && r.bottom <= 0 && (r.width || r.height) && scrollY > 0, h0 = above ? root.getBoundingClientRect().bottom : 0;
+    put(s, el, src, 0);
+    if (above) { const d = root.getBoundingClientRect().bottom - h0; if (Math.abs(d) >= .5) scrollBy({ top: d, behavior: 'instant' }) }
+    chartsIn(el).forEach((c, j) => { const h = c.innerHTML; MEM.chart.set(chartKey(root, i, j), h.length + ':' + h.slice(0, 160)) });
+    el.querySelectorAll('[data-count]').forEach(n => MEM.count.set(n.dataset.count, n.textContent));
+    el.querySelectorAll('[data-ring]').forEach(li => { const rf = li.querySelector('.ui-rf'); if (!rf) return; rf.setAttribute('stroke-dasharray', `${rf.dataset.to} 100`); MEM.ring.set(li.dataset.ring, rf.dataset.to); MEM.done.set(li.dataset.ring, li.dataset.done === '1') });
+  }
+  // the cards still to replace, nearest to the screen first. all: every one of them; near: only those within half a
+  // screen (you are scrolling towards them); otherwise about one large card's worth, then the next frame gets its turn
+  function paintMore(mode) {
+    const vh = innerHeight, M = vh / 2;
+    for (const root of [...LATER]) {
+      const st = PAINT.get(root), pend = st && root.isConnected ? st.slots.filter(s => s.next) : [];
+      if (!pend.length) { LATER.delete(root); continue }
+      const at = pend.map(s => { const r = s.el.getBoundingClientRect(); return { s, r, d: r.bottom < 0 ? -r.bottom : Math.max(0, r.top - vh) } }).sort((a, b) => a.d - b.d);
+      let n = 0;
+      for (const { s, r, d } of at) {
+        if (mode === 'near' && d > M) break;
+        n += s.next.src.length; putLater(root, st, s, r);
+        if (!mode && n > 9000) break;
+      }
+      if (!st.slots.some(s => s.next)) LATER.delete(root); else if (!mode) break;
+    }
+    if (LATER.size) paintSoon();
+  }
+  let paintT = 0;
+  // after the next frame has been drawn: a task queued from inside the frame runs once that frame is on screen
+  const paintSoon = () => { if (!paintT) paintT = requestAnimationFrame(() => setTimeout(() => { paintT = 0; paintMore() }, 0)) };
+  paint.flush = () => { if (LATER.size) paintMore('all') };
+  addEventListener('scroll', () => { if (LATER.size) paintMore('near') }, { capture: true, passive: true });
+  addEventListener('beforeprint', paint.flush);
+  document.addEventListener('keydown', e => { if (e.key === 'Tab') paint.flush() }, true);
 
   /* ---------- fluid: installed once when ui.js loads, for every page that uses it ----------
      - Dialogs and the apps' .modal boxes animate out when they close instead of vanishing. The real element closes
@@ -754,5 +865,5 @@
   addEventListener('isx-sync', replan);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) replan() });
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.4.2' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.5.0' };
 })();
