@@ -119,6 +119,33 @@ async function main() {
       await c.close();
     }
     {
+      // 6b. the same move, reaching a tab whose copy of the list is behind: another browser process gets the deletion,
+      // the list and the new value one by one, in any order. __behind() freezes this page's view of isx.db.only until
+      // the list's own 'storage' event arrives (a capture listener registered before db.js's)
+      const c = await fresh(`{ const g = Storage.prototype.getItem; let frozen;
+        window.__behind = () => { frozen = { v: g.call(localStorage, 'isx.db.only') } };
+        addEventListener('storage', e => { if (e.key === 'isx.db.only') frozen = undefined }, true);
+        Storage.prototype.getItem = function (k) { return frozen && this === localStorage && k === 'isx.db.only' ? frozen.v : g.call(this, k) } }`);
+      const a = await open(c, 'TRAINING'); await a.evaluate(sample.TRAINING); await settle(a);
+      const b = await open(c, 'TRAINING'), n0 = await b.evaluate(() => S.log.length);
+      await b.evaluate(() => { window.__min = Infinity; addEventListener('storage', () => { __min = Math.min(__min, S.log.length) }); __behind() });
+      await fill(a, 0);
+      await a.evaluate(() => { S.log.push({ id: 'moved', at: Date.now() - 6e4, ex: 'Plank', type: 'S', sets: 2, reps: 45, load: 0, dist: 0, mins: 0, rpe: null, note: '' }); save() });
+      await settle(a); await b.waitForFunction(() => S.log.some(e => e.id === 'moved'), null, { timeout: 5000 });
+      assert.ok(await b.evaluate(() => __min) >= n0, 'the other tab never saw its data vanish, though its list was behind');
+      assert.equal(await b.evaluate(() => JSON.parse(localStorage.getItem('isx.training.v1')).log.length), n0 + 1);
+      pass('a key moving into the database never reads as empty in a tab whose list is behind');
+      // a real deletion still reaches the other tab
+      await a.evaluate(() => __raw.set.call(localStorage, 'zz.fill', 'x'));   // room again
+      await a.evaluate(() => localStorage.setItem('isx.t', '1'));
+      await b.waitForFunction(() => localStorage.getItem('isx.t') === '1', null, { timeout: 5000 });
+      await b.evaluate(() => { window.__gone = 0; addEventListener('storage', e => { if (e.key === 'isx.t' && e.newValue == null && localStorage.getItem('isx.t') == null) __gone++ }) });
+      await a.evaluate(() => localStorage.removeItem('isx.t'));
+      await b.waitForFunction(() => __gone === 1, null, { timeout: 5000 });
+      pass('a real deletion still reaches the other tab');
+      await c.close();
+    }
+    {
       // 7. no IndexedDB: everything works on localStorage, as before db.js
       const c = await fresh(`Object.defineProperty(window, 'indexedDB', { value: undefined })`);
       const p = await open(c, 'MEDITATE'); await p.evaluate(sample.MEDITATE); await settle(p);

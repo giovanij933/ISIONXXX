@@ -85,6 +85,18 @@ const settle=async(p,ms)=>{await p.waitForLoadState('load').catch(()=>{});await 
           return r.width>0&&r.height>0&&cs.visibility==='visible'&&!e.closest('svg')&&!(e.tagName==='A'&&cs.display==='inline')&&Math.min(r.width,r.height)<30})
           .map(e=>{const r=e.getBoundingClientRect();return `${(e.getAttribute('aria-label')||e.textContent||e.tagName).trim().replace(/\s+/g,' ').slice(0,28)} ${Math.round(r.width)}×${Math.round(r.height)}`}));
         if(small.length)I('medium','touch',`@${w}: ${small.length} control${small.length>1?'s':''} under 30 px on a touch screen, e.g. ${[...new Set(small)].slice(0,4).join('; ')}`)}
+      // a tap must not redo the whole page. Counted in elements and pixels, not milliseconds, so any machine agrees:
+      // - drawing the page again with nothing changed keeps every card's element (UI.paint; a running id or a time
+      //   in the HTML would make each one look changed, and be replaced, every time)
+      // - the page's background picture must not be sized to the whole document: then a card that changes height
+      //   changes the picture, and the browser draws every pixel of the page again
+      if(w<700&&cfg.sample){const same=await p.evaluate(()=>{if(typeof render!=='function'||!window.UI?.paint)return null;UI.paint.flush();
+          const a=[...document.querySelectorAll('#app .card,#top>*>*')];render();return {n:a.length,gone:a.filter(e=>!e.isConnected).length}});
+        if(!same)I('medium','perf','the page is not drawn with UI.paint: every tap replaces all of it');
+        else if(same.gone)I('medium','perf',`drawing the page again with nothing changed replaced ${same.gone} of its ${same.n} cards (the same data must give the same HTML)`)}
+      if(w<700){const bg=await p.evaluate(()=>{const split=v=>{const o=[];let d=0,c='';for(const ch of v){if(ch==='(')d++;if(ch===')')d--;if(ch===','&&!d){o.push(c.trim());c=''}else c+=ch}o.push(c.trim());return o};
+          const cs=getComputedStyle(document.body),im=split(cs.backgroundImage),sz=split(cs.backgroundSize);return im.filter((x,i)=>/gradient|url/.test(x)&&/auto/.test(sz[i%sz.length])).length});
+        if(bg)I('medium','perf',`@${w}: ${bg} of the page's background pictures stretch over the whole document, so a card changing height redraws every pixel`)}
       // with a mouse: moving it must not restyle the whole page each frame (what a root-level value every element
       // inherits did: the background glow's --gx/--gy, or a ::selection rule that also matched <html>)
       if(w>=1440){await p.mouse.move(5,5);await p.waitForTimeout(400);await b.startTracing(p,{categories:['devtools.timeline']});

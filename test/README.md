@@ -18,7 +18,11 @@ For each app, in Chromium at 390 px and 1440 px:
    for 44 px, Apple's guideline.
 6. **Opening doesn't jump** (390 px, sample data, CPU 4x slower). Nothing may move after the first frame: a layout
    shift over 0.05 is reported (medium). `ui.css` keeps each page hidden until its app has drawn itself.
-7. **Mouse moves stay cheap** (1440 px). Moving the mouse must not restyle the whole page every frame. A value
+7. **A tap doesn't redo the whole page** (390 px, sample data). Drawing the page again with nothing changed must
+   keep every card's element (`UI.paint` leaves alone what didn't change; a running id or a time in the HTML would
+   make every card look changed). And the page's background must not be sized to the whole document, or a card
+   changing height makes the browser draw every pixel again. Counted in cards and pictures, not milliseconds.
+8. **Mouse moves stay cheap** (1440 px). Moving the mouse must not restyle the whole page every frame. A value
    that every element inherits from the root does that: the background glow's `--gx`/`--gy` once did, and so did a
    `::selection` rule that also matched `<html>`. The check counts the elements restyled, not milliseconds, so it
    gives the same answer on any machine.

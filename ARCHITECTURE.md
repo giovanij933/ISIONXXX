@@ -26,7 +26,7 @@ giovanij933.github.io
 | Layer | File | Owns |
 |---|---|---|
 | App | `index.html` (one per repo) | its data model, `render()`, its own dialogs |
-| UI kit | `ui.js` + `ui.css` | stateless components, `UI.animate`, dialog motion, swipe to dismiss |
+| UI kit | `ui.js` + `ui.css` | stateless components, `UI.paint`, `UI.animate`, dialog motion, swipe to dismiss |
 | Database | `db.js` | where data lives: IndexedDB, with a localStorage copy while it fits; routes `localStorage.getItem/setItem/removeItem`; starts the app's script once its data can be read |
 | Data | `sync.js` | the `localStorage` write path (`Storage.prototype.setItem`), the storage budget, gist sync |
 | Offline | `sw.js` | precache + revalidate, one cache name per app (`isx-<app>-vN`) |
@@ -140,6 +140,45 @@ The 74 that remain are three cheap polls:
 Together they cost about 1 ms of CPU a second, and browsers throttle them in the background. Making them
 event-driven would need a new frame → shell message covering every kind of dialog. They are left as they are on
 purpose.
+
+**2b. A tap redoes only what changed, and only what you can see.**
+Each app draws its whole page from its data on every tap (one function, one HTML string). With a year of data that
+page is 1,100–1,750 elements and 6,000–7,000 px tall, and a tap took 190–390 ms to show on a phone-sized screen with
+the CPU 4x slower. Three things cost that time, and none of them was the app's idea of what to draw:
+
+- **The page background.** The glow behind the cards was a gradient sized to the whole document, so it was a
+  different picture whenever the page changed length. A card that changed height made the browser draw every pixel
+  of the page again: 150–380 ms, even with no CPU throttling. It is now one screen tall, at the top of the page.
+- **Replacing everything.** `root.innerHTML = html` rebuilt, restyled and laid out every card, most of them off
+  screen and many of them unchanged. The apps now call `UI.paint(root, html)`, which leaves the same result but
+  keeps a card whose HTML is what it was, replaces a changed card at once if it is on screen or within half a screen,
+  and replaces the rest between the next frames, nearest first. Scrolling towards one replaces it at once. A card
+  above the screen that comes out a different height doesn't move the page (Chrome holds it by itself; for Safari
+  `ui.js` corrects the scroll position). Only charts replaced on screen draw in, and numbers count up only on screen.
+- **Slow sums.** Date formatters built on every call (LEARN's year chart asked for ~350 a redraw), dates read twice
+  per comparison while sorting a year of meals, and "is this entry in this week" worked out from scratch for every
+  entry on every pass. Each is now done once.
+
+`UI.paint` needs the same data to give the same HTML: `UI.hero` took a running number for an id, which made the
+Today card look changed on every draw. It now takes it from the hero's key.
+
+Measured at 390 px with a year of sample data and the CPU 4x slower, from the finger lifting to the next frame,
+over the taps that redraw the page (range tiles, cross-filters, calendar, paging):
+
+| | Average before | Average after | Slowest before | Slowest after |
+|---|---|---|---|---|
+| JOURNAL | 192 ms | 119 ms | 328 ms | 152 ms |
+| MIND | 274 ms | 108 ms | 416 ms | 168 ms |
+| TRAINING | 228 ms | 121 ms | 336 ms | 152 ms |
+| NUTRITION | 202 ms | 94 ms | 344 ms | 112 ms |
+| REWIRE | 390 ms | 146 ms | 544 ms | 216 ms |
+| LEARN | 265 ms | 94 ms | 376 ms | 112 ms |
+
+Opening a dialog is unchanged (80–160 ms): `showModal()` makes the browser restyle every element of the page to
+mark it inert, which the apps can't avoid without giving up real dialogs.
+
+The pages themselves are the same: for 42–50 states of each app, at 390 and 1440 px, the HTML left by the old and
+the new code is identical. The release check guards both halves (README, check 7).
 
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL
