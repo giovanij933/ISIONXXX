@@ -403,8 +403,48 @@ html.g-boot body :is(.g,.grid,section)>:is(.card,.ui-card,.ui-hero):nth-child(4)
   /* arrows: previous/next month, page and day */
   html body :is(.calf,.rvh) :is(button,.btn){min-width:44px}
   html body :is(td .acts button,td.r button){min-height:36px;min-width:36px}
-  html body :is(.lg,.lr,.ev,.hb,.er).pick{min-height:36px}
+  /* in a card with rows to tap, every row is the same height, tappable or not: a list where only the tappable rows
+     were tall read as uneven spacing (36, 36, 23, 23...). The four cards under the filters match each other too.
+     A list with nothing to tap in it keeps its closer rows */
+  html body .card:has(:is(.lg,.lr,.ev,.er).pick) :is(.lg,.lr,.ev,.er),html body .g4 :is(.lg,.lr){min-height:36px}
+  /* a bar that filters when tapped stays as slim as the others; the finger's target reaches up over its own label */
+  html body .hb.pick{position:relative;overflow:visible}
+  html body .hb.pick::after{content:'';position:absolute;inset:-18px 0 -8px}
 }
+/* ---------- tidier pages ----------
+   Bars: one slim weight everywhere (they were 8 px in LEARN, 20 px in the other apps and 36 px where tappable on a
+   phone, which read as slabs, not as a chart). */
+html body .hb{height:10px}
+/* Lists of figures: when no row of a card has a percentage, the column kept for it goes, so the values sit against the
+   card's edge like every other card's (they stopped 46 px short of it) */
+html body .card:not(:has(:is(.lg,.lr)>em:not(:empty))) :is(.lg,.lr){grid-template-columns:14px minmax(0,1fr) auto}
+html body .card:not(:has(:is(.lg,.lr)>em:not(:empty))) :is(.lg,.lr)>em{display:none}
+/* Phones: the four cards under the filters put their dial beside the figure instead of under it. Stacked, each card
+   was a screen-third of mostly empty space around a small dial, and the four took a screen and a half */
+@media (max-width:640px){
+  html body .g4>.card:has(>.gauge),html body .g4>.card>.bd:has(>.gauge){display:grid;grid-template-columns:minmax(0,1fr) 116px;column-gap:12px;align-content:start}
+  html body .g4 :is(.card,.bd):has(>.gauge)>*{grid-column:1/-1}
+  html body .g4 :is(.card,.bd):has(>.gauge)>:is(.k,.lbl,.big){grid-column:1}
+  html body .g4 :is(.card,.bd):has(>.gauge)>.big{font-size:26px;margin-bottom:12px;align-self:start}
+  html body .g4 :is(.card,.bd):has(>.gauge)>.gauge{grid-column:2;grid-row:2/span 2;width:116px;margin:0 0 10px;align-self:center}
+  /* tables: rows with their own buttons sit a little closer (the buttons keep their size, and set the row's height;
+     a row that is itself the thing to tap keeps its padding, or it would be under 30 px) */
+  html body .tw tr:has(button) td{padding-top:5px;padding-bottom:5px}
+}
+/* A table wider than its card (every log, on a phone) fades out at the right edge while there is more to scroll to,
+   instead of stopping mid-word with nothing to say it goes on. The fade is a strip pinned to the edge of the scrolling
+   box; how far the box is scrolled drives its opacity (a scroll-driven animation, run by the compositor). Without
+   that feature, or when the table fits, the strip stays invisible */
+/* (the page's own tables only: a dialog's background is a different colour, and the strip is the card's) */
+html body :is(#app,#top) .tw:has(>table:only-child){display:grid;grid-template-columns:minmax(100%,max-content)}
+html body :is(#app,#top) .tw:has(>table:only-child)>table{grid-area:1/1}
+html body :is(#app,#top) .tw:has(>table:only-child)::after{content:'';grid-area:1/1;justify-self:end;position:sticky;right:0;width:44px;z-index:1;pointer-events:none;opacity:0;
+  background:linear-gradient(90deg,rgba(13,13,13,0),#0d0d0d 85%)}
+@supports (animation-timeline:scroll()){
+  html body :is(#app,#top) .tw:has(>table:only-child)::after{animation:ui-tw-more linear both;animation-timeline:scroll(nearest inline)}
+  @keyframes ui-tw-more{0%,88%{opacity:1}100%{opacity:0}}
+}
+
 /* phones: labels, tags, badges, section heads and chart axis labels at 11 px, Apple's minimum for legible text (they
    were 10 px). The calendar's per-day figures and TODAY's tab bar stay smaller: they have to fit seven to a row */
 @media (max-width:640px){

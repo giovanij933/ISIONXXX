@@ -255,8 +255,10 @@
      Rings fill toward each goal (done = full + tick). key makes UI.animate fill them from where they were and notice a
      ring that just completed. Rings are read as "Calories: 1,420 of 2,000".                                    */
   // timeline rows, shared by hero's log and timeline()
+  // "a · b · c" wraps between its parts: a line may end with a dot but never starts with one
+  const dots = t => String(t).split(' · ').map(p => p.length <= 14 ? p.replace(/ /g, '\u00A0') : p).join('\u00A0· ');   // and a short part ("15 min") stays in one piece
   const tlRows = items => items.filter(x => x && isFinite(x.at)).sort((a, b) => a.at - b.at)
-    .map(x => `<li${x.tone ? ` class="ui-${esc(x.tone)}"` : ''}><time>${TFMT.format(x.at)}</time><i aria-hidden="true"></i><span>${x.tag ? `<b>${esc(x.tag)}</b> ` : ''}${esc(x.text)}</span></li>`).join('');
+    .map(x => `<li${x.tone ? ` class="ui-${esc(x.tone)}"` : ''}><time>${TFMT.format(x.at)}</time><i aria-hidden="true"></i><span>${x.tag ? `<b>${esc(x.tag)}</b> ` : ''}${dots(esc(x.text))}</span></li>`).join('');
   function hero({ key = 'hero', title, sub, big, rings = [], stats = [], action, log = [] } = {}) {
     const ring = r => {
       const v = num(r.value), m = num(r.max), f = r.done ? 1 : v != null && m > 0 ? Math.max(0, Math.min(1, v / m)) : 0, done = r.done ?? (v != null && m > 0 && v >= m);
@@ -865,5 +867,5 @@
   addEventListener('isx-sync', replan);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) replan() });
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.5.0' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.5.1' };
 })();
