@@ -2,6 +2,7 @@
 
 A responsive, static homepage for the seven apps. The page includes an app map,
 Body / Mind / Growth filters, and a daily intention saved locally in the browser.
+Its header opens the affirmation (`affirmation/`): one statement for each app.
 It uses plain HTML, CSS, and JavaScript. The homepage shares `../ui.css`, the
 shell's icon, and the apps' IBM Plex Mono typography, dark glass panels, amber
 controls, and app accent colors. The optional Google Fonts stylesheet falls back
@@ -26,7 +27,7 @@ This matches the existing GitHub Pages layout. The site uses the repository's
 - All seven links work without JavaScript; JavaScript enables filtering and notes.
 - The installed app opens here. Launched from the home screen, the shell (`../`)
   sends its first page of the launch to this one, unless the address names a tab
-  (`#today`), so "Open my day" doesn't bounce back. A browser tab on `../` still
+  (`#today`), so "Start with today" doesn't bounce back. A browser tab on `../` still
   opens the shell. The shell's service worker keeps this page, so it opens with no
   signal too. The page also links the app's manifest and icons, so installing
   from here installs the same app.
@@ -34,6 +35,14 @@ This matches the existing GitHub Pages layout. The site uses the repository's
   mark (the app icon's monogram, from `../ui.css`) then the app's name: "// MIND"
   on wider screens, "MIND" on phones. `../ui.js` adds the link, so all seven apps get it. Inside the
   TODAY shell it opens this page in the whole window, not inside the app's frame.
+- The affirmation (`affirmation/index.html`) is the header's "My affirmation".
+  It has seven statements, one for each app and what that app is for, in the
+  apps' order. Each statement opens its app; "Start with today" opens the day;
+  the mark, "Home" and "Back to my apps" lead back here. To change the wording,
+  edit the `<p>` inside each `.aff-line`. The page shares `style.css` and holds a
+  copy of the seven icons. It loads `../../ui.js` because `../../ui.css` keeps a
+  page hidden until that script has started. The shell's service worker keeps
+  the page too, so it opens with no signal.
 - The intention uses only `isx.personal.intention.v1` in localStorage. It is not
   synced to GitHub and does not read or change the apps' records.
 - A note is shown only for the date it was saved, using the browser's local date.
@@ -55,6 +64,6 @@ if needed, or omit it when Playwright's bundled browser is installed. It serves
 the folder above this checkout; set `SITE` to serve a different folder that
 holds all seven apps.
 
-Every repo's release check runs it too (`test/ci.sh`). On phones it holds the page
+Every repo's release check runs it too (`test/ci.sh`). On phones it holds both pages
 to the apps' standard: no text under 11 px, no control under 44 px, and the
 intention editor closes with a swipe down. The swipe comes from `../ui.js`.

@@ -1,0 +1,72 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <meta name="theme-color" content="#070707">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="ISIONXXX">
+  <meta name="description" content="My affirmation: seven statements, one for each app and the part of life it is for.">
+  <title>ISIONXXX — My affirmation</title>
+  <link rel="icon" href="../../icon-st.svg" type="image/svg+xml">
+  <link rel="manifest" href="../../manifest.webmanifest">
+  <link rel="apple-touch-icon" sizes="180x180" href="../../apple-touch-icon-st.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
+  <link rel="stylesheet" href="../../ui.css">
+  <link rel="stylesheet" href="../style.css">
+  <!-- ui.css keeps a page hidden until ui.js has started; it also plays the cards' entrance -->
+  <script src="../../ui.js" defer></script>
+</head>
+<body>
+  <a class="skip" href="#main">Skip to content</a>
+  <svg class="icon-library" xmlns="http://www.w3.org/2000/svg" aria-hidden="true">
+    <symbol id="i-spark" viewBox="0 0 32 32"><path d="M16 3v26M3 16h26M7 7l18 18M7 25 25 7"/></symbol>
+    <symbol id="i-arrow" viewBox="0 0 24 24"><path d="M5 19 19 5M5 5h14v14"/></symbol>
+    <!-- the seven apps' icons, the same as the TODAY shell's tab bar (TABS in ../../index.html; personal.test.js fails
+         if one drifts from it) -->
+    <symbol id="i-today" viewBox="0 0 24 24"><g stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter"><circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M4.9 4.9l1.4 1.4M17.7 17.7l1.4 1.4M4.9 19.1l1.4-1.4M17.7 6.3l1.4-1.4"/></g></symbol>
+    <symbol id="i-mind" viewBox="0 0 24 24"><g stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter"><circle cx="12" cy="11" r="7"/><circle cx="12" cy="11" r="3"/></g></symbol>
+    <symbol id="i-training" viewBox="0 0 24 24"><g stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter"><path d="M3 12h18M6 8v8M18 8v8M4 10v4M20 10v4"/></g></symbol>
+    <symbol id="i-nutrition" viewBox="0 0 24 24"><g stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter"><path d="M3 11h18a9 8 0 0 1-18 0z"/><path d="M9 7v1M12 5v3M15 7v1"/></g></symbol>
+    <symbol id="i-learn" viewBox="0 0 24 24"><g stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter"><path d="M3 5h6a3 3 0 0 1 3 3v12a2 2 0 0 0-2-2H3zM21 5h-6a3 3 0 0 0-3 3v12a2 2 0 0 1 2-2h7z"/></g></symbol>
+    <symbol id="i-journal" viewBox="0 0 24 24"><g stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter"><path d="M4 18l5-6 4 3 7-9"/><path d="M15 6h5v5"/></g></symbol>
+    <symbol id="i-rewire" viewBox="0 0 24 24"><g stroke-width="2" stroke-linecap="butt" stroke-linejoin="miter"><path d="M3 8h6l6 8h6M17 12l4 4-4 4M3 16h5"/></g></symbol>
+  </svg>
+  <div class="page-wrap">
+    <header class="header">
+      <a class="wordmark" href="../" aria-label="ISIONXXX home"><span class="ui-brand-mark" aria-hidden="true"></span><b>//</b> PERSONAL<span class="cursor" aria-hidden="true"></span></a>
+      <nav class="main-nav" aria-label="Main navigation"><a href="../#toolkit">Apps</a><a href="../#about">About</a></nav>
+      <a class="header-cta ui-btn" href="../"><span aria-hidden="true">←</span> Home</a>
+    </header>
+    <main id="main">
+      <section class="affirmation ui-card" aria-labelledby="aff-title">
+        <div class="aff-intro">
+          <p class="eyebrow">MY AFFIRMATION // SEVEN PRACTICES. ONE ME.</p>
+          <h1 id="aff-title">I am what I<br><em>practice.</em><br>Every day.</h1>
+          <p class="aff-lede">Seven promises to myself, one for each part of the life I’m building. Read slowly. Mean every line.</p>
+        </div>
+        <ol class="aff-list">
+          <li><a class="aff-line" href="../../#today"><span class="app-icon today"><svg><use href="#i-today"/></svg></span><span class="card-index">01 / TODAY</span><p><strong>I begin where I am.</strong> I check in, make a plan, and take one step.</p><svg class="card-arrow"><use href="#i-arrow"/></svg></a></li>
+          <li><a class="aff-line" href="../../#mind"><span class="app-icon mind"><svg><use href="#i-mind"/></svg></span><span class="card-index">02 / MIND</span><p><strong>I make room for stillness.</strong> I pause, I breathe, and I begin again.</p><svg class="card-arrow"><use href="#i-arrow"/></svg></a></li>
+          <li><a class="aff-line" href="../../#training"><span class="app-icon training"><svg><use href="#i-training"/></svg></span><span class="card-index">03 / TRAINING</span><p><strong>I show up for my body.</strong> Session by session, I am getting stronger.</p><svg class="card-arrow"><use href="#i-arrow"/></svg></a></li>
+          <li><a class="aff-line" href="../../#nutrition"><span class="app-icon nutrition"><svg><use href="#i-nutrition"/></svg></span><span class="card-index">04 / NUTRITION</span><p><strong>I feed the life I’m building.</strong> I choose food that gives me energy.</p><svg class="card-arrow"><use href="#i-arrow"/></svg></a></li>
+          <li><a class="aff-line" href="../../#learn"><span class="app-icon learn"><svg><use href="#i-learn"/></svg></span><span class="card-index">05 / LEARN</span><p><strong>I stay curious.</strong> Lesson by lesson, I turn what I learn into skill.</p><svg class="card-arrow"><use href="#i-arrow"/></svg></a></li>
+          <li><a class="aff-line" href="../../#journal"><span class="app-icon journal"><svg><use href="#i-journal"/></svg></span><span class="card-index">06 / JOURNAL</span><p><strong>I trade with patience and a plan.</strong> I record every decision and learn from it, win or lose.</p><svg class="card-arrow"><use href="#i-arrow"/></svg></a></li>
+          <li><a class="aff-line" href="../../#rewire"><span class="app-icon rewire"><svg><use href="#i-rewire"/></svg></span><span class="card-index">07 / REWIRE</span><p><strong>An urge is a wave, not an order.</strong> I notice it, let it pass, and choose what serves me.</p><svg class="card-arrow"><use href="#i-arrow"/></svg></a></li>
+        </ol>
+        <div class="aff-end">
+          <p class="aff-close">I am a work in progress, <em>and that’s the point.</em> I don’t need a perfect day. I only need to come back, one day at a time.</p>
+          <div class="aff-actions"><a class="button primary ui-btn ui-primary" href="../../#today">Start with today <svg><use href="#i-arrow"/></svg></a><a class="text-link" href="../">Back to my apps</a></div>
+        </div>
+      </section>
+    </main>
+    <footer><a class="wordmark" href="../"><span class="ui-brand-mark" role="img" aria-label="ISIONXXX"></span><b>//</b> PERSONAL<span class="cursor" aria-hidden="true"></span></a><span>Built around a life. Always becoming.</span><a class="back-top" href="#">Back to top ↑</a></footer>
+  </div>
+  <!-- the shell's service worker keeps this page for opening with no signal; registering from here covers a first visit
+       that starts on this page -->
+  <script>if ('serviceWorker' in navigator) addEventListener('load', () => navigator.serviceWorker.register('../../sw.js').catch(() => {}));</script>
+</body>
+</html>
