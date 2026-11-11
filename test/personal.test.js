@@ -10,6 +10,7 @@ const { chromium } = require('playwright');
 // The folder holding all seven checkouts by their Pages names: $SITE (ci.sh sets it), else this checkout's parent.
 const SITE = path.resolve(process.env.SITE || path.join(__dirname, '../..'));
 const KEY = 'isx.personal.intention.v1';
+const APPS = ['today', 'mind', 'training', 'nutrition', 'learn', 'journal', 'rewire'];
 const MIME = { '.html': 'text/html', '.css': 'text/css', '.js': 'application/javascript', '.svg': 'image/svg+xml', '.webmanifest': 'application/manifest+json', '.json': 'application/json', '.png': 'image/png' };
 
 async function main() {
@@ -46,14 +47,17 @@ async function main() {
     assert.equal(await page.locator('.app-card').count(), 7);
     pass('homepage loads all seven tools');
 
-    // the app map and cards use the same seven icons as the TODAY shell's tab bar (TABS in ISIONXXX/index.html)
-    const html = await fs.readFile(path.join(SITE, 'ISIONXXX/personal/index.html'), 'utf8');
+    // the app map, the cards and the affirmation use the same seven icons as the TODAY shell's tab bar (TABS in
+    // ISIONXXX/index.html)
     const shell = await fs.readFile(path.join(SITE, 'ISIONXXX/index.html'), 'utf8');
-    for (const id of ['today', 'mind', 'training', 'nutrition', 'learn', 'journal', 'rewire']) {
-      const tab = (shell.match(new RegExp(`\\{id:'${id}',[^}]*?icon:'([^']*)'\\}`)) || [])[1];
-      const copy = (html.match(new RegExp(`<symbol id="i-${id}" viewBox="0 0 24 24"><g [^>]*>([\\s\\S]*?)</g></symbol>`)) || [])[1];
-      assert.ok(tab, `no ${id} tab icon in ISIONXXX/index.html`);
-      assert.equal(copy, tab, `personal/index.html's ${id} icon differs from the tab bar's: copy it over`);
+    for (const file of ['personal/index.html', 'personal/affirmation/index.html']) {
+      const html = await fs.readFile(path.join(SITE, 'ISIONXXX', file), 'utf8');
+      for (const id of APPS) {
+        const tab = (shell.match(new RegExp(`\\{id:'${id}',[^}]*?icon:'([^']*)'\\}`)) || [])[1];
+        const copy = (html.match(new RegExp(`<symbol id="i-${id}" viewBox="0 0 24 24"><g [^>]*>([\\s\\S]*?)</g></symbol>`)) || [])[1];
+        assert.ok(tab, `no ${id} tab icon in ISIONXXX/index.html`);
+        assert.equal(copy, tab, `${file}'s ${id} icon differs from the tab bar's: copy it over`);
+      }
     }
     pass('the seven app icons match the tab bar');
 
@@ -115,33 +119,68 @@ async function main() {
     pass('Escape closes the editor and restores focus');
 
     const axe = await fs.readFile(require.resolve('axe-core/axe.min.js'), 'utf8');
+    const violations = () => page.evaluate(async () => (await axe.run()).violations.map(v => `${v.id}: ${v.nodes.map(n => n.target).join(', ')}`));
     await page.addScriptTag({ content: axe });
-    let violations = await page.evaluate(async () => (await axe.run()).violations.map(v => `${v.id}: ${v.nodes.map(n => n.target).join(', ')}`));
-    assert.deepEqual(violations, [], 'homepage accessibility');
+    assert.deepEqual(await violations(), [], 'homepage accessibility');
     await page.locator('#edit-focus').click();
-    violations = await page.evaluate(async () => (await axe.run()).violations.map(v => `${v.id}: ${v.nodes.map(n => n.target).join(', ')}`));
-    assert.deepEqual(violations, [], 'editor accessibility');
+    assert.deepEqual(await violations(), [], 'editor accessibility');
     await page.locator('#close-focus').click();
     pass('axe accessibility passes for page and open editor');
+
+    // the header's button opens the affirmation: one statement for each app, in the apps' order, and each opens its app
+    const affirmation = home + 'affirmation/';
+    await page.goto(home);
+    assert.equal((await page.locator('.header-cta').textContent()).trim(), 'My affirmation');
+    await page.locator('.header-cta').click();
+    await page.waitForURL(affirmation);
+    assert.equal(await page.title(), 'ISIONXXX — My affirmation');
+    // shown at once: ui.css keeps a page hidden until ui.js has started
+    await page.locator('html.ui-ready #aff-title').waitFor();
+    assert.deepEqual(await page.locator('.aff-line').evaluateAll(links => links.map(a => a.getAttribute('href'))), APPS.map(id => `../../#${id}`));
+    for (const text of await page.locator('.aff-line p').allTextContents()) assert.match(text, /^\S.{30,}\.$/, `a full statement: ${text}`);
+    assert.match(await page.locator('.aff-close').textContent(), /one day at a time/);
+    for (const width of [320, 390, 768, 1440, 1920]) {
+      await page.setViewportSize({ width, height: 1000 });
+      assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `affirmation overflow at ${width}`);
+    }
+    await page.setViewportSize({ width: 1440, height: 1000 });
+    await page.addScriptTag({ content: axe });
+    assert.deepEqual(await violations(), [], 'affirmation accessibility');
+    await page.locator('.aff-line[href="../../#mind"]').click();
+    await page.locator('#tabs [data-t="mind"].on').waitFor();
+    await page.goto(affirmation);
+    await page.locator('.aff-actions .button').click();
+    await page.waitForURL(origin + '/ISIONXXX/#today');
+    await page.locator('#today.on').waitFor();
+    for (const back of ['.header .wordmark', '.header-cta', '.aff-actions .text-link']) {
+      await page.goto(affirmation);
+      await page.locator(back).click();
+      await page.waitForURL(home);
+      await page.locator('#hero-title').waitFor();
+    }
+    pass('the header opens the affirmation: a statement for each app, each opening its app, and a way back');
 
     // Phones: the apps' floor of 11 px text and 44 px targets, and the editor sheet closes with a swipe down (ui.js).
     const phone = await browser.newContext({ timezoneId: 'UTC', viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
     await phone.route(/fonts\.g|gstatic|cdnjs|jsdelivr|youtube|ytimg/, route => route.abort());
     const mobile = await phone.newPage();
     mobile.on('pageerror', error => errors.push(error.message));
-    await mobile.goto(home);
-    // measured once the cards' entrance animations have landed (the cursor blink never ends, so it's left out)
-    await mobile.evaluate(() => Promise.all(document.getAnimations().filter(a => a.effect.getComputedTiming().endTime < Infinity).map(a => a.finished)));
-    const cramped = await mobile.evaluate(() => {
-      const shown = el => { const r = el.getBoundingClientRect(); return r.width > 1 && r.height > 1 && getComputedStyle(el).visibility !== 'hidden'; };
-      const small = [...document.querySelectorAll('a,button,textarea')].filter(shown).map(el => [el, el.getBoundingClientRect()])
-        .filter(([, r]) => Math.min(r.width, r.height) < 44).map(([el, r]) => `target ${el.className || el.tagName} ${Math.round(r.width)}x${Math.round(r.height)}`);
-      const tiny = [...document.querySelectorAll('body *')].filter(shown)
-        .filter(el => [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) && parseFloat(getComputedStyle(el).fontSize) < 11)
-        .map(el => `text ${el.className || el.tagName}: ${el.textContent.trim().slice(0, 24)}`);
-      return small.concat(tiny);
-    });
-    assert.deepEqual(cramped, [], 'phone text and touch targets');
+    // the affirmation first, then the homepage, where the editor is
+    for (const url of [home + 'affirmation/', home]) {
+      await mobile.goto(url);
+      // measured once the cards' entrance animations have landed (the cursor blink never ends, so it's left out)
+      await mobile.evaluate(() => Promise.all(document.getAnimations().filter(a => a.effect.getComputedTiming().endTime < Infinity).map(a => a.finished)));
+      const cramped = await mobile.evaluate(() => {
+        const shown = el => { const r = el.getBoundingClientRect(); return r.width > 1 && r.height > 1 && getComputedStyle(el).visibility !== 'hidden'; };
+        const small = [...document.querySelectorAll('a,button,textarea')].filter(shown).map(el => [el, el.getBoundingClientRect()])
+          .filter(([, r]) => Math.min(r.width, r.height) < 44).map(([el, r]) => `target ${el.className || el.tagName} ${Math.round(r.width)}x${Math.round(r.height)}`);
+        const tiny = [...document.querySelectorAll('body *')].filter(shown)
+          .filter(el => [...el.childNodes].some(n => n.nodeType === 3 && n.textContent.trim()) && parseFloat(getComputedStyle(el).fontSize) < 11)
+          .map(el => `text ${el.className || el.tagName}: ${el.textContent.trim().slice(0, 24)}`);
+        return small.concat(tiny);
+      });
+      assert.deepEqual(cramped, [], `phone text and touch targets: ${url.slice(origin.length)}`);
+    }
     await mobile.locator('#edit-focus').tap();
     const box = await mobile.locator('#focus-dialog h2').boundingBox();
     const cdp = await phone.newCDPSession(mobile);
@@ -192,18 +231,25 @@ async function main() {
       return tab;
     };
     const first = await launch();
+    // with no signal, before the affirmation has ever been opened: the service worker has kept it all the same
+    await first.evaluate(() => navigator.serviceWorker.ready);
+    offline = true;
+    const again = await launch();
+    await again.locator('.header-cta').tap();
+    await again.locator('html.ui-ready #aff-title').waitFor();
+    await again.close();
+    offline = false;
+    // from the homepage to the affirmation, and from there into the day: the shell opens, it doesn't bounce back here
     await first.locator('.header-cta').tap();
+    await first.locator('#aff-title').waitFor();
+    await first.locator('.aff-actions .button').tap();
     await first.waitForURL(origin + '/ISIONXXX/#today');
     await first.locator('#today.on').waitFor();
     await first.goto(origin + '/ISIONXXX/');
     await first.locator('#today.on').waitFor();
     assert.ok(!first.url().includes('/personal/'), 'the shell, not the homepage, later in the same launch');
-    await first.evaluate(() => navigator.serviceWorker.ready);
-    offline = true;
-    await (await launch()).close();
-    offline = false;
     await app.close();
-    pass('the installed app opens on the homepage once per launch, offline too');
+    pass('the installed app opens on the homepage once per launch, offline too, and the affirmation opens offline');
     assert.deepEqual(errors, [], 'browser page errors');
     pass('no browser JavaScript errors');
     console.log(`PASS: ${checks} personal-site checks`);

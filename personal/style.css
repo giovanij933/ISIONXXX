@@ -276,6 +276,35 @@ textarea::placeholder { color: var(--dim); opacity: 1; }
   .dialog-actions .button { font-size: 11px; padding: 10px; gap: 12px; }
   .dialog-actions .text-button { font-size: 11px; padding: 8px 10px; }
 }
+
+/* The affirmation (affirmation/): one statement for each app, and each opens its app. */
+.affirmation { display: grid; grid-template-columns: 1fr 1.25fr; grid-template-areas: "intro list" "end list"; column-gap: 48px; row-gap: 28px; padding: 32px; }
+.aff-intro { grid-area: intro; min-width: 0; }
+.aff-intro .eyebrow { margin-bottom: 22px; }
+.aff-lede { max-width: 450px; margin-bottom: 0; color: var(--dim); font-size: 12px; line-height: 1.8; }
+.aff-list { grid-area: list; min-width: 0; margin: 0; padding: 0; list-style: none; border-top: 1px solid var(--line2); }
+.aff-list li { border-bottom: 1px solid var(--line2); }
+.aff-line { display: grid; grid-template-columns: 36px minmax(0,1fr) 16px; column-gap: 16px; align-items: center; padding: 15px 4px; }
+.aff-line .app-icon { grid-row: 1 / span 2; }
+.aff-line .card-index { grid-column: 2; }
+.aff-line p { grid-column: 2; margin: 3px 0 0; color: var(--dim); font-size: 14px; line-height: 1.65; }
+.aff-line strong { color: var(--tx); font-weight: 600; transition: color .2s; }
+.aff-line .card-arrow { grid-column: 3; grid-row: 1 / span 2; margin: 0; transition: color .2s; }
+.aff-line:hover strong, .aff-line:hover .card-arrow, .aff-line:focus-visible strong, .aff-line:focus-visible .card-arrow { color: var(--amber); }
+.aff-end { grid-area: end; align-self: end; min-width: 0; }
+.aff-close { max-width: 450px; margin-bottom: 22px; font-size: 14px; line-height: 1.75; }
+.aff-close em { color: var(--amber); font-style: normal; }
+.aff-actions { display: flex; flex-wrap: wrap; align-items: center; gap: 12px 28px; }
+.aff-actions .button svg { width: 15px; height: 15px; }
+.header-cta > span { font-size: 15px; }
+@media (max-width: 860px) {
+  .affirmation { grid-template-columns: 1fr; grid-template-areas: "intro" "list" "end"; padding: 24px; }
+}
+@media (max-width: 560px) {
+  .affirmation { padding: 24px 16px 20px; row-gap: 24px; }
+  .aff-intro .eyebrow { font-size: 11px; letter-spacing: .05em; margin-bottom: 20px; }
+  .aff-line { column-gap: 12px; padding: 14px 0; }
+}
 @media (prefers-reduced-motion: reduce) {
   html { scroll-behavior: auto; }
   *, *::before, *::after { transition: none !important; animation: none !important; }
