@@ -121,6 +121,9 @@ t('undo: the toast\'s button runs the callback once, then hides',()=>{
     const pg=x=>`<section class="g">${card('a'+x,chart(2))}${card('b')}</section><section class="g">${card('c')}${card('d',chart(2))}</section>`;UI.paint(R,pg('!'));UI.animate(R);
     return R.querySelector('.card').textContent==='a!'&&!R.querySelector('.ui-draw')});
   R.remove()}
+t('hero log: "a · b · c" wraps between its parts: no line starts with a dot, and a short part ("42 g protein") stays whole',()=>{
+  const h=UI.hero({key:'k',title:'Today',log:[{at:Date.now(),tag:'Bowl',text:'Eggs · 921 kcal · 42 g protein · a much longer note about this meal'}]});
+  return h.includes('Eggs\u00A0· 921\u00A0kcal\u00A0· 42\u00A0g\u00A0protein\u00A0· a much longer note about this meal')});
 t('hero: the same data gives the same HTML (no running ids), so paint can tell that nothing changed',()=>{const o={key:'k',title:'Today',stats:[{label:'A',value:'1'}],log:[{at:Date.now(),label:'x'}]};return UI.hero(o)===UI.hero(o)});
 
 document.getElementById('sum').textContent=`${pass} passed, ${fail} failed`;document.getElementById('sum').className=fail?'no':'ok';
