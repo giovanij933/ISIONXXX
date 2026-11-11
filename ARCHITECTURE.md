@@ -148,7 +148,8 @@ the CPU 4x slower. Three things cost that time, and none of them was the app's i
 
 - **The page background.** The glow behind the cards was a gradient sized to the whole document, so it was a
   different picture whenever the page changed length. A card that changed height made the browser draw every pixel
-  of the page again: 150–380 ms, even with no CPU throttling. It is now one screen tall, at the top of the page.
+  of the page again: 150–380 ms, even with no CPU throttling. The page is now one flat colour (2c), and the release
+  check fails a background picture sized to the document, so the cost can't come back with a new one.
 - **Replacing everything.** `root.innerHTML = html` rebuilt, restyled and laid out every card, most of them off
   screen and many of them unchanged. The apps now call `UI.paint(root, html)`, which leaves the same result but
   keeps a card whose HTML is what it was, replaces a changed card at once if it is on screen or within half a screen,
@@ -179,6 +180,37 @@ mark it inert, which the apps can't avoid without giving up real dialogs.
 
 The pages themselves are the same: for 42–50 states of each app, at 390 and 1440 px, the HTML left by the old and
 the new code is identical. The release check guards both halves (README, check 7).
+
+
+**2c. One palette, in one place.**
+Every colour in the seven apps, TODAY and the personal site comes from the tokens at the top of `ui.css`. No page
+holds a colour of its own, so the palette changes in one file and every app follows.
+
+- **The palette** is thirteen named colours: `--background`, `--surface`, `--border`, `--primary`, `--secondary`,
+  `--text-primary`, `--text-secondary`, `--text-muted`, `--accent`, `--success`, `--error`, `--warning`, `--info`.
+  Light is the palette as given. Dark is its counterpart and follows the device (`prefers-color-scheme`), because
+  Apple's guidance is that every colour has a light and a dark form. With "Increase contrast" on
+  (`prefers-contrast: more`), borders and secondary text get stronger.
+- **Made from it**, in the same block: the `-text` form of each colour (below), `-soft` tints and `-line` edges,
+  `--raised` (a field or a cell inside a card), and the layers that float (`--float`, `--bar`, `--scrim`, shadows).
+- **How they are used** follows Apple's Human Interface Guidelines on colour:
+  - *One meaning each.* `--accent` is what you can tap and what is selected: never plain text, never a heading.
+    `--success`, `--error`, `--warning` and `--info` are status only. Headings and figures are text colours. A
+    chart's main series is the accent; a second series is `--info`; kinds that are neither good nor bad (macros,
+    tracks, proteins) take the accent, `--info`, `--secondary` and `--primary`, never green or red.
+  - *Never colour alone.* A gain or a loss carries its sign, a status its word or shape, today's date an underline.
+  - *Readable.* Small coloured text uses the `-text` form: the palette's colour, darkened in light mode until it
+    reaches 4.5:1 on a card. On a card the pure green is 2.0:1, the orange 1.9:1 and the light blue 1.7:1, so
+    they are for fills, dots, bars and chart lines. `--text-muted` (3.3:1) is for placeholders and disabled text
+    only; anything that must be read is `--text-secondary`.
+  - *Backgrounds stack*: `--background` is the page, `--surface` a card, `--raised` what sits inside a card.
+- **In a chart drawn from script**, a colour reaches the SVG as a style (`style="fill:var(--accent)"`): an
+  attribute (`fill="…"`) can't hold a token.
+- **The mark** in every header is the icon's monogram drawn in `--primary` through its own shape (a CSS mask), so
+  it is black on a light page and white on a dark one.
+- **Guarded.** The release check fails a page, `sync.js` or the personal site if it holds a colour outside the
+  palette (white and black excepted: the browser's own chrome, a candle's core, the stage behind a video).
+- **Not changed:** the app icons on the home screen keep their own colours.
 
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL
