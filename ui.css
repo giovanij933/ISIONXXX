@@ -1,38 +1,82 @@
-/* ISIONXXX // ui — styles for ui.js. Tokens are --ui-* custom properties: override them on any ancestor to retheme.
-   Dim text is #8f8a7e (5.7:1 on the panel) instead of the apps' #78746a (4.0:1, under the 4.5:1 WCAG AA minimum). */
+/* ISIONXXX // ui — styles for ui.js, and the colours of every app.
+
+   COLOUR. One palette, defined once, here. The six apps, TODAY and the personal site take every colour from these
+   tokens: none of them holds a colour of its own.
+   - Light is the palette as given. Dark is its counterpart, used when the device is in dark mode: Apple's guidance is
+     that every colour has a light and a dark form. With "Increase contrast" on, borders and secondary text get stronger.
+   How the colours are used, after Apple's Human Interface Guidelines on colour:
+   - One meaning each. --accent is what you can tap and what is selected, never plain text or a heading.
+     --success / --error / --warning / --info are status only. Headings and figures are text colours.
+   - Never colour alone: a gain or a loss also carries its sign, a status its word or its shape.
+   - Readable. Small coloured text uses the colour's -text form: the palette's colour, darkened in light mode until it
+     reaches 4.5:1 on a card (the pure green is 2.0:1 on a card, the orange 1.9:1, the light blue 1.7:1). Fills, dots,
+     bars and chart lines use the pure colour. Text on an --accent fill is --on-accent.
+   - Backgrounds stack: --background is the page, --surface a card on it, --raised a field or a cell inside a card.
+   - --border separates and outlines; it is never a text colour. --text-muted is for placeholders and disabled text
+     only (3.3:1 on a card): anything that must be read uses --text-secondary. */
 :root{
-  --ui-bg:#070707;--ui-panel:#0c0c0c;--ui-line:#1c1c1c;--ui-line2:#2c2c2c;--ui-track:#161616;
-  --ui-tx:#d9d5c8;--ui-dim:#8f8a7e;--ui-amber:#ffb000;--ui-green:#33ff66;--ui-red:#ff5a5a;--ui-on-amber:#000;
+  color-scheme:light dark;
+  /* the palette */
+  --info:#5AC8FA;--error:#FF3B30;--accent:#0071E3;--border:#D2D2D7;--primary:#000000;--success:#34C759;--surface:#F5F5F7;
+  --warning:#FF9F0A;--secondary:#86868B;--text-muted:#86868B;--background:#FFFFFF;--text-primary:#1D1D1F;--text-secondary:#6E6E73;
+  /* made from it: text forms, tints (-soft), edges (-line), and the layers above a card */
+  --accent-text:#0066CC;--on-accent:#FFFFFF;--accent-hover:#0077ED;--accent-soft:rgba(0,113,227,.08);--accent-line:rgba(0,113,227,.4);
+  --success-text:#1F7735;--success-soft:rgba(52,199,89,.12);--success-line:rgba(52,199,89,.55);
+  --error-text:#BD2C24;--error-soft:rgba(255,59,48,.09);--error-line:rgba(255,59,48,.45);--error-fill:#D70015;
+  --warning-text:#945C06;--warning-soft:rgba(255,159,10,.12);--warning-line:rgba(255,159,10,.6);
+  --info-text:#32708C;--info-soft:rgba(90,200,250,.16);
+  --border-soft:#E8E8ED;--track:#E3E3E8;--raised:#FFFFFF;--hover:rgba(0,0,0,.05);--press:brightness(.94);
+  --float:rgba(255,255,255,.88);--float-solid:#FFFFFF;--bar:rgba(255,255,255,.8);--scrim:rgba(0,0,0,.32);
+  --shadow-float:0 24px 60px -20px rgba(0,0,0,.3),0 0 0 1px rgba(0,0,0,.05);--shadow-pop:0 12px 32px -12px rgba(0,0,0,.24),0 0 0 1px rgba(0,0,0,.04);
+  --shadow-bar:0 8px 24px -16px rgba(0,0,0,.28);
+  /* the names ui.js's components were written with */
+  --ui-bg:var(--background);--ui-panel:var(--surface);--ui-line:var(--border-soft);--ui-line2:var(--border);--ui-track:var(--track);
+  --ui-tx:var(--text-primary);--ui-dim:var(--text-secondary);
   --ui-f:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--ui-tap:44px;--ui-ease:cubic-bezier(.2,.8,.2,1);
 }
+@media (prefers-color-scheme:dark){:root{
+  --info:#64D2FF;--error:#FF453A;--accent:#0071E3;--border:#424245;--primary:#FFFFFF;--success:#30D158;--surface:#1D1D1F;
+  --warning:#FF9F0A;--secondary:#86868B;--text-muted:#86868B;--background:#000000;--text-primary:#F5F5F7;--text-secondary:#A1A1A6;
+  --accent-text:#2997FF;--on-accent:#FFFFFF;--accent-hover:#0077ED;--accent-soft:rgba(41,151,255,.16);--accent-line:rgba(41,151,255,.5);
+  --success-text:#30D158;--success-soft:rgba(48,209,88,.16);--success-line:rgba(48,209,88,.45);
+  --error-text:#FF6961;--error-soft:rgba(255,69,58,.16);--error-line:rgba(255,69,58,.5);--error-fill:#D70015;
+  --warning-text:#FF9F0A;--warning-soft:rgba(255,159,10,.16);--warning-line:rgba(255,159,10,.5);
+  --info-text:#64D2FF;--info-soft:rgba(100,210,255,.16);
+  --border-soft:#2C2C2E;--track:#3A3A3C;--raised:#2C2C2E;--hover:rgba(255,255,255,.08);--press:brightness(1.3);
+  --float:rgba(29,29,31,.84);--float-solid:#1D1D1F;--bar:rgba(22,22,23,.8);--scrim:rgba(0,0,0,.55);
+  --shadow-float:0 30px 80px -20px rgba(0,0,0,.85),0 0 0 1px rgba(255,255,255,.08);--shadow-pop:0 18px 40px -12px rgba(0,0,0,.8),0 0 0 1px rgba(255,255,255,.08);
+  --shadow-bar:0 12px 30px -18px rgba(0,0,0,.9);
+}}
+@media (prefers-contrast:more){:root{--border:#86868B;--border-soft:#D2D2D7;--text-secondary:#424245;--text-muted:#6E6E73}}
+@media (prefers-contrast:more) and (prefers-color-scheme:dark){:root{--border:#86868B;--border-soft:#424245;--text-secondary:#D2D2D7;--text-muted:#A1A1A6}}
 .ui-sr{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
 
 /* status */
 .ui-status{flex:none;display:inline-flex;align-items:center;gap:5px;font:600 10px var(--ui-f);letter-spacing:.12em;text-transform:uppercase;padding:3px 7px;border:1px solid var(--ui-line2);color:var(--ui-dim);white-space:nowrap}
-.ui-status.ui-ok{color:var(--ui-green);border-color:#1d6b3f}.ui-status.ui-bad{color:var(--ui-red);border-color:#6b1d1d}
-.ui-status.ui-live{color:var(--ui-green);border-color:#1d6b3f}.ui-status.ui-live i{width:6px;height:6px;border-radius:50%;background:currentColor;animation:ui-pulse 1.6s ease-in-out infinite}
+.ui-status.ui-ok{color:var(--success-text);border-color:var(--success-line)}.ui-status.ui-bad{color:var(--error-text);border-color:var(--error-line)}
+.ui-status.ui-live{color:var(--success-text);border-color:var(--success-line)}.ui-status.ui-live i{width:6px;height:6px;border-radius:50%;background:currentColor;animation:ui-pulse 1.6s ease-in-out infinite}
 @keyframes ui-pulse{50%{opacity:.25}}
 
 /* meter */
 .ui-meter{margin-top:12px}
 .ui-meter-row{display:flex;justify-content:space-between;gap:8px;font:11px var(--ui-f);color:var(--ui-dim);margin-bottom:5px}.ui-meter-row b{color:var(--ui-tx);font-weight:500;white-space:nowrap}
 .ui-meter-bar{height:6px;background:var(--ui-track);overflow:hidden}
-.ui-meter-bar i{display:block;height:100%;background:var(--ui-amber);transition:width .5s var(--ui-ease)}
-.ui-meter.ui-done .ui-meter-bar i{background:var(--ui-green)}
+.ui-meter-bar i{display:block;height:100%;background:var(--accent);transition:width .5s var(--ui-ease)}
+.ui-meter.ui-done .ui-meter-bar i{background:var(--success)}
 
 /* week */
 .ui-week{display:grid;grid-template-columns:repeat(7,1fr);gap:4px;margin:14px 0 0;padding:0;list-style:none}
 .ui-week li{display:flex;flex-direction:column;align-items:center;gap:4px;font:9px var(--ui-f);color:var(--ui-dim)}
-.ui-week li.ui-today{color:var(--ui-amber)}
+.ui-week li.ui-today{color:var(--accent-text)}
 .ui-week i{display:block;width:100%;height:6px;background:var(--ui-track)}
-.ui-week i.ui-on{background:var(--ui-amber)}.ui-week i.ui-half{background:rgba(255,176,0,.38)}.ui-week i.ui-pos{background:var(--ui-green)}.ui-week i.ui-neg{background:var(--ui-red)}
-.ui-week i.ui-live{background:var(--ui-amber);animation:ui-pulse 1.6s ease-in-out infinite}
+.ui-week i.ui-on{background:var(--accent)}.ui-week i.ui-half{background:var(--accent-line)}.ui-week i.ui-pos{background:var(--success)}.ui-week i.ui-neg{background:var(--error)}
+.ui-week i.ui-live{background:var(--accent);animation:ui-pulse 1.6s ease-in-out infinite}
 
 /* buttons */
 .ui-btn{position:relative;display:inline-flex;align-items:center;justify-content:center;min-height:var(--ui-tap);padding:10px 14px;border:1px solid var(--ui-line2);background:none;color:var(--ui-tx);font:600 11px var(--ui-f);letter-spacing:.1em;text-transform:uppercase;cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background-color .15s,border-color .15s,color .15s,transform .12s}
-.ui-btn:hover:not(:disabled){border-color:var(--ui-amber);color:var(--ui-amber)}
+.ui-btn:hover:not(:disabled){border-color:var(--accent);color:var(--accent-text)}
 .ui-btn:active:not(:disabled){transform:scale(.97)}
-.ui-btn.ui-primary{background:var(--ui-amber);border-color:var(--ui-amber);color:var(--ui-on-amber)}.ui-btn.ui-primary:hover:not(:disabled){filter:brightness(1.1);color:var(--ui-on-amber)}
+.ui-btn.ui-primary{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}.ui-btn.ui-primary:hover:not(:disabled){filter:brightness(1.1);color:var(--on-accent)}
 .ui-btn.ui-ghost{border-color:transparent;color:var(--ui-dim)}
 .ui-btn:disabled{opacity:.45;cursor:not-allowed}
 .ui-btn.ui-busy{opacity:1;cursor:progress}.ui-btn.ui-busy span{color:transparent}
@@ -42,14 +86,14 @@
 /* card: one button stretched over the card opens it; actions sit above that layer */
 .ui-card{position:relative;display:flex;flex-direction:column;min-width:0;background:var(--ui-panel);border:1px solid var(--ui-line);padding:16px;color:var(--ui-tx);font-family:var(--ui-f);transition:border-color .15s}
 .ui-card:hover{border-color:var(--ui-line2)}
-.ui-card:has(.ui-card-open:focus-visible){outline:2px solid var(--ui-amber);outline-offset:2px}
+.ui-card:has(.ui-card-open:focus-visible){outline:2px solid var(--accent);outline-offset:2px}
 .ui-card-head{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
 .ui-card-head h3{margin:0;font:inherit}
-.ui-card-open{all:unset;cursor:pointer;font:600 11px var(--ui-f);letter-spacing:.16em;text-transform:uppercase;color:var(--ui-amber)}
+.ui-card-open{all:unset;cursor:pointer;font:600 11px var(--ui-f);letter-spacing:.16em;text-transform:uppercase;color:var(--accent-text)}
 .ui-card-open::before{content:'> ';color:var(--ui-dim)}
 .ui-card-open::after{content:'';position:absolute;inset:0}
 .ui-card .ui-status,.ui-card .ui-actions{position:relative;z-index:1}
-.ui-big{margin:2px 0;font:600 24px/1.25 var(--ui-f);overflow-wrap:anywhere}.ui-big.ui-pos{color:var(--ui-green)}.ui-big.ui-neg{color:var(--ui-red)}
+.ui-big{margin:2px 0;font:600 24px/1.25 var(--ui-f);overflow-wrap:anywhere}.ui-big.ui-pos{color:var(--success-text)}.ui-big.ui-neg{color:var(--error-text)}
 .ui-sub{margin:0;font:12px/1.5 var(--ui-f);color:var(--ui-dim)}
 .ui-rows{margin:8px 0 0;font:12px var(--ui-f)}.ui-rows>div{display:flex;justify-content:space-between;gap:8px;padding:3px 0;border-top:1px solid var(--ui-line)}
 .ui-rows dt{color:var(--ui-dim);min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ui-rows dd{margin:0;white-space:nowrap}
@@ -60,24 +104,24 @@
 .ui-seg{display:flex;min-width:0}
 .ui-seg>button{flex:1;min-width:var(--ui-tap);min-height:var(--ui-tap);border:1px solid var(--ui-line2);background:none;color:var(--ui-tx);font:13px var(--ui-f);cursor:pointer;-webkit-tap-highlight-color:transparent;touch-action:manipulation;transition:background-color .15s,color .15s}
 .ui-seg>button+button{border-left:0}
-.ui-seg>button[aria-checked=true]{background:var(--ui-amber);border-color:var(--ui-amber);color:var(--ui-on-amber);font-weight:600}
+.ui-seg>button[aria-checked=true]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
 .ui-seg>button:disabled{opacity:.45;cursor:not-allowed}
 .ui-rating{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.ui-field-label{font:12px var(--ui-f);color:var(--ui-dim)}.ui-field-label em{font-style:normal;color:var(--ui-amber);margin-left:6px}
+.ui-field-label{font:12px var(--ui-f);color:var(--ui-dim)}.ui-field-label em{font-style:normal;color:var(--text-primary);margin-left:6px}
 .ui-rating .ui-seg{flex:0 1 220px}
 
 /* choice list */
 .ui-list{display:flex;flex-direction:column;border-top:1px solid var(--ui-line)}
 .ui-list>button{display:flex;align-items:center;gap:12px;width:100%;min-height:var(--ui-tap);padding:10px 4px;border:0;border-bottom:1px solid var(--ui-line);background:none;color:var(--ui-tx);font:13px var(--ui-f);text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent;transition:background-color .15s,color .15s}
 .ui-list>button::before{content:'';flex:none;width:9px;height:9px;border-radius:50%;border:1px solid var(--ui-line2);transition:background-color .15s,border-color .15s,box-shadow .15s}
-.ui-list.ui-multi>button::before{width:15px;height:15px;border-radius:2px;display:grid;place-items:center;font:600 10px/1 var(--ui-f);color:var(--ui-on-amber)}
-.ui-list>button[aria-checked=true]{color:var(--ui-amber);background:rgba(255,176,0,.06)}
-.ui-list>button[aria-checked=true]::before{background:var(--ui-amber);border-color:var(--ui-amber);box-shadow:0 0 10px rgba(255,176,0,.55)}
+.ui-list.ui-multi>button::before{width:15px;height:15px;border-radius:2px;display:grid;place-items:center;font:600 10px/1 var(--ui-f);color:var(--on-accent)}
+.ui-list>button[aria-checked=true]{color:var(--accent-text);background:var(--accent-soft)}
+.ui-list>button[aria-checked=true]::before{background:var(--accent);border-color:var(--accent);box-shadow:none}
 .ui-list.ui-multi>button[aria-checked=true]::before{content:'✓';box-shadow:none}
 .ui-list>button:disabled{opacity:.45;cursor:not-allowed}
 .ui-list-label{min-width:0;overflow-wrap:anywhere}
 .ui-list em{margin-left:auto;padding-left:8px;font-style:normal;font-size:11px;color:var(--ui-dim);text-align:right}
-.ui-list>button[aria-checked=true] em{color:var(--ui-amber)}
+.ui-list>button[aria-checked=true] em{color:var(--accent-text)}
 .ui-empty-inline{margin:0;font:12px var(--ui-f);color:var(--ui-dim)}
 
 /* stepper */
@@ -90,15 +134,15 @@
 .ui-empty{display:flex;flex-direction:column;align-items:flex-start;gap:8px;padding:18px;border:1px dashed var(--ui-line2);font-family:var(--ui-f)}
 .ui-empty-title{margin:0;font:600 13px var(--ui-f);color:var(--ui-tx)}
 .ui-skeleton{display:flex;flex-direction:column;gap:10px;padding:16px;border:1px solid var(--ui-line);background:var(--ui-panel)}
-.ui-skeleton i{display:block;height:12px;background:linear-gradient(90deg,var(--ui-track) 0,#222 50%,var(--ui-track) 100%);background-size:200% 100%;animation:ui-shimmer 1.3s linear infinite}
+.ui-skeleton i{display:block;height:12px;background:linear-gradient(90deg,var(--ui-track) 0,var(--border-soft) 50%,var(--ui-track) 100%);background-size:200% 100%;animation:ui-shimmer 1.3s linear infinite}
 @keyframes ui-shimmer{to{background-position:-200% 0}}
 
 /* toast */
-.ui-toast{position:fixed;left:50%;bottom:calc(var(--isx-tabs,24px) + 16px + env(safe-area-inset-bottom));transform:translate(-50%,8px);width:max-content;max-width:min(90vw,420px);box-sizing:border-box;padding:10px 14px;background:var(--ui-panel);border:1px solid var(--ui-amber);color:var(--ui-amber);font:12px var(--ui-f);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s var(--ui-ease);z-index:50}
-.ui-toast.ui-on{opacity:1;transform:translate(-50%,0)}.ui-toast.ui-bad{border-color:var(--ui-red);color:var(--ui-red)}
+.ui-toast{position:fixed;left:50%;bottom:calc(var(--isx-tabs,24px) + 16px + env(safe-area-inset-bottom));transform:translate(-50%,8px);width:max-content;max-width:min(90vw,420px);box-sizing:border-box;padding:10px 14px;background:var(--ui-panel);border:1px solid var(--border-soft);color:var(--text-primary);font:12px var(--ui-f);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s var(--ui-ease);z-index:50}
+.ui-toast.ui-on{opacity:1;transform:translate(-50%,0)}.ui-toast.ui-bad{border-color:var(--error-line);color:var(--error-text)}
 
 /* focus: always visible for keyboard users, never for taps */
-.ui-btn:focus-visible,.ui-seg>button:focus-visible,.ui-list>button:focus-visible,.ui-stepper>button:focus-visible,.ui-stepper>output:focus-visible{outline:2px solid var(--ui-amber);outline-offset:2px;position:relative;z-index:2}
+.ui-btn:focus-visible,.ui-seg>button:focus-visible,.ui-list>button:focus-visible,.ui-stepper>button:focus-visible,.ui-stepper>output:focus-visible{outline:2px solid var(--accent);outline-offset:2px;position:relative;z-index:2}
 .ui-card-open:focus-visible{outline:none}
 
 /* small screens: rating scales take the full row */
@@ -110,50 +154,50 @@ dialog.ui-cf{color:var(--ui-tx);font-family:var(--ui-f);border:1px solid var(--u
 .ui-cf-b{margin:0 0 18px;font-size:12.5px;line-height:1.55;color:var(--ui-dim)}
 .ui-cf-in{display:block;width:100%;box-sizing:border-box;margin:0 0 18px;padding:10px 12px;font:14px var(--ui-f);color:var(--ui-tx);background:var(--ui-panel);border:1px solid var(--ui-line2)}
 .ui-cf-a{display:flex;gap:10px;justify-content:flex-end}.ui-cf-a .ui-btn{min-width:104px}
-.ui-btn.ui-danger-fill{background:var(--ui-red);border-color:var(--ui-red);color:#000}
-.ui-btn.ui-danger-fill:hover:not(:disabled){filter:brightness(1.08);color:#000}
+.ui-btn.ui-danger-fill{background:var(--error-fill);border-color:var(--error-fill);color:#fff}
+.ui-btn.ui-danger-fill:hover:not(:disabled){filter:brightness(1.08);color:#fff}
 @media (max-width:640px){.ui-cf-a .ui-btn{flex:1}}
 .ui-undo{display:flex;align-items:center;gap:16px;color:var(--ui-tx);pointer-events:none}.ui-undo.ui-on{pointer-events:auto}
-.ui-undo-b{background:none;border:0;color:var(--ui-amber);font:600 12px var(--ui-f);letter-spacing:.12em;text-transform:uppercase;padding:10px 8px;margin:-10px -8px -10px 0;cursor:pointer;min-height:40px}
-.ui-undo-b:focus-visible{outline:2px solid var(--ui-amber);outline-offset:2px}
+.ui-undo-b{background:none;border:0;color:var(--accent-text);font:600 12px var(--ui-f);letter-spacing:.12em;text-transform:uppercase;padding:10px 8px;margin:-10px -8px -10px 0;cursor:pointer;min-height:40px}
+.ui-undo-b:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 /* motion + forced colours */
 @media(prefers-reduced-motion:reduce){.ui-status i,.ui-week i.ui-live,.ui-skeleton i,.ui-btn.ui-busy::after{animation:none}.ui-meter-bar i,.ui-btn,.ui-toast{transition:none}}
 @media(forced-colors:active){.ui-meter-bar,.ui-week i{border:1px solid CanvasText}.ui-meter-bar i,.ui-week i.ui-on,.ui-week i.ui-pos{background:Highlight}.ui-seg>button[aria-checked=true],.ui-list>button[aria-checked=true]{outline:2px solid Highlight}}
 
 /* hero */
-.ui-hero{position:relative;overflow:hidden;background:radial-gradient(120% 90% at 0% 0%,rgba(255,176,0,.10),transparent 60%),var(--ui-panel);border:1px solid var(--ui-line);padding:18px 16px 16px;margin-bottom:12px;color:var(--ui-tx);font-family:var(--ui-f)}
+.ui-hero{position:relative;overflow:hidden;background:radial-gradient(120% 90% at 0% 0%,var(--accent-soft),transparent 60%),var(--ui-panel);border:1px solid var(--ui-line);padding:18px 16px 16px;margin-bottom:12px;color:var(--ui-tx);font-family:var(--ui-f)}
 .ui-hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .ui-hero h2{margin:0;font:600 18px var(--ui-f);letter-spacing:.02em}.ui-hero .ui-sub{margin-top:4px}
-.ui-hero-big{margin:0;text-align:right;font-size:11px;color:var(--ui-dim)}.ui-hero-big b{display:block;font-size:26px;line-height:1.1;color:var(--ui-amber);font-weight:600}.ui-hero-big span{display:block;margin-top:2px}.ui-hero-big b.ui-pos{color:var(--ui-green)}.ui-hero-big b.ui-neg{color:var(--ui-red)}
+.ui-hero-big{margin:0;text-align:right;font-size:11px;color:var(--ui-dim)}.ui-hero-big b{display:block;font-size:26px;line-height:1.1;color:var(--primary);font-weight:600}.ui-hero-big span{display:block;margin-top:2px}.ui-hero-big b.ui-pos{color:var(--success-text)}.ui-hero-big b.ui-neg{color:var(--error-text)}
 /* rings sit in three fixed slots under the title: the same spacing at every width and in every app (an app with two
    rings fills the first two), instead of spreading across whatever width the card has */
 .ui-rings{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:8px;margin:16px 0 2px;padding:0;list-style:none}
 .ui-ring{display:flex;flex-direction:column;align-items:center;gap:4px;text-align:center}
 .ui-ring svg{width:56px;height:56px;transform:rotate(-90deg);overflow:visible}
-.ui-ring circle{fill:none;stroke-width:4.5}.ui-rt{stroke:#1d1d1d}
-.ui-rf{stroke:var(--ui-amber);stroke-linecap:round;transition:stroke-dasharray 1s var(--ui-ease)}
+.ui-ring circle{fill:none;stroke-width:4.5}.ui-rt{stroke:var(--track)}
+.ui-rf{stroke:var(--accent);stroke-linecap:round;transition:stroke-dasharray 1s var(--ui-ease)}
 .ui-rf[data-to="0.0"]{stroke:transparent}   /* empty: a round cap on a zero-length arc would draw a dot */
-.ui-ring.ui-done .ui-rf{stroke:var(--ui-green)}
-.ui-ck{fill:none;stroke:var(--ui-green);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transform:rotate(90deg);transform-origin:22px 22px;stroke-dasharray:20;animation:ui-ck .5s .5s var(--ui-ease) both}
+.ui-ring.ui-done .ui-rf{stroke:var(--success)}
+.ui-ck{fill:none;stroke:var(--success);stroke-width:2.5;stroke-linecap:round;stroke-linejoin:round;transform:rotate(90deg);transform-origin:22px 22px;stroke-dasharray:20;animation:ui-ck .5s .5s var(--ui-ease) both}
 @keyframes ui-ck{from{stroke-dashoffset:20}}
 .ui-ring-l{font-size:9.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--ui-dim)}.ui-ring b{font-size:11.5px;font-weight:500}
 .ui-ring.ui-pop svg{animation:ui-pop .6s cubic-bezier(.2,1.6,.4,1)}@keyframes ui-pop{40%{transform:rotate(-90deg) scale(1.2)}}
 .ui-hero .ui-actions{margin-top:12px}
 /* timeline */
 .ui-tl-wrap{background:var(--ui-panel);border:1px solid var(--ui-line);padding:14px 16px;margin-bottom:12px;font-family:var(--ui-f);color:var(--ui-tx)}
-.ui-tl-h{margin:0;font:600 11px var(--ui-f);letter-spacing:.16em;text-transform:uppercase;color:var(--ui-amber)}.ui-tl-h::before{content:'> ';color:var(--ui-dim)}
+.ui-tl-h{margin:0;font:600 11px var(--ui-f);letter-spacing:.16em;text-transform:uppercase;color:var(--text-primary)}.ui-tl-h::before{content:'> ';color:var(--ui-dim)}
 .ui-tl{list-style:none;margin:8px 0 0;padding:0;position:relative}
 .ui-tl::before{content:'';position:absolute;left:72px;top:8px;bottom:8px;width:1px;background:var(--ui-line2)}
 .ui-tl li{display:grid;grid-template-columns:64px 17px 1fr;align-items:baseline;padding:6px 0;font-size:12.5px}
 .ui-tl time{color:var(--ui-dim);font-size:11px;text-align:right;padding-right:4px;white-space:nowrap}
 /* the dot sits on the first line, level with the time, also when the entry wraps onto a second line */
-.ui-tl i{width:9px;height:9px;border-radius:50%;background:var(--ui-amber);justify-self:center;align-self:baseline;top:1.5px;position:relative;z-index:1;box-shadow:0 0 0 3px var(--ui-panel)}
-.ui-tl li.ui-pos i{background:var(--ui-green)}.ui-tl li.ui-neg i{background:var(--ui-red)}
+.ui-tl i{width:9px;height:9px;border-radius:50%;background:var(--secondary);justify-self:center;align-self:baseline;top:1.5px;position:relative;z-index:1;box-shadow:0 0 0 3px var(--ui-panel)}
+.ui-tl li.ui-pos i{background:var(--success)}.ui-tl li.ui-neg i{background:var(--error)}
 .ui-tl b{font-size:10px;letter-spacing:.12em;color:var(--ui-dim);font-weight:600;margin-right:4px;text-transform:uppercase}
 @media(prefers-reduced-motion:reduce){.ui-rf,.ui-ck,.ui-ring.ui-pop svg{animation:none!important;transition:none!important}}
 
 /* fluid: exits, new entries, charts */
-.ui-ghost-bd{position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:2147483645;pointer-events:none;animation:ui-out .26s ease forwards}
+.ui-ghost-bd{position:fixed;inset:0;background:var(--scrim);z-index:2147483645;pointer-events:none;animation:ui-out .26s ease forwards}
 /* the exit copy outranks the dialogs' own entrance rules, and its insides don't replay their fade-in */
 .ui-ghost.ui-ghost-box{animation:ui-box-out .22s cubic-bezier(.4,0,1,1) forwards!important}
 .ui-ghost.ui-ghost-sheet{animation:ui-sheet-out .3s cubic-bezier(.4,0,1,1) forwards!important}
@@ -163,8 +207,8 @@ dialog.ui-cf{color:var(--ui-tx);font-family:var(--ui-f);border:1px solid var(--u
 @keyframes ui-sheet-out{to{opacity:0;transform:translateY(40%)}}
 .ui-tl li.ui-new{animation:ui-new 1.6s var(--ui-ease)}
 .ui-tl li.ui-new i,.tl li.ui-new i{animation:ui-dot 1.6s ease}
-@keyframes ui-new{from{opacity:0;transform:translateX(-10px);background:rgba(255,176,0,.14)}30%{opacity:1;transform:none;background:rgba(255,176,0,.10)}to{background:transparent}}
-@keyframes ui-dot{0%,40%{box-shadow:0 0 0 3px var(--ui-panel),0 0 12px 3px var(--ui-amber)}}
+@keyframes ui-new{from{opacity:0;transform:translateX(-10px);background:var(--accent-soft)}30%{opacity:1;transform:none;background:var(--accent-soft)}to{background:transparent}}
+@keyframes ui-dot{0%,40%{box-shadow:0 0 0 3px var(--ui-panel),0 0 0 7px var(--accent-soft)}}
 /* lines wipe in left to right. A clip, not a stroke dash: dashes are measured wrongly on stretched charts
    (preserveAspectRatio=none + non-scaling strokes), which left lines stopping short on wide screens */
 svg.ui-draw .ui-trace{animation:ui-trace .9s var(--ui-ease) both}
@@ -181,7 +225,7 @@ svg.ui-draw{will-change:transform}
 
 /* hero log: today's entries inside the Today card, under the rings */
 .ui-hero-side{margin:14px 0 0;padding-top:8px;border-top:1px solid var(--ui-line)}.ui-hero-side.ui-empty{display:none}
-.ui-hero-side-h{display:none}.ui-hero-log{margin:0}.ui-hero-log::before{top:8px}.ui-hero .ui-tl i{box-shadow:0 0 0 3px #0e0d0a}
+.ui-hero-side-h{display:none}.ui-hero-log{margin:0}.ui-hero-log::before{top:8px}.ui-hero .ui-tl i{box-shadow:0 0 0 3px var(--surface)}
 
 /* app header on phones: name and sync status on one row, the buttons in one swipeable row under it */
 @media (max-width:640px){
@@ -199,10 +243,10 @@ svg.ui-draw{will-change:transform}
   .ui-hero{display:grid;grid-template-columns:minmax(0,520px) minmax(240px,1fr);column-gap:40px;align-items:start}
   .ui-hero>*{grid-column:1}
   .ui-hero>.ui-hero-side,.ui-hero>.ui-hero-side.ui-empty{grid-column:2;grid-row:1/span 3;align-self:stretch;display:flex;flex-direction:column;margin:0;
-    padding:12px 16px 10px;border:1px solid var(--ui-line);background:rgba(0,0,0,.22)}
-  .ui-hero-side-h{display:flex;justify-content:space-between;gap:12px;margin-bottom:6px;font:600 10.5px var(--ui-f);letter-spacing:.14em;text-transform:uppercase;color:var(--ui-amber)}
+    padding:12px 16px 10px;border:1px solid var(--ui-line);background:var(--raised)}
+  .ui-hero-side-h{display:flex;justify-content:space-between;gap:12px;margin-bottom:6px;font:600 10.5px var(--ui-f);letter-spacing:.14em;text-transform:uppercase;color:var(--text-primary)}
   .ui-hero-side-h span+span{color:var(--ui-dim);font-weight:500;letter-spacing:.08em}
-  .ui-hero .ui-tl i{box-shadow:0 0 0 3px #090908}
+  .ui-hero .ui-tl i{box-shadow:0 0 0 3px var(--raised)}
   .ui-hero-none{flex:1;display:flex;align-items:center;justify-content:center;text-align:center;padding:12px}
 }
 
@@ -214,7 +258,7 @@ svg.ui-draw{will-change:transform}
 .ui-set small{display:block;margin-top:2px;font-size:11px;color:var(--ui-dim);line-height:1.4}
 .ui-set-btns{display:flex;gap:6px;flex-wrap:wrap;justify-content:flex-end;flex:none}
 .ui-set select{flex:none}
-button.ui-danger{color:var(--ui-red);border-color:rgba(255,69,69,.45)}button.ui-danger:hover{background:rgba(255,69,69,.1);border-color:var(--ui-red);color:var(--ui-red)}
+button.ui-danger{color:var(--error-text);border-color:var(--error-line)}button.ui-danger:hover{background:var(--error-soft);border-color:var(--error);color:var(--error-text)}
 
 /* layout rhythm shared by the apps' stat grids (wide screens). Every multi-column row sits on the same four columns
    as the stat cards, so card edges line up from row to row: pairs (.g21 / .gm) are 3/4 + 1/4 (1/2 + 1/2 below 1280 px), three-card rows (.g3)
@@ -242,31 +286,31 @@ button.ui-danger{color:var(--ui-red);border-color:rgba(255,69,69,.45)}button.ui-
 /* column filters: the header button and its menu */
 .ui-lf{all:unset;box-sizing:border-box;display:inline-flex;align-items:center;gap:5px;cursor:pointer;font:inherit;color:inherit;letter-spacing:inherit;text-transform:inherit;min-height:24px;white-space:nowrap}
 .ui-lf i{font-style:normal;font-size:9px;color:var(--ui-line2);transition:color .15s}
-.ui-lf:hover,.ui-lf:hover i,.ui-lf[aria-expanded=true] i{color:var(--ui-amber)}
-.ui-lf.ui-on,.ui-lf.ui-on i{color:var(--ui-amber)}
-.ui-lf:focus-visible{outline:1px solid var(--ui-amber);outline-offset:2px}
-.ui-lf-clear{all:unset;cursor:pointer;color:var(--ui-amber);font:inherit;margin-left:10px;text-decoration:underline;text-underline-offset:3px}
-.ui-lf-clear:focus-visible{outline:1px solid var(--ui-amber);outline-offset:2px}
-.ui-lf-pop{position:fixed;z-index:60;width:min(260px,calc(100vw - 16px));max-height:min(440px,calc(100vh - 16px));display:flex;flex-direction:column;background:var(--ui-panel);border:1px solid var(--ui-line2);box-shadow:0 12px 32px rgba(0,0,0,.6);font:12px var(--ui-f);color:var(--ui-tx);text-transform:none;letter-spacing:0;animation:ui-lf-in .14s var(--ui-ease)}
+.ui-lf:hover,.ui-lf:hover i,.ui-lf[aria-expanded=true] i{color:var(--accent-text)}
+.ui-lf.ui-on,.ui-lf.ui-on i{color:var(--accent-text)}
+.ui-lf:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
+.ui-lf-clear{all:unset;cursor:pointer;color:var(--accent-text);font:inherit;margin-left:10px;text-decoration:underline;text-underline-offset:3px}
+.ui-lf-clear:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
+.ui-lf-pop{position:fixed;z-index:60;width:min(260px,calc(100vw - 16px));max-height:min(440px,calc(100vh - 16px));display:flex;flex-direction:column;background:var(--ui-panel);border:1px solid var(--ui-line2);box-shadow:var(--shadow-pop);font:12px var(--ui-f);color:var(--ui-tx);text-transform:none;letter-spacing:0;animation:ui-lf-in .14s var(--ui-ease)}
 @keyframes ui-lf-in{from{opacity:0;transform:translateY(-4px)}}
 .ui-lf-pop button{all:unset;box-sizing:border-box;cursor:pointer;text-align:center;padding:8px 10px;border:1px solid var(--ui-line2);font:inherit;color:var(--ui-tx)}
-.ui-lf-pop button:hover,.ui-lf-pop button:focus-visible{border-color:var(--ui-amber);color:var(--ui-amber)}
-.ui-lf-pop button[aria-pressed=true]{background:var(--ui-amber);border-color:var(--ui-amber);color:var(--ui-on-amber)}
+.ui-lf-pop button:hover,.ui-lf-pop button:focus-visible{border-color:var(--accent);color:var(--accent-text)}
+.ui-lf-pop button[aria-pressed=true]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
 .ui-lf-s{display:grid;grid-template-columns:1fr 1fr;gap:6px;padding:10px;border-bottom:1px solid var(--ui-line)}
 .ui-lf-q{margin:10px 10px 4px;padding:7px 9px;background:var(--ui-bg);border:1px solid var(--ui-line2);color:var(--ui-tx);font:inherit;outline:0}
-.ui-lf-q:focus{border-color:var(--ui-amber)}
+.ui-lf-q:focus{border-color:var(--accent)}
 .ui-lf-vals{overflow:auto;flex:1 1 auto;min-height:0;padding:0 0 4px}
 .ui-lf-pop label.ui-lf-v{display:flex;flex-direction:row;align-items:center;justify-content:flex-start;gap:8px;margin:0;padding:6px 10px;cursor:pointer;min-height:30px;box-sizing:border-box;text-align:left;text-transform:none;letter-spacing:0;font:12px var(--ui-f);color:var(--ui-tx)}
 .ui-lf-v[hidden]{display:none}
-.ui-lf-v:hover{background:#111}
+.ui-lf-v:hover{background:var(--hover)}
 .ui-lf-v span{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .ui-lf-v em{color:var(--ui-dim)}.ui-lf-v small{color:var(--ui-dim);font-size:11px}
 .ui-lf-pop .ui-lf-allv{border-bottom:1px solid var(--ui-line);color:var(--ui-dim);margin-top:4px}
-.ui-lf-pop .ui-lf-v input{accent-color:var(--ui-amber);margin:0;padding:0;width:14px;height:14px;min-height:0;flex:none;appearance:auto;-webkit-appearance:checkbox}
+.ui-lf-pop .ui-lf-v input{accent-color:var(--accent);margin:0;padding:0;width:14px;height:14px;min-height:0;flex:none;appearance:auto;-webkit-appearance:checkbox}
 .ui-lf-rng{display:grid;grid-template-columns:1fr 1fr;gap:8px;padding:10px}
 .ui-lf-pop .ui-lf-rng label{display:flex;flex-direction:column;align-items:stretch;gap:4px;margin:0;color:var(--ui-dim);font:11px var(--ui-f);text-align:left;text-transform:none;letter-spacing:0}
 .ui-lf-rng input{padding:7px 9px;background:var(--ui-bg);border:1px solid var(--ui-line2);color:var(--ui-tx);font:inherit;outline:0;width:100%;box-sizing:border-box}
-.ui-lf-rng input:focus{border-color:var(--ui-amber)}
+.ui-lf-rng input:focus{border-color:var(--accent)}
 .ui-lf-ft{display:flex;justify-content:space-between;gap:6px;padding:10px;border-top:1px solid var(--ui-line)}
 .ui-lf-ft button{flex:1}
 @media (pointer:coarse){.ui-lf{min-height:32px}.ui-lf-v{min-height:40px}}
@@ -277,56 +321,37 @@ button.ui-danger{color:var(--ui-red);border-color:rgba(255,69,69,.45)}button.ui-
    tablet), so no figure is cut off; three stay in a row */
 .ui-stats-c{container-type:inline-size}
 @container (max-width:480px){.ui-stats:has(>:nth-child(4)){grid-template-columns:repeat(2,minmax(0,1fr))}}
-.ui-stat{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:3px;min-width:0;padding:10px clamp(8px,2.4vw,12px);border:1px solid var(--ui-line);background:rgba(255,255,255,.02);font-family:var(--ui-f);color:var(--ui-tx);border-radius:12px}
+.ui-stat{all:unset;box-sizing:border-box;display:flex;flex-direction:column;gap:3px;min-width:0;padding:10px clamp(8px,2.4vw,12px);border:1px solid var(--ui-line);background:var(--raised);font-family:var(--ui-f);color:var(--ui-tx);border-radius:12px}
 .ui-stat .ui-stat-l{font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ui-dim)}
-.ui-stat b{font-size:clamp(15px,4.2vw,21px);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ui-stat b.ui-pos{color:var(--ui-green)}.ui-stat b.ui-neg{color:var(--ui-red)}
+.ui-stat b{font-size:clamp(15px,4.2vw,21px);font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}.ui-stat b.ui-pos{color:var(--success-text)}.ui-stat b.ui-neg{color:var(--error-text)}
 .ui-stat small{font-size:11px;line-height:1.35;color:var(--ui-dim)}
 button.ui-stat{cursor:pointer;transition:border-color .2s,background-color .2s,transform .3s cubic-bezier(.32,.72,0,1)}
-button.ui-stat:hover{border-color:var(--ui-line2);background:rgba(255,255,255,.04)}button.ui-stat:active{transform:scale(.97)}
-button.ui-stat:focus-visible{outline:1px solid var(--ui-amber);outline-offset:2px}
-.ui-stat.ui-on{border-color:rgba(255,176,0,.55);background:rgba(255,176,0,.07)}.ui-stat.ui-on .ui-stat-l{color:var(--ui-amber)}
+button.ui-stat:hover{border-color:var(--ui-line2);background:var(--accent-soft)}button.ui-stat:active{transform:scale(.97)}
+button.ui-stat:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
+.ui-stat.ui-on{border-color:var(--accent-line);background:var(--accent-soft)}.ui-stat.ui-on .ui-stat-l{color:var(--accent-text)}
 
-/* ---------- glass: rounded, layered, translucent surfaces (the terminal look stays: mono, amber on black) ----------
-   Scoped with "html body" so it wins over each app's own (later, equal-weight) rules. Real backdrop blur only on what
-   floats over content (dialogs, sheets, menus, toasts, banners); cards get depth from translucency and light, which
-   keeps long dashboards smooth to scroll on phones. */
-:root{--g-r:16px;--g-r2:12px;--g-r3:10px;--g-line:rgba(255,255,255,.075);--g-line2:rgba(255,255,255,.13);
-  --g-card:linear-gradient(180deg,rgba(255,255,255,.04),rgba(255,255,255,.012) 40%),rgba(13,13,13,.78);
-  --g-float:rgba(18,18,18,.72);--g-blur:saturate(170%) blur(24px);--g-hi:inset 0 1px 0 rgba(255,255,255,.055);
-  --g-drop:0 18px 40px -22px rgba(0,0,0,.95);--g-spring:cubic-bezier(.32,.72,0,1)}
-/* a faint amber glow behind everything, so the glass has something to pick up. With a mouse it drifts after the
-   pointer (ui.js sets --gx/--gy); registered so the move eases instead of jumping. Not inherited: only the page
-   background and the light over it read them (they inherit explicitly), so a mouse move restyles those two, not
-   every element on the page (in JOURNAL that was ~1,700 elements a frame, 30x the style work) */
-@property --gx{syntax:'<length-percentage>';inherits:false;initial-value:8%}
-@property --gy{syntax:'<length-percentage>';inherits:false;initial-value:-12%}
-html body,html body::after{--gx:inherit;--gy:inherit}
-html{transition:--gx 1.2s var(--g-spring),--gy 1.2s var(--g-spring)}
-@media (prefers-reduced-motion:reduce){html{transition:none}}
-/* The glow is one screen tall, at the top of the page. Left to size itself it stretches over the whole document, so it
-   was a different picture whenever the page got longer or shorter, and a card changing height (the calendar going
-   from five weeks to six) made the browser redraw every pixel of the page: 150-380 ms a tap, more than the app's
-   own work. It also slid down the page as a year of data made it longer; now it sits where an empty app shows it */
-html body{background:radial-gradient(1100px 620px at var(--gx) var(--gy),rgba(255,176,0,.075),transparent 62%) 0 0/100% max(100vh,700px) no-repeat,
-  radial-gradient(900px 560px at 108% 4%,rgba(255,122,51,.05),transparent 60%) 0 0/100% max(100vh,700px) no-repeat,var(--bg,#070707)}
-/* and a soft light over the whole page, cards included, that sits on the pointer while a mouse is moving */
-html body::after{content:'';position:fixed;inset:0;z-index:40;pointer-events:none;opacity:0;mix-blend-mode:screen;
-  background:radial-gradient(520px circle at var(--gx) var(--gy),rgba(255,176,0,.075),rgba(255,176,0,.025) 45%,transparent 70%);transition:opacity .6s}
-html.g-ptr body::after{opacity:1}
-/* only a mouse shows it (ui.js), so a touch screen doesn't carry a screen-sized blended layer it never sees */
-@media not (pointer:fine){html body::after{display:none}}
-@media (prefers-reduced-transparency:reduce){html body::after{display:none}}
+/* ---------- surfaces: rounded, layered (the terminal look stays in the type: mono, prompts, the cursor) ----------
+   Scoped with "html body" so it wins over each app's own (later, equal-weight) rules. Cards are flat: the page is
+   --background, a card --surface, and that step is the depth. Real backdrop blur only on what floats over content
+   (dialogs, sheets, menus, toasts, the header), which keeps long dashboards smooth to scroll on phones. */
+:root{--g-r:16px;--g-r2:12px;--g-r3:10px;--g-line:transparent;--g-line2:var(--border);
+  --g-card:var(--surface);--g-float:var(--float);--g-blur:saturate(170%) blur(24px);--g-hi:0 0 transparent;
+  --g-drop:0 0 transparent;--g-spring:cubic-bezier(.32,.72,0,1)}
+/* The page is one flat colour. (It used to carry a glow that followed the mouse; a picture behind the cards is also
+   what made the browser redraw every pixel when a card changed height, so none may be sized to the document: the
+   release check holds that.) */
+html body{background:var(--background)}
 /* cards */
 html body :is(.card,.ui-card){border-radius:var(--g-r);background:var(--g-card);border-color:var(--g-line);box-shadow:var(--g-hi),var(--g-drop);
   transition:border-color .3s var(--g-spring),box-shadow .3s var(--g-spring)}
-html body .ui-hero{border-radius:calc(var(--g-r) + 4px);border-color:var(--g-line);box-shadow:var(--g-hi),0 24px 60px -30px rgba(255,176,0,.25),var(--g-drop)}
+html body .ui-hero{border-radius:calc(var(--g-r) + 4px);border-color:var(--g-line);box-shadow:none}
 html body :is(.ui-hero-side,.ui-hero-none){border-radius:var(--g-r2)}
-html body :is(.card,.ui-card).empty{border-style:dashed}
+html body :is(.card,.ui-card).empty{border-style:dashed;border-color:var(--border)}
 /* TODAY's own surfaces (check-in, hero) keep their colours and get the same corners and depth */
 html body #today :is(.ci,.hero){border-radius:calc(var(--g-r) + 4px);box-shadow:var(--g-hi),var(--g-drop)}
 /* segmented controls read as one pill, not separate keys */
 html body .ui-seg>button{border-radius:0}html body .ui-seg>button:first-child{border-radius:var(--g-r3) 0 0 var(--g-r3)}html body .ui-seg>button:last-child{border-radius:0 var(--g-r3) var(--g-r3) 0}
-@media (hover:hover){html body :is(.card,.ui-card):hover{border-color:var(--g-line2);box-shadow:var(--g-hi),0 22px 46px -24px rgba(0,0,0,1)}}
+@media (hover:hover){html body :is(.card,.ui-card):hover{border-color:var(--g-line2);}}
 /* a card's footer and the cells inside follow its corners */
 html body .card>.ft{border-radius:0 0 var(--g-r) var(--g-r)}
 html body :is(.cd,.cell,.pday){border-radius:var(--g-r3)}
@@ -336,34 +361,34 @@ html body .hb,html body .hb i,html body .ui-meter-bar,html body .ui-meter-bar i,
 html body svg.chart rect:not(.hit){rx:2px}
 /* controls */
 html body :is(button,.btn,select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea):not(.ui-lf):not(.tl-go):not(.cd):not(.cell):not(.ui-seg>*):not(nav *):not(.ui-stat){border-radius:var(--g-r3)}
-html body :is(select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea){background-color:rgba(255,255,255,.035);border-color:var(--g-line2)}
+html body :is(select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea){background-color:var(--raised);border-color:var(--g-line2)}
 /* dropdowns draw their own chevron, so they look the same on iPhone, Android and desktop (each browser's native arrow
    differs, and iOS draws its own grey control); the native picker still opens */
 html body select:not([multiple]):not([size]){-webkit-appearance:none;appearance:none;padding-right:32px;background-repeat:no-repeat;background-position:right 12px center;background-size:10px 6px;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238f8a7e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2386868B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 /* a text field with suggestions (input list=…) gets the same chevron; Chrome's own ▼ stays clickable over it, unseen */
 html body input[list]{padding-right:32px;background-repeat:no-repeat;background-position:right 12px center;background-size:10px 6px;
-  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%238f8a7e' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2386868B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
 html body input[list]::-webkit-calendar-picker-indicator{opacity:0;cursor:pointer}
-html body select:not([multiple]):not([size]):focus{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%23ffb000' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
-/* the field being typed in keeps its amber edge (the glass rule above outranks the apps' own :focus colours) */
-html body :is(select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea):focus{border-color:var(--ui-amber,#ffb000)}
-/* the open list of a dropdown: Chrome on Windows paints it from the select's own, nearly clear background over white,
-   which leaves light text on light grey; options get a solid dark background instead */
-html body select :is(option,optgroup){background-color:#141311;color:#d9d5c8}
-html body select option:checked{background-color:#2a2416;color:#ffb000}
-html body select option:disabled{color:#6f6a5f}
+html body select:not([multiple]):not([size]):focus{background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%230071E3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E")}
+/* the field being typed in keeps its accent edge (the rule above outranks the apps' own :focus colours) */
+html body :is(select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea):focus{border-color:var(--accent)}
+/* the open list of a dropdown: Chrome on Windows paints it from the select's own background, so options get a solid
+   one of their own */
+html body select :is(option,optgroup){background-color:var(--float-solid);color:var(--text-primary)}
+html body select option:checked{background-color:var(--accent-soft);color:var(--accent-text)}
+html body select option:disabled{color:var(--text-muted)}
 html body :is(.pill,.chip,.chips button,.xf button,.ui-status){border-radius:999px}
 html body :is(button,.btn){transition:transform .35s var(--g-spring),background-color .2s,border-color .2s,color .2s,box-shadow .2s}
 html body :is(button,.btn):not(nav *):active:not(:disabled){transform:scale(.965)}
-html body :is(button.pri,.btn.go,.ui-btn.ui-primary){box-shadow:0 8px 22px -10px rgba(255,176,0,.55)}
+html body :is(button.pri,.btn.go,.ui-btn.ui-primary){box-shadow:none}
 /* floating layers: real glass */
 html body :is(dialog,.modal>.box,#isx-sd,.ui-lf-pop){border-radius:20px;background:var(--g-float);-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);
-  border-color:rgba(255,176,0,.32);box-shadow:var(--g-hi),0 30px 80px -20px rgba(0,0,0,.85)}
+  border-color:var(--border-soft);box-shadow:var(--shadow-float)}
 html body .ui-lf-pop{border-radius:14px;border-color:var(--g-line2)}
-html body dialog::backdrop{background:rgba(0,0,0,.42);-webkit-backdrop-filter:blur(8px) saturate(120%);backdrop-filter:blur(8px) saturate(120%)}
-html body .modal{background:rgba(0,0,0,.42);-webkit-backdrop-filter:blur(8px) saturate(120%);backdrop-filter:blur(8px) saturate(120%)}
-html body :is(.ui-toast,.toast,#isx-full){border-radius:14px;background:rgba(20,20,20,.74);-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);box-shadow:var(--g-hi),0 18px 40px -12px rgba(0,0,0,.8)}
+html body dialog::backdrop{background:var(--scrim);-webkit-backdrop-filter:blur(8px) saturate(120%);backdrop-filter:blur(8px) saturate(120%)}
+html body .modal{background:var(--scrim);-webkit-backdrop-filter:blur(8px) saturate(120%);backdrop-filter:blur(8px) saturate(120%)}
+html body :is(.ui-toast,.toast,#isx-full){border-radius:14px;background:var(--float);-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur);box-shadow:var(--shadow-pop)}
 /* phones: dialogs rise as a sheet from the bottom, with a grabber */
 @media (max-width:640px){
   html body dialog[open]:not(#isx-sd){margin:auto 0 0;width:100%;max-width:100%;max-height:calc(100dvh - 24px);border-radius:22px 22px 0 0;border-width:1px 0 0;padding-top:26px;
@@ -371,10 +396,10 @@ html body :is(.ui-toast,.toast,#isx-full){border-radius:14px;background:rgba(20,
   /* a full-screen sheet's action bar is pinned to the bottom and pads for the home indicator itself: without this the
      sheet's own padding left a strip of scrolling content showing under the buttons */
   html body dialog.ss[open]:not(#isx-sd){padding-bottom:0}
-  html body dialog[open]:not(#isx-sd)::before{content:'';position:absolute;top:9px;left:50%;width:38px;height:5px;margin-left:-19px;border-radius:3px;background:rgba(255,255,255,.22)}
+  html body dialog[open]:not(#isx-sd)::before{content:'';position:absolute;top:9px;left:50%;width:38px;height:5px;margin-left:-19px;border-radius:3px;background:var(--border)}
   html body .modal>.box{border-radius:22px 22px 0 0;align-self:flex-end;animation:g-sheet .45s var(--g-spring) both}
   html body .modal>.box{position:relative;padding-top:26px;border-width:1px 0 0;max-height:calc(100dvh - 24px);overflow:auto}
-  html body .modal>.box::before{content:'';position:absolute;top:9px;left:50%;width:38px;height:5px;margin-left:-19px;border-radius:3px;background:rgba(255,255,255,.22)}
+  html body .modal>.box::before{content:'';position:absolute;top:9px;left:50%;width:38px;height:5px;margin-left:-19px;border-radius:3px;background:var(--border)}
   html body .modal{align-items:flex-end;padding:0}
 }
 @keyframes g-sheet{from{transform:translateY(40px);opacity:0}}
@@ -386,9 +411,9 @@ html.g-boot body :is(.g,.grid,section)>:is(.card,.ui-card,.ui-hero):nth-child(3)
 html.g-boot body :is(.g,.grid,section)>:is(.card,.ui-card,.ui-hero):nth-child(4){animation-delay:.12s}
 @keyframes g-in{from{opacity:0;transform:translateY(10px) scale(.985)}}
 /* accessibility: solid surfaces when asked for less transparency; no movement when asked for less motion */
-@media (prefers-reduced-transparency:reduce){html body :is(dialog,.modal>.box,#isx-sd,.ui-lf-pop,.ui-toast,.toast,#isx-full){background:#141414;-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media (prefers-reduced-transparency:reduce){html body :is(dialog,.modal>.box,#isx-sd,.ui-lf-pop,.ui-toast,.toast,#isx-full){background:var(--float-solid);-webkit-backdrop-filter:none;backdrop-filter:none}}
 @media (prefers-reduced-motion:reduce){html body :is(.card,.ui-card,.ui-hero,dialog,.modal>.box){animation:none!important}html body :is(button,.btn):active{transform:none}}
-@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){html body :is(dialog,.modal>.box,#isx-sd,.ui-lf-pop,.ui-toast,.toast,#isx-full){background:#141414}}
+@supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){html body :is(dialog,.modal>.box,#isx-sd,.ui-lf-pop,.ui-toast,.toast,#isx-full){background:var(--float-solid)}}
 
 /* touch screens: targets a thumb can hit (Apple's guideline is 44 pt). The labelled buttons grow to 44 px; small
    controls inside dense rows (row actions, tap-to-filter legend rows, month arrows) get as much as the row allows.
@@ -439,7 +464,7 @@ html body .card:not(:has(:is(.lg,.lr)>em:not(:empty))) :is(.lg,.lr)>em{display:n
 html body :is(#app,#top) .tw:has(>table:only-child){display:grid;grid-template-columns:minmax(100%,max-content)}
 html body :is(#app,#top) .tw:has(>table:only-child)>table{grid-area:1/1}
 html body :is(#app,#top) .tw:has(>table:only-child)::after{content:'';grid-area:1/1;justify-self:end;position:sticky;right:0;width:44px;z-index:1;pointer-events:none;opacity:0;
-  background:linear-gradient(90deg,rgba(13,13,13,0),#0d0d0d 85%)}
+  background:linear-gradient(90deg,transparent,var(--surface) 85%)}
 @supports (animation-timeline:scroll()){
   html body :is(#app,#top) .tw:has(>table:only-child)::after{animation:ui-tw-more linear both;animation-timeline:scroll(nearest inline)}
   @keyframes ui-tw-more{0%,88%{opacity:1}100%{opacity:0}}
@@ -453,7 +478,7 @@ html body :is(#app,#top) .tw:has(>table:only-child)::after{content:'';grid-area:
 /* taps: no grey browser flash (iOS draws it square, over rounded controls, and late); buttons already shrink a little when
    pressed, and rows, cells and tap-to-filter items light up instead */
 html{-webkit-tap-highlight-color:transparent}
-html body :is(.pick,[role=button],div[data-act],div[data-a],span[data-act],li[data-act],tr[data-act],tr[data-a]):not(button):active{filter:brightness(1.35)}
+html body :is(.pick,[role=button],div[data-act],div[data-a],span[data-act],li[data-act],tr[data-act],tr[data-a]):not(button):active{filter:var(--press)}
 /* the apps' own toasts (#toast): above the iPhone's home indicator in a standalone app, and as wide as their text
    (centred at left:50% they could only use half the screen, so short messages wrapped) */
 html body #toast{margin-bottom:env(safe-area-inset-bottom);width:max-content;box-sizing:border-box}
@@ -463,33 +488,17 @@ html body .toast{width:max-content;box-sizing:border-box}
    works, since nothing blocks it in the viewport tag */
 @media (pointer:coarse){html body :is(input:not([type=checkbox]):not([type=radio]):not([type=range]),select,textarea){font-size:16px!important}}
 
-/* ---------- glass on colour: green, red and amber fills are see-through tinted glass with a light top edge ---------- */
-html body{--gl-sheen:linear-gradient(180deg,rgba(255,255,255,.16),rgba(255,255,255,0) 50%);
-  --gl-g:rgba(51,255,102,.28);--gl-r:rgba(255,69,69,.28);--gl-a:rgba(255,176,0,.28)}
-/* solid amber buttons and the chosen segment become amber-tinted glass with dark text */
-html body :is(button.pri,.btn.go,.ui-btn.ui-primary),html body .ui-seg>button[aria-checked=true]{background:var(--gl-sheen),rgba(255,176,0,.9);border-color:rgba(255,176,0,.95);color:#000;
-  box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 6px 18px -12px var(--gl-a)}
-html body :is(button.pri,.btn.go,.ui-btn.ui-primary):hover:not(:disabled){background:var(--gl-sheen),rgba(255,176,0,1);color:#000;filter:none}
-html body .ui-btn.ui-danger-fill{background:var(--gl-sheen),rgba(255,90,90,.9);border-color:rgba(255,90,90,.95);color:#000;box-shadow:inset 0 1px 0 rgba(255,255,255,.14),0 6px 18px -12px rgba(255,69,69,.35)}
-/* bars and dots: the fill shows a little of the card through it */
-html body :is(.hb i,.ui-meter-bar i,.ui-week i:is(.ui-on,.ui-pos,.ui-neg)){background-image:var(--gl-sheen);opacity:.78;box-shadow:inset 0 1px 0 rgba(255,255,255,.25)}
-html body .dot:is(.bgp,.bgn,.bga,.bgm,[style]){opacity:.85}
-/* calendar days that are green, red or amber: a light inner edge */
-html body :is(.cd.p,.cd.n,.cell.on){background-image:linear-gradient(180deg,rgba(255,255,255,.05),rgba(255,255,255,0) 55%);box-shadow:inset 0 1px 0 rgba(255,255,255,.06)}
-/* charts, gauges and rings: a faint edge glow */
-html body svg.chart :is(.fp,.fn,.fa),html body svg.chart:is(.cg,.cr) .ln{opacity:.85}
-html body .gauge :is(.sg,path[stroke="#33ff66"]),html body :is(.ui-ring.ui-done .ui-rf,.ring.done .rf){filter:drop-shadow(0 0 2px var(--gl-g))}
-html body .gauge :is(.sr,path[stroke="#ff4545"]){filter:drop-shadow(0 0 2px var(--gl-r))}
-html body .gauge path[stroke="#ffb000"],html body :is(.ui-ring:not(.ui-done) .ui-rf,.ring:not(.done):not(.rest) .rf){filter:drop-shadow(0 0 2px var(--gl-a))}
-@media (prefers-reduced-transparency:reduce){html body :is(.gauge path,.ui-rf,.rf){filter:none}html body :is(.hb i,.ui-meter-bar i,.ui-week i,.dot,svg.chart *){opacity:1}
-  html body :is(button.pri,.btn.go,.ui-btn.ui-primary),html body .ui-seg>button[aria-checked=true]{background:#ffb000;color:#000}}
+/* ---------- fills: the main button and the chosen segment are solid accent with --on-accent text ---------- */
+html body :is(button.pri,.btn.go,.ui-btn.ui-primary),html body .ui-seg>button[aria-checked=true]{background:var(--accent);border-color:var(--accent);color:var(--on-accent);box-shadow:none}
+html body :is(button.pri,.btn.go,.ui-btn.ui-primary):hover:not(:disabled){background:var(--accent-hover);border-color:var(--accent-hover);color:var(--on-accent);filter:none}
+html body .ui-btn.ui-danger-fill{background:var(--error-fill);border-color:var(--error-fill);color:#fff;box-shadow:none}
 /* no double-tap zoom anywhere */
 html{touch-action:manipulation}
 /* ---------- app header: a rounded frosted bar pinned to the top, the rarely used buttons behind ··· ---------- */
 html body header.top:not(.th){position:sticky;top:8px;z-index:7;padding:10px 14px;margin-top:-6px;gap:12px;border-bottom-color:transparent}
 /* the glass sits on a rounded layer behind the header, so it floats like the tab bar */
-html body header.top:not(.th)::before{content:'';position:absolute;z-index:-1;inset:0;border-radius:18px;background:rgba(16,15,13,.72);
-  border:1px solid rgba(255,255,255,.08);box-shadow:0 12px 30px -18px rgba(0,0,0,.9),inset 0 1px 0 rgba(255,255,255,.05);
+html body header.top:not(.th)::before{content:'';position:absolute;z-index:-1;inset:0;border-radius:18px;background:var(--bar);
+  border:1px solid var(--border-soft);box-shadow:var(--shadow-bar);
   -webkit-backdrop-filter:saturate(1.6) blur(18px);backdrop-filter:saturate(1.6) blur(18px)}
 html body header.top:not(.th) .brand{line-height:22px}
 .ui-more{position:relative;flex:none;display:flex;align-self:stretch}
@@ -498,24 +507,25 @@ html body .ui-more-btn{min-width:44px;display:inline-flex;align-items:center;jus
 .ui-more-h,.ui-more-v{display:block;flex:none;background:radial-gradient(circle,currentColor 1.7px,transparent 2.2px)}
 .ui-more-h{width:18px;height:6px;background-size:6px 6px;background-repeat:repeat-x}
 .ui-more-v{width:6px;height:18px;background-size:6px 6px;background-repeat:repeat-y}
-html body .ui-more-btn[aria-expanded=true]{background:rgba(255,255,255,.08)}
+html body .ui-more-btn[aria-expanded=true]{background:var(--hover)}
 .ui-more-pop{position:absolute;right:0;top:calc(100% + 8px);z-index:30;min-width:190px;padding:6px;display:flex;flex-direction:column;gap:2px;
-  background:rgba(22,21,19,.95);-webkit-backdrop-filter:saturate(1.6) blur(22px);backdrop-filter:saturate(1.6) blur(22px);
-  border:1px solid rgba(255,255,255,.1);border-radius:14px;box-shadow:0 18px 40px -12px rgba(0,0,0,.8);animation:ui-more-in .16s var(--ui-ease,ease-out)}
+  background:var(--float);-webkit-backdrop-filter:saturate(1.6) blur(22px);backdrop-filter:saturate(1.6) blur(22px);
+  border:1px solid var(--border-soft);border-radius:14px;box-shadow:var(--shadow-pop);animation:ui-more-in .16s var(--ui-ease,ease-out)}
 .ui-more-pop[hidden]{display:none}
 html body .ui-more-pop>button{all:unset;box-sizing:border-box;display:block;width:100%;padding:11px 12px;border-radius:9px;cursor:pointer;
   font:600 11px var(--ui-f);letter-spacing:.1em;text-transform:uppercase;color:var(--ui-tx);white-space:nowrap;-webkit-tap-highlight-color:transparent}
-html body .ui-more-pop>button:hover,html body .ui-more-pop>button:focus-visible{background:rgba(255,255,255,.08)}
-html body .ui-more-pop>button:focus-visible{outline:1px solid var(--ui-amber);outline-offset:-1px}
+html body .ui-more-pop>button:hover,html body .ui-more-pop>button:focus-visible{background:var(--hover)}
+html body .ui-more-pop>button:focus-visible{outline:1px solid var(--accent);outline-offset:-1px}
 @keyframes ui-more-in{from{opacity:0;transform:translateY(-4px) scale(.98)}}
 /* phones: the same rounded bar on one line: the app name, the main button, a vertical ⋮ holding everything else, and
    the sync dot. The everyday buttons show as the first items of the menu instead. */
 .ui-more-v,html body .ui-more-pop>.ui-more-m,.ui-more-sep{display:none}
-.ui-more-sep{border:0;border-top:1px solid rgba(255,255,255,.08);margin:4px 6px}
-/* the ISIONXXX mark: the app icon's gold monogram with its black square cut away, so it sits on any header. It
-   stands in for the name in every app's header (ui.js), TODAY's and the personal homepage's. Sized in em to the text */
-.ui-brand-mark{display:inline-block;flex:none;width:1.52em;height:1.45em;margin-right:.45em;vertical-align:-.32em;background:url(data:image/png;base64,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) center/contain no-repeat}
-@media (hover:hover){html body .brand>.ui-brand-a:hover .ui-brand-mark{filter:brightness(1.25)}}
+.ui-more-sep{border:0;border-top:1px solid var(--border-soft);margin:4px 6px}
+/* the ISIONXXX mark: the app icon's monogram, drawn in --primary through its own shape (a mask), so it is black on a
+   light page and white on a dark one. It stands in for the name in every app's header (ui.js), TODAY's and the
+   personal homepage's. Sized in em to the text */
+.ui-brand-mark{display:inline-block;flex:none;width:1.52em;height:1.45em;margin-right:.45em;vertical-align:-.32em;background:var(--primary);-webkit-mask:url(data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAEwAAABICAYAAABcBhM9AAAYRElEQVR42u2c95+dVb3v39+1nmfXKZmZ9EIgRAigIAcFORQBQaQIx3IBQVA5lutRxEY5XC6CkVBUREEFRUpEWkCKoIKAIDUQJARCEloK6cnMZGbX53nWWt/7w87ldTkqQmbC5YjrD1hr7ff+1s937S38c/3F0i0pUBoV0T02ZslSoSLKwEAqUJN/4vkvsJhYZJ9Smceei6nj2G1CnpcHm6T5hLb1mdHG48ep6/34P0FR1l22GcmO2sN9zylnHbclS+86nf3HTMRVLIU0poGNCE+9Fzv/y+rvnbl46b4zpkyRRW87WBMnFpkQtzH7OQvAotuOZGrP6agpk1t5C1NpY4OvsarLG1wUwQNK+P5xW42e8ZDq3K+ffJ62v21gHbpLieXLjcxevIbbLp9G9c4r2Cb8GLN8HK4+SHuhg8nlMsVcjlIpMkSJhyAsW9Rk1cweGt///nlfvewezVYc8HYAJrc/Ueeyh/NaufE7fLj2G8pP7o8udegoRctF2rSH7rYinSHGD5gI258S1kPVW8QGls8JdD73Xuyf79L0xitfWP2x77xjC3nxH9bCmg98mHjhuZiF28MaoNsjW1soCcbEFKNu1MaU1KCIobqiwWAFUg9panDGUkk8/fcENlz06ant0x9SferEw07+x3JT7Vu5hbpZV5G/+zbMn7ZXVnkoK8QWNUACIXE0XT99aZO1RUck3tC/fjH9NXC1FNdIqVc81YYhiQ2rVjhWXj6G3rMvvPX0S+/MdMm+/xCw0ju+xIibHsfefxzMC5AEiC0goEATWANSa7JUVrBksMaqSkIjziLyUZWah1BpQiGFkCOEPC5nIRhSPMseVNrn7x5Vn7hbm7N+Mb/v499553hZ9t8OVP0Xu1NYex4yey94HvAOChF4wAEBJUOkP4AXZELK3Ggt/cUmgzQY6MsMoZaQNgKZqxNqFXylhm800GZKcB51Ac1bqnXHqt/Cigs+twMnP6B+zhd3/KCW/1uAWvXnUZpdciGF+Q8gz+6lLPCKUSUXtSxKgQAERH2AXgFnUA30FQZYFAYpDyQCjYhm4qn0JmRaRRFsU0EFFxSJIkQElznEWoiUNS+m2Ocmkj7zk6euO+Ro19X/v2Ppuu8tC6t6yScp3v4dzMrJsEbRnBeJrOIRAG1ZlohXaAYkZ9GpymDXfTyz9CJW19czsTOV5ZUGQIR2KBocqg61hhAUSQMiGc4lxO0xki/gqgkSCZEVNEpY9YhhYNGe0eDsu7V5zRXPb/jEOduMlZfeOkH96ndRXjmD3LOHwgrAOcVESGZBNoYraVmXJB7UwtaWZMoLrLY/5Q+//5V87to1/3XfCKIUlWbLJoNBRIEMl2QQlckaEYWeGFuMyPoapM0MsRFR0VKvNaj9Podd9tl3FBd8WNP7z/n3H+x9+eWnSOX/G6g5czrZ4cGTyc87EVlZhg0ecgJxJARa8SoAFsQEpSnCGEuY2sfANpfy8Eu/lENPWfA36zZdcOyBrP/9VTTWrcIawZJDQ0RpREzHe26n/uIuFNidqoCNHL7icBuaiICUckTlGLFCJBE920N5/9mu68jTYhl775sOq/L9I8mv+Tbxmm1gLUrkIbKCb1kUoeWCAcW4gJQtjIfmO69h4eTvys6HzP17Z0TE+Qwxrf4zGE8IipJgSz2M2+5+mt8/FX/WWcjSE/CDOVy3IdcTk61LcM2MrC6YYoRGCcufNIxYsltUe+Zurd5+xfz+Q8555yR5YbOD2nDbVuQen0Hh6aPgZfDqkLwVUQuJogiiEIJSbwTizFLYzuK2fYp1I8+S8f9+8+s9y0ABvGQEHKKhtTEepw1CbaSM3akmE379TcZ/aA/aJ/+esjWEukVG5Ih7ShgT0FoDX3fYSBlsOJbfEVh+9vE72DP+pProf2zOolebl38Ne9cc9L6jWDvXM9gMpGrJUmg2oNYQmk0lyaBZh3ZjiXfspXbQKVz/2b3fCKyWhQW1+JDgybDBoDYG51E8WvYAuvjMgow4cw5wkK751HGEZ75F2juFuoWoyxBqGVnNgc8gLyCBvoWeDUvG4Of/+NbTP3CsO2/p6bFMvmf4gvrX9oLmDGo370nleQjiiHIWk4FYwQTFeXABjIGiDeS6heakaxg8+AwZc/AmtXuGfKkO1gHg0Va2BKwxiBUA2erM5itBb8xVM5kw/X1073wBHZ1NbN3i45jS2AK2GBMaDm0kmLwg+YwVj2W8/JP3RUvPuktrN1z6zMs6dWg11W9Hae9/XEhlzp2svH0Plv45o6GKkwiXQfCKAmLABSXNIKeewmhDusvJUrz4mE2F1QJmyhmCAyxiFILDk+LE4e1fzxTtB6+TiTd/g/GH7UVxq7soi8WGiMJoS2FUGYnzaKaE1GNiT6XSZNXtgXUXfn6H0vQHVReeeMwx2vGGYa0/+5Nk1zxK7wMnsm5+RlIfQIIjawZcqoQAPgjeBdKGUEDoamtiVRHA64KhWrYBI6gqQRQMqA0oTUI8CHF4TWlkxJlzZNr9BzJq90/RPmEZncYS5Q1tE4oUekpICPiBBM0yTNGxZlnGysvH0D/9wqt/fvkfMq3s97pArZu+rS7/H7PYcMeVrLtnHAMr+7DWI0EJtZSQZARARHHOEztD2yiPTlhAf30d1brg62Aq7UMHJkEwxiCxtmJWyRMKHi21AL4eTWnc1TMZ9ZVdKW/zQ8rtGWVrKYwwlMcUMcUYbWaEZgYRZLnAsgcdqy/eNVp72t2a3Hb52rV/2011/df/k+r9D7D23kNYN2cdNCqI9/jUETIHzhGCR0OG84YxoyIKOzzLCnsjLzxVoL5hEhmgAXzQoQNziRBwBJsSck1CvkGIPQBW7esW4toOXyM9V3+VkR/cm/KW99AeWwiWXE+OXE8bmgVCrU7aSEkJrOtPWX4brL/wM6Ps9EdUnz3pa5dp9yugVp++n67+1GNUH5lB77wiadKPiTJcrYarVPHVGiFN0JARqgk2zTFiYpPwzvO5+b6fsOLu3ZHBSQSrqIJmIE0zVGARUVlx8SAhXyVY0BBQzRACoRC9YQWz84zZwP667n9+gfKiM3C94+mzEI0yhHqGH6jiXEDimNCRY/kLEfHikQw+eP4Fh+131AXJUzPYMGNXBu89kYGXIrwbwEYOY8A3EoJvIgjGRITUgR1Nx7QOuqf9Nh2113/mLvpljV0G72fE6AkoCXFkMZFgDDB0C4sIbZ5QrhIaCSHEiBeUAJFgcn6Tpd9Rl1yqetNtrLj6DJpLvoDWI2o5QXKKb1RRVyPyTSSfp5lLWPZHh310B0b/4UYaL3kGFvdj803i2OCDJ3hHUIcaj6rDhzzFzjF077yUUXt+W9q/cyPchC47/oOITEDUU6lYBDACJg8mGgZgkrRmk8GDRCBiiAoxg5V1pD3vr2s2ryTxw5sETT62Cvii9p90HRuePheefx99WR5TUvA5fFYnZDWCjZFCgCRh7ZxOopwhKjpC0iTNDCbaGITwhOCxtovOSZYRu/yof+KNF3SLDLxyaKnbketWXB9UEIKCoi0VtRiGHsPqg4BGiESIVTQXkDZohCZzfhgVF571Pa09OOOZPt1ik62t67v3f/3x3+1H9x5foWerteSiMt4WoaMTb0uEZoLWElQVsR6NhaAKUQSihJDhXR0XYjrGTmLi/s8w6fiPyaSbvvUqWAD5NijFQiGCfFGxecFaMBZs0Q0dWC4IwSnGGlzsCYUGEmVENk82GPPsueuZc8JBO1TP+5Xq08d/8JubJhr+4AhpyKSZF/GOk3Zn9O5X0D4yBl+GKI/EJRyW1DXJNvQT+jegeLCCmpTM1aHQxcid6oz/t5Nl8p2Hy4gznvjr304s2BzEERQLhkJBycctYcYTDR1Y1A6FUomsLgTjCLEjizICSiSWfE+Rvrm9PHmqZ843Tr7zlJ9fnWnfnptsbcVjlsrWtx/PpP0OpGurR8nn2nBpEZUyKnkcFbJmH+KbpI0a3pXonNzFmD2uZ/IpH5LRl1z5mgdYo7CxIsrFgrWC3aiohsgOHRj7zGPCey5mzI4pEhVJKxZc1CoKQ0YgxXZ4JO9YdtcanvzGVtFzJ16q/bf+YChtjoz9+d2zFszZj1G7fYWuqf1Y0433BYi7ISriMkvbqNGM33seE474pGxz90nSdvSav7uxT6Wld7ERlFPCRk+M24Ycw155jKIv/3QCfQ8dzbqnD2DwZYuaGjZSkIBmETbNYbWApoJLDF1TRrHlUYNMPPayT06fdu2vzpTBTe4P+3+6JWtnncb6BZ+guspQaivRPe1luv7lbBn/s0vf0F6Nc/aj8Og9hN5AxQuZKgWUtq0t6T4fk/znfj0swF45cPGJu7Fi9ufYsGIazcEBTORaBaw1CJa4GYErERoWMIzZu5sJRy50Y4/5XiwjhiQa6rov78PaJ75Noe0FpnzqDJFPLn/De2TT9yP68z1ob6AZWlmyZAPyDkt9n49I+dhbhhXYKwc/9YmPMfDiUfS/NA43WCUqKhjBBIvxRWItQFDShqdQGsmEQ/OMP/q2hZXDf7jdRHluUy906Jlauv1MqW8y9Gz6fkRPtoBhBBVRQxC2NlT2PUw6jv7NEGPY3yC507U3Me2LJ7DFnrfRMTFHSIr4iiBe8ZrhTR2NM+KSJTSrvHjDAE999ZBp7tTrNH3qK+feoJ2bcqGhwAIgwRAceFUVs7HCt61hh5VhqMNey/xGf2a17HzL+Wxz6EmM22khhY5usmoRaQZc5vEhQU0TzSdEuZTKknU8fZ5h3pdOOuX9P5qV6ZoD3/QpiG0oLvw/bdBGLR8FGkMuK17XBjL5R08AT+jcjx5JbeGx9C8Zh6/XiGLQ2KJRipgEqzmsWlY9uI6+xydG4x/6sQ7edHfa/tEL8yIL3xRgzmgrO4q07CFsDGQOJI03q4X9Bbh3//p63nXupxm75410TswTsi5CPSYkOUIIKA4kEOeUkFZZfMMa/vz19+de/MavNbnv5Ktma89mB+aboAoBRIOSOuH/dpDe86YCA5COw9bLe+46h3EfOYEx73maXFcPpAVCVkQlj0qr55N8IF+wNFZUef6CwNxvnnDc+LNnqS47fPMSK7Tc0Achca1XSV71NfLb5gX2CrhtL3rsMxc/fjxTPnw6I3foJTY9hLSI0RiNIZhAAKK8Idfp6H1yNfPP6WHeN87X/usu71PdcTO5pJABFQcDCVRSqCVABRgYOjDVlSN13YObJN1eeaU0ZeuZ17D9KUcxfu/rGDHRElwbvmawLkLFgvV4ych1BYibLJ3Vx7xv7tm1+Ku3auPebz/0go4eXmJNqKUw6JVapiQeGl4Iflj0MEP/omk0nrlJn/vJCZtsbe3HrZV33X06k4/+FGN3m02xuw2XFpAswmFb+pUGxCr5zpjGyjqLLkpZcMbn/7V4/i2aPH7U8A0qXSDJwAUhIKhpuWTTg2o2dGB98xo8d0uVyvOH6rJfXqYrf/8vmwxu0vmP7XvrI59l6w9Pp3O7Chp3EOoeFLxRvDhUPKYUsN11Vs9bzjPf7eD582bohpk3a3PelKG7ZF1xGfgAToTMKHWg7qBpCkMH1tklpC6wYNZSnv7lSAYeP0+Xzfya9vZ2bMqG950pTdnyql+xzWkfZ/Su11EaH5ElBagETGIQEwi5JkoN25kh+Sov3rqGZVfsgnl26O7paGVJ5yAJSq0h1B04A3k7DPIOdciFHOWeTpIVDeb/cjmLb92fweuv0vpvdt10ifrYVbLL/f+LsQd9iZHvWkSuPIosKbY0qcigsSeQgSi5HktWHSBdXR+6T4pufCag1AYD9UFHow5Jo1VyDLlwdVVBs5ZuHpUUY4qsmr+WrHdLZLf3Ao8N6frbXfoI8IguOvyzrH/uOKrrRxBCguQEa8PG50cOjKdWG4Ys6SBp+tazLAkYH8g0ojEYkdswDHpYBqjxYByqHjJHriy4bJDmBj9csVi2vfUyxhxzDCOmPo5ErdeMKgKxh5zDRwGyYQj6QSE0waVIcAQCmmU0HJAfhixJXiFXx4sD8QSTkoUGORvhKA1nwpepp79McfvfEOdigjeYSBDjCFEGNqNcUIbBaVDjUFJUE5QGIdTJyDB5P3RgkVVUHOBBPGpTVAKNdAMd03bSylPvHNYyqd2C5ByoRzWACYh4BIV06PtnRvE08dIgaJMQmq0BStbEJX4Yvg4jBCPYjaOooJ4or1TTOgvvbGOKv1D7Zj1GNXexbHH4yqHHmGKAOAGf4sUgqgQvoDFZbsiTaer1gPdNVDOCGFRotWvih+epQL2qON/ARU28JKjJIDjiWOlfUWf2z59j4S3vRpddpX0zPz/03sK23k2qaMuqVFvDWeNRO3SXdEBQQYMjmBSNE0KUEEwCuWHoJQcA5yOaSYNEa4QkIVGPIyEqBwrtOZY/toQnLlnB0oeP075L7lR30yGbfGIYEIITjBrQCNSACWDSYXFJB4TgEEkhaqC2iUYJThrQHAYL0y1eIN/1AMWuAppEqHFgMkJo4KWGj1KkKybLp8z/7dPMvrLJ8kfP1dqvf6H6whufGg0OxPimoD6AVYgVsQHiQHkYfifhEkdClcTUcNIE41rqoQhehyxZGHnPEQNy8E2XU9zxpxTHLcfku5E0jzcZGuq4UMUziJompdE5qv0VHvnF0zxxwbtZde3t2rj+P1VXv/5PmvjWQCUYR5AUHztcnGFyGRIPPYapUdSmELcSmdKasYoxSGyHIehvTPmHXbwQWKh3HL03Se/BJP3dZK6XYBugFgkBEYstQ86WWf3Yy6x7cBRTDziDbdcf5/SuMyL54Ky/e2KxCNVSg6ANQmwxsYImaCiRDoNLWq8ItvVQBN9SEgFDaGn7w6yHySHX/In2fc+hfdJDFNvKeC2SNR2YFGfqpFQIUYXceMWUGyz6wyLmnjvJ1u+5IdMb70h19k6veWJqMtLiIL5YhaiOkuDjDI2axEMfUhCcQeIcYiJMFCEmxpgIIzkIMmwW9ipoB5w6AFytD3z1YezCA6j2vwNfzQiFBpHxqFh8sYKMdOQKnhUvN6l9b1y01d4H07HHHppd81Pq0Xel84i+v9i8qglpVCHQADyxGILLCKZAPR26S+bKhszGGIlQEyG6MVYTk6Ztm3UIIntd+BJwqf7u0+9lcOkBNAZGknoHBU+IqkjksLFi1VOtOeb+cQP2j4HJ+x3B6P3314HrL5DOI699dYzJMgIJzjiMgBfFh5TUlUiHXicRAwYhMhaxeSLNSHxEbMtIs7RZgb0C7qArH9fbLp1P6b4P0Fh+EMmgJZgqkQ2EouK7EyRfw/p1pBjmP+RY/kKZKUecpmuu3Ref/4GM/2jrBfOGmsW7DJsLBEkJ6kldQmyadA1TJ6YaUA1YoygT6RlXpXPqeZS3uflNAdZKCl+oA7/RR059mg0LPkJl7TTShoOon6w9RgoxNhisyVEYF1HPBnn8xoVMeKGdift8Swfu/a107jeT6oY8ZVFU6xhnCCghNDCSETN0l/SxIaghaESuXKJ7y3sZP22GjJj+BMzkTQP2Crjdz10C/EDvPGo3qqsPpTYwkow6tpjh1WCp4xFMDIUOz5Lnl7N4Qcr2+++jK++extzrllCZMwgmwwVBRDDi8erI/NBdsiSGkBuN3fpput89XaZ874bhbIU3WYGUA6+brQ/fMI++qw+g1rsvqY9IkypiwGjAb9S6Cm2GSIssvGsxq59pIz9iCil1cgohBCJrwIATpZYMHVjbqEB5t8uZfOzZIrv1DvdQaliGdfroaWNYPe9gkv6dqTUTCBViFCMGFYMNAnEgJA4RxeZiSBxOAjYSksQxdcp4dtrjCmk7eS5v4RUNC/X3zVgDXKF/OGEubS9+iIHeHpKkQuwUXw4E7zGpx0RKEIt41zpaIUhAQ4qVQM6+5f88KRpWcz3goieBJ/XO4w5icPmuVPoLSGMAbEDEEIyBEAgiiJHWr1BCq1h1qsMhuG7uZTbHpnLgzN8xcu8f07Plk9hCHudyeKet9opALAHrA1YDMUIUGTLjSYJ/W1nYq6Dte+Z6YJbe/tntaK7/AMnycfhkALEBta1/HxEEL6bV72WBekPetsBeAXfoZQuABXrf5/el76V/pT5YJElrxDZDTNx6v6seNSlJFt6WLvlXwe3zsz/S8W+X0DZ5LrbNUs9yBJMhZIQsw6vi3rz7vGUt7FXQ9v9yL3Cj/u7ULWk8fwDZykmEdJCmTzEaYd/c+7ylLezVvem5S+SjN/2cEbveQWl0E980GNMgl/9nDHvtbPrD2frMj+dTDzvTPnEsHSX+uV5vt7D0ZzvoSxdu+1a/5/8BjjHQMazwrpIAAAAASUVORK5CYII=) center/contain no-repeat;mask:url(data:image/png;base64,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) center/contain no-repeat}
+@media (hover:hover){html body .brand>.ui-brand-a:hover .ui-brand-mark{background-color:var(--accent)}}
 /* until the app has drawn itself (ui.js adds .ui-ready once the page has parsed), only the background shows, so a slow
    load never paints a half-built page that then jumps. If ui.js never runs, the page shows anyway after 1.5 s. Opacity
    on body, not visibility on everything: opacity isn't inherited, so revealing restyles one element, not the page */
@@ -525,9 +535,9 @@ html:not(.ui-ready) body{opacity:0;animation:ui-boot 0s 1.5s forwards}
    taken back by its margin, and the name's own padding lets the phone layout (which clips it, below) show all of it */
 html body header.top:not(.th) .brand{padding:11px 6px;margin:-11px -6px}
 html body .brand>.ui-brand-a{display:inline-block;box-sizing:border-box;max-width:calc(100% + 12px);padding:11px 6px;margin:-11px -6px;vertical-align:top;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:inherit;text-decoration:none;border-radius:6px;transition:color .15s;-webkit-tap-highlight-color:transparent}
-html body .brand>.ui-brand-a:focus-visible{outline:2px solid var(--ui-amber,#ffb000);outline-offset:-2px}
+html body .brand>.ui-brand-a:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
 html body .brand>.ui-brand-a:active{opacity:.7}
-@media (hover:hover){html body .brand>.ui-brand-a:hover{color:var(--ui-amber,#ffb000)}}
+@media (hover:hover){html body .brand>.ui-brand-a:hover{color:var(--accent-text)}}
 @media (max-width:640px){
   html body header.top:not(.th){flex-wrap:nowrap;padding:7px 6px 7px 14px;gap:8px}
   html body header.top:not(.th) .brand{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
@@ -541,23 +551,23 @@ html body .brand>.ui-brand-a:active{opacity:.7}
   html body header.top:not(.th) #isx-sync.inl{order:9;margin:-4px -2px -4px -4px}
 }
 @media (max-width:374px){html body header.top:not(.th) .brand{letter-spacing:.06em}html body header.top:not(.th) .brand .cur{display:none}html body header.top:not(.th) .ui-brand-mark{margin-right:0;width:1.4em;height:1.34em}}
-@media (prefers-reduced-transparency:reduce){html body header.top:not(.th)::before,.ui-more-pop{background:#111;-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media (prefers-reduced-transparency:reduce){html body header.top:not(.th)::before,.ui-more-pop{background:var(--float-solid);-webkit-backdrop-filter:none;backdrop-filter:none}}
 @media (prefers-reduced-motion:reduce){.ui-more-pop{animation:none}}
 @media (max-width:640px){html body header.top:not(.th) .acts{overflow:visible}}
 /* ---------- dropdown lists on desktop: the same glass panel as the ··· menu (ui.js builds it in place of the browser's list) ---------- */
 .ui-sel-pop{position:fixed;inset:auto;margin:0;z-index:70;box-sizing:border-box;max-width:min(420px,calc(100vw - 16px));overflow:auto;overscroll-behavior:contain;
   padding:6px;display:flex;flex-direction:column;gap:2px;color:var(--ui-tx);
-  background:rgba(22,21,19,.95);-webkit-backdrop-filter:saturate(1.6) blur(22px);backdrop-filter:saturate(1.6) blur(22px);
-  border:1px solid rgba(255,255,255,.1);border-radius:14px;box-shadow:0 18px 40px -12px rgba(0,0,0,.8);animation:ui-more-in .16s var(--ui-ease,ease-out)}
+  background:var(--float);-webkit-backdrop-filter:saturate(1.6) blur(22px);backdrop-filter:saturate(1.6) blur(22px);
+  border:1px solid var(--border-soft);border-radius:14px;box-shadow:var(--shadow-pop);animation:ui-more-in .16s var(--ui-ease,ease-out)}
 html body .ui-sel-pop .ui-sel-opt{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;padding:10px 12px;border-radius:9px;cursor:pointer;
   font:13px var(--ui-f);color:var(--ui-tx);white-space:nowrap;-webkit-tap-highlight-color:transparent}
-html body .ui-sel-pop .ui-sel-opt::before{content:'';flex:none;width:12px;text-align:center;color:var(--ui-amber)}
-html body .ui-sel-pop .ui-sel-opt[aria-selected=true]{color:var(--ui-amber)}
+html body .ui-sel-pop .ui-sel-opt::before{content:'';flex:none;width:12px;text-align:center;color:var(--accent-text)}
+html body .ui-sel-pop .ui-sel-opt[aria-selected=true]{color:var(--accent-text)}
 html body .ui-sel-pop .ui-sel-opt[aria-selected=true]::before{content:'\2713'}
-html body .ui-sel-pop .ui-sel-opt:hover,html body .ui-sel-pop .ui-sel-opt:focus-visible,html body .ui-sel-pop .ui-sel-opt:focus{background:rgba(255,255,255,.08)}
-html body .ui-sel-pop .ui-sel-opt:focus-visible{outline:1px solid var(--ui-amber);outline-offset:-1px}
+html body .ui-sel-pop .ui-sel-opt:hover,html body .ui-sel-pop .ui-sel-opt:focus-visible,html body .ui-sel-pop .ui-sel-opt:focus{background:var(--hover)}
+html body .ui-sel-pop .ui-sel-opt:focus-visible{outline:1px solid var(--accent);outline-offset:-1px}
 html body .ui-sel-pop .ui-sel-opt:disabled{opacity:.4;cursor:default}
 html body .ui-sel-pop .ui-sel-in{padding-left:22px}
 .ui-sel-grp{padding:8px 12px 4px;font:600 10px var(--ui-f);letter-spacing:.12em;text-transform:uppercase;color:var(--ui-dim)}
-@media (prefers-reduced-transparency:reduce){.ui-sel-pop{background:#111;-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media (prefers-reduced-transparency:reduce){.ui-sel-pop{background:var(--float-solid);-webkit-backdrop-filter:none;backdrop-filter:none}}
 @media (prefers-reduced-motion:reduce){.ui-sel-pop{animation:none}}

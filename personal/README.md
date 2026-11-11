@@ -4,8 +4,8 @@ A responsive, static homepage for the seven apps. The page includes an app map,
 Body / Mind / Growth filters, and a daily intention saved locally in the browser.
 Its header opens the affirmation (`affirmation/`): one statement for each app.
 It uses plain HTML, CSS, and JavaScript. The homepage shares `../ui.css`, the
-shell's icon, and the apps' IBM Plex Mono typography, dark glass panels, amber
-controls, and app accent colors. The optional Google Fonts stylesheet falls back
+shell's icon, and the apps' IBM Plex Mono typography, panels, controls and
+colours: the palette in `../ui.css`, light, and dark when the device is. The optional Google Fonts stylesheet falls back
 to system monospace when unavailable. There is no build step or backend.
 
 ## Run locally

@@ -304,35 +304,35 @@
 
   /* ---------- ui: a small badge, and a dialog ---------- */
   const css = document.createElement('style');
-  /* the sync status is one dot, top right: green synced · amber pulsing syncing · red error · hollow grey off or offline.
+  /* the sync status is one dot, top right: green synced · blue pulsing syncing · red error · hollow grey off or offline.
      The button around it is a full-size tap target, and its label says the status in words. */
   css.textContent = `#isx-sync{position:fixed;top:calc(8px + env(safe-area-inset-top));right:max(8px,env(safe-area-inset-right));z-index:8;
     width:36px;height:36px;display:grid;place-items:center;padding:0;margin:0;background:none;border:0;border-radius:50%;cursor:pointer;flex:none}
   #isx-sync.inl{position:static;margin:-4px -8px -4px 2px;order:9}header.top>.acts{margin-left:auto}
-  #isx-sync i{width:10px;height:10px;border-radius:50%;box-sizing:border-box;border:1.5px solid #8f8a7e;background:none;transition:background-color .3s,border-color .3s}
-  #isx-sync:hover i{box-shadow:0 0 0 4px rgba(255,176,0,.18)}#isx-sync:focus-visible{outline:2px solid #ffb000;outline-offset:-2px}
-  #isx-sync.ok i{background:#33ff66;border-color:#33ff66;box-shadow:0 0 8px rgba(51,255,102,.45)}
-  #isx-sync.busy i{background:#ffb000;border-color:#ffb000;animation:isx-pulse 1s ease-in-out infinite alternate}
-  #isx-sync.error i{background:#ff4545;border-color:#ff4545;box-shadow:0 0 8px rgba(255,69,69,.5)}
+  #isx-sync i{width:10px;height:10px;border-radius:50%;box-sizing:border-box;border:1.5px solid var(--secondary);background:none;transition:background-color .3s,border-color .3s}
+  #isx-sync:hover i{box-shadow:0 0 0 4px var(--accent-soft)}#isx-sync:focus-visible{outline:2px solid var(--accent);outline-offset:-2px}
+  #isx-sync.ok i{background:var(--success);border-color:var(--success)}
+  #isx-sync.busy i{background:var(--accent);border-color:var(--accent);animation:isx-pulse 1s ease-in-out infinite alternate}
+  #isx-sync.error i{background:var(--error);border-color:var(--error)}
   @keyframes isx-pulse{from{opacity:1;transform:scale(1)}to{opacity:.35;transform:scale(.7)}}
   @media(prefers-reduced-motion:reduce){#isx-sync.busy i{animation:none}}
   /* phones: the app's buttons wrap to their own row, so the dot sits at the end of the name row (top right) */
   @media(max-width:640px){header.top:not(.th) #isx-sync.inl{order:0;margin-left:auto}}
-  #isx-sd{margin:auto;max-height:calc(100% - 24px);overflow:auto;background:#0c0c0c;color:#d9d5c8;border:1px solid #ffb000;padding:20px;width:min(520px,calc(100vw - 24px));font:13px/1.5 'IBM Plex Mono',ui-monospace,monospace;border-radius:0}
-  #isx-sd::backdrop{background:rgba(0,0,0,.78)}#isx-sd h3{margin:0 0 12px;font-size:13px;letter-spacing:.14em;color:#ffb000;font-weight:500}
-  #isx-sd p{margin:0 0 10px;color:#8f8a7e}#isx-sd b{color:#d9d5c8;font-weight:500}#isx-sd a{color:#ffb000}
-  #isx-sd label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:#8f8a7e;margin:10px 0 4px}
-  #isx-sd input,#isx-sd textarea{width:100%;box-sizing:border-box;background:#070707;color:#d9d5c8;border:1px solid #2c2c2c;padding:8px 10px;font:inherit;border-radius:0}
-  #isx-sd input:focus,#isx-sd textarea:focus{border-color:#ffb000;outline:0}
+  #isx-sd{margin:auto;max-height:calc(100% - 24px);overflow:auto;background:var(--float-solid);color:var(--text-primary);border:1px solid var(--border-soft);padding:20px;width:min(520px,calc(100vw - 24px));font:13px/1.5 'IBM Plex Mono',ui-monospace,monospace;border-radius:0}
+  #isx-sd::backdrop{background:var(--scrim)}#isx-sd h3{margin:0 0 12px;font-size:13px;letter-spacing:.14em;color:var(--text-primary);font-weight:600}
+  #isx-sd p{margin:0 0 10px;color:var(--text-secondary)}#isx-sd b{color:var(--text-primary);font-weight:500}#isx-sd a{color:var(--accent-text)}
+  #isx-sd label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-secondary);margin:10px 0 4px}
+  #isx-sd input,#isx-sd textarea{width:100%;box-sizing:border-box;background:var(--raised);color:var(--text-primary);border:1px solid var(--border);padding:8px 10px;font:inherit;border-radius:0}
+  #isx-sd input:focus,#isx-sd textarea:focus{border-color:var(--accent);outline:0}
   #isx-sd .row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px}
-  #isx-sd button{background:#070707;color:#d9d5c8;border:1px solid #2c2c2c;padding:7px 10px;font:12px 'IBM Plex Mono',monospace;letter-spacing:.06em;cursor:pointer;border-radius:0}
-  #isx-sd button:hover{border-color:#ffb000;color:#ffb000}#isx-sd .pri{background:#ffb000;border-color:#ffb000;color:#000;font-weight:600}
-  #isx-sd .tabs{display:flex;gap:6px;margin-bottom:6px}#isx-sd .tabs .on{background:#ffb000;border-color:#ffb000;color:#000}
-  #isx-sd .err{color:#ff4545}#isx-sd .ok{color:#33ff66}
-  #isx-full{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:2147483647;background:#1a0b0b;border:1px solid #ff4545;color:#f1ece0;
-    padding:12px 40px 12px 14px;font:12px/1.5 'IBM Plex Mono',monospace;box-shadow:0 10px 30px rgba(0,0,0,.6)}
-  #isx-full b{color:#ff6b6b;display:block;margin-bottom:2px}
-  #isx-full button{position:absolute;top:6px;right:6px;width:32px;height:32px;background:none;border:0;color:#f1ece0;font-size:14px;cursor:pointer}`;
+  #isx-sd button{background:var(--raised);color:var(--text-primary);border:1px solid var(--border);padding:7px 10px;font:12px 'IBM Plex Mono',monospace;letter-spacing:.06em;cursor:pointer;border-radius:0}
+  #isx-sd button:hover{border-color:var(--accent);color:var(--accent-text)}#isx-sd .pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
+  #isx-sd .tabs{display:flex;gap:6px;margin-bottom:6px}#isx-sd .tabs .on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+  #isx-sd .err{color:var(--error-text)}#isx-sd .ok{color:var(--success-text)}
+  #isx-full{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:2147483647;background:var(--float-solid);border:1px solid var(--error-line);color:var(--text-primary);
+    padding:12px 40px 12px 14px;font:12px/1.5 'IBM Plex Mono',monospace;box-shadow:var(--shadow-pop)}
+  #isx-full b{color:var(--error-text);display:block;margin-bottom:2px}
+  #isx-full button{position:absolute;top:6px;right:6px;width:32px;height:32px;background:none;border:0;color:var(--text-primary);font-size:14px;cursor:pointer}`;
   const badge = document.createElement('button');
   badge.id = 'isx-sync'; badge.type = 'button'; badge.setAttribute('aria-label', 'Sync settings');
   const ago = t => { const s = Math.round((Date.now() - t) / 1000); return s < 60 ? 'now' : s < 3600 ? Math.round(s / 60) + 'm' : Math.round(s / 3600) + 'h' };

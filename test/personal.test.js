@@ -144,6 +144,8 @@ async function main() {
       assert.equal(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth), true, `affirmation overflow at ${width}`);
     }
     await page.setViewportSize({ width: 1440, height: 1000 });
+    // measured at rest: while the card is still fading in, its text is fainter than it will be
+    await page.evaluate(() => Promise.all(document.getAnimations().filter(a => a.effect.getComputedTiming().endTime < Infinity).map(a => a.finished.catch(() => {}))));
     await page.addScriptTag({ content: axe });
     assert.deepEqual(await violations(), [], 'affirmation accessibility');
     await page.locator('.aff-line[href="../../#mind"]').click();
@@ -169,7 +171,7 @@ async function main() {
     for (const url of [home + 'affirmation/', home]) {
       await mobile.goto(url);
       // measured once the cards' entrance animations have landed (the cursor blink never ends, so it's left out)
-      await mobile.evaluate(() => Promise.all(document.getAnimations().filter(a => a.effect.getComputedTiming().endTime < Infinity).map(a => a.finished)));
+      await mobile.evaluate(() => Promise.all(document.getAnimations().filter(a => a.effect.getComputedTiming().endTime < Infinity).map(a => a.finished.catch(() => {}))));
       const cramped = await mobile.evaluate(() => {
         const shown = el => { const r = el.getBoundingClientRect(); return r.width > 1 && r.height > 1 && getComputedStyle(el).visibility !== 'hidden'; };
         const small = [...document.querySelectorAll('a,button,textarea')].filter(shown).map(el => [el, el.getBoundingClientRect()])

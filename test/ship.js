@@ -108,6 +108,15 @@ const settle=async(p,ms)=>{await p.waitForLoadState('load').catch(()=>{});await 
       await c.close()}
     // 2. manifest, icons and the service worker's precache list point at files that exist
     const file=f=>path.join(DIR,f.replace(/^\.\//,'').split('?')[0]),html=fs.readFileSync(path.join(DIR,'index.html'),'utf8');
+    // 2a. every colour comes from the palette in ui.css (ARCHITECTURE.md, decision 2c): a colour written into a page
+    // has no dark form and drifts from the palette. Allowed: white and black (the browser's own chrome in the
+    // theme-color tags, a candle's core, the stage behind a video)
+    {const OWN=/(?<![&\w])#[0-9a-f]{6}\b|rgba?\(\s*\d[^)]*\)/gi,OWN3=/(?<![&\w])#[0-9a-f]{3}\b/gi,OK=/^#(fff|000|ffffff|000000)$/i;
+      const own=(t,re)=>[...new Set((t.replace(/url\([^)]*\)/g,'').match(re)||[]).filter(c=>!OK.test(c)).map(c=>c.toLowerCase()))];
+      const css=(html.match(/<style[^>]*>[\s\S]*?<\/style>/g)||[]).join('\n');
+      const files=[['index.html',own(html,OWN).concat(own(css,OWN3))]];
+      for(const f of ['sync.js','db.js','ui.js','personal/style.css','personal/site.js','personal/index.html','personal/affirmation/index.html'])if(fs.existsSync(path.join(DIR,f)))files.push([f,own(fs.readFileSync(path.join(DIR,f),'utf8'),OWN)]);
+      for(const [f,bad] of files)if(bad.length)I('medium','colour',`${f} holds ${bad.length} colour${bad.length>1?'s':''} of its own, outside the palette in ui.css: ${bad.slice(0,6).join(' ')}`)}
     const man=(html.match(/<link[^>]+rel=["']manifest["'][^>]*href=["']([^"']+)/)||html.match(/<link[^>]+href=["']([^"']+)["'][^>]*rel=["']manifest/)||[])[1];
     if(!man)I('high','pwa','no <link rel="manifest">');else if(!fs.existsSync(file(man)))I('high','pwa',`manifest ${man} missing`);else{let M;try{M=JSON.parse(fs.readFileSync(file(man),'utf8'))}catch(e){I('high','pwa','manifest is not valid JSON')}
       if(M){['name','short_name','start_url','display','icons'].forEach(k=>{if(!M[k])I('medium','pwa',`manifest has no ${k}`)});

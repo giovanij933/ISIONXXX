@@ -27,6 +27,11 @@ For each app, in Chromium at 390 px and 1440 px:
    `::selection` rule that also matched `<html>`. The check counts the elements restyled, not milliseconds, so it
    gives the same answer on any machine.
 
+Each app's files are also read, without a browser:
+- **Colours come from the palette.** A page, `sync.js` or the personal site must not hold a colour of its own
+  (a hex or `rgb()` value): every colour is a token from the top of `ui.css`, which is what gives it a dark form
+  and keeps the seven apps the same. White and black are allowed (medium). See ARCHITECTURE.md, decision 2c.
+
 Two checks run once per run:
 - **Shared files.** `ui.js`, `ui.css`, `sync.js` and `db.js` must be byte-identical in all seven apps.
 - **ui.js unit tests.** The shell's run executes `test/ui.test.html`.

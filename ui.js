@@ -827,17 +827,6 @@
   addEventListener('resize', () => selClose());
   addEventListener('scroll', e => { if (selPop && !selPop.contains(e.target)) selClose() }, true);
 
-  // the background glow and the light over the page follow the mouse (ui.css eases them); when the pointer leaves,
-  // the light fades and the glow settles back to the corner
-  if (matchMedia('(pointer: fine)').matches) {
-    const root = document.documentElement; let raf = 0, x = 0, y = 0;
-    addEventListener('pointermove', e => {
-      if (e.pointerType !== 'mouse') return; x = e.clientX; y = e.clientY; root.classList.add('g-ptr');
-      raf ||= requestAnimationFrame(() => { raf = 0; root.style.setProperty('--gx', x + 'px'); root.style.setProperty('--gy', y + 'px') });
-    }, { passive: true });
-    document.addEventListener('mouseleave', () => { root.classList.remove('g-ptr'); root.style.removeProperty('--gx'); root.style.removeProperty('--gy') });
-  }
-
   // no page zoom: the apps stay fixed like a native app. iOS ignores user-scalable=no, so pinches are stopped here too
   ['gesturestart', 'gesturechange'].forEach(t => document.addEventListener(t, e => e.preventDefault(), { passive: false }));
   document.addEventListener('touchmove', e => { if (e.touches.length > 1) e.preventDefault() }, { passive: false });
@@ -867,5 +856,5 @@
   addEventListener('isx-sync', replan);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) replan() });
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.5.1' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.6.0' };
 })();
