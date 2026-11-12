@@ -206,6 +206,15 @@ holds a colour of its own, so the palette changes in one file and every app foll
   - *Backgrounds stack*: `--background` is the page, `--surface` a card, `--raised` what sits inside a card.
 - **In a chart drawn from script**, a colour reaches the SVG as a style (`style="fill:var(--accent)"`): an
   attribute (`fill="…"`) can't hold a token.
+- **Glass** is for what floats over the page: the app header, TODAY's tab bar, menus, sheets and dialogs, toasts.
+  It is modelled on the menus iOS draws itself: the page shows through, blurred (`--glass-filter`, 26 px) with its
+  colours kept, under a light or dark tint (`--glass`; `--float` is the heavier tint for a sheet full of text), with
+  a light across it (`--glass-sheen`) and a bright rim (`--glass-rim`, carried by the shadows). Cards stay flat.
+  Reduce Transparency makes the glass solid; Increase Contrast makes it more opaque with a stronger edge. Text on
+  glass is not checked by the contrast audit (what is behind it changes as the page scrolls); the tint keeps it
+  readable over the apps' own colours. Headless Chromium's default renderer draws a large blur wrongly near an
+  element's edges (text there stays sharp and only dims): screenshots of the glass are taken with
+  `--use-angle=swiftshader --enable-unsafe-swiftshader`, which renders it as a phone does.
 - **The mark** in every header is the icon's monogram drawn in `--primary` through its own shape (a CSS mask), so
   it is black on a light page and white on a dark one.
 - **Guarded.** The release check fails a page, `sync.js` or the personal site if it holds a colour outside the
