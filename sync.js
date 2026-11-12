@@ -318,19 +318,19 @@
   @media(prefers-reduced-motion:reduce){#isx-sync.busy i{animation:none}}
   /* phones: the app's buttons wrap to their own row, so the dot sits at the end of the name row (top right) */
   @media(max-width:640px){header.top:not(.th) #isx-sync.inl{order:0;margin-left:auto}}
-  #isx-sd{margin:auto;max-height:calc(100% - 24px);overflow:auto;background:var(--float-solid);color:var(--text-primary);border:1px solid var(--border-soft);padding:20px;width:min(520px,calc(100vw - 24px));font:13px/1.5 'IBM Plex Mono',ui-monospace,monospace;border-radius:0}
-  #isx-sd::backdrop{background:var(--scrim)}#isx-sd h3{margin:0 0 12px;font-size:13px;letter-spacing:.14em;color:var(--text-primary);font-weight:600}
+  #isx-sd{margin:auto;max-height:calc(100% - 24px);overflow:auto;background:var(--float-solid);color:var(--text-primary);border:1px solid var(--border-soft);padding:20px;width:min(520px,calc(100vw - 24px));font:13px/1.5 var(--ui-f);border-radius:0}
+  #isx-sd::backdrop{background:var(--scrim)}#isx-sd h3{margin:0 0 12px;font-size:13px;letter-spacing:.06em;color:var(--text-primary);font-weight:600}
   #isx-sd p{margin:0 0 10px;color:var(--text-secondary)}#isx-sd b{color:var(--text-primary);font-weight:500}#isx-sd a{color:var(--accent-text)}
-  #isx-sd label{display:block;font-size:11px;letter-spacing:.08em;text-transform:uppercase;color:var(--text-secondary);margin:10px 0 4px}
+  #isx-sd label{display:block;font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--text-secondary);margin:10px 0 4px}
   #isx-sd input,#isx-sd textarea{width:100%;box-sizing:border-box;background:var(--raised);color:var(--text-primary);border:1px solid var(--border);padding:8px 10px;font:inherit;border-radius:0}
   #isx-sd input:focus,#isx-sd textarea:focus{border-color:var(--accent);outline:0}
   #isx-sd .row{display:flex;gap:8px;justify-content:flex-end;flex-wrap:wrap;margin-top:14px}
-  #isx-sd button{background:var(--raised);color:var(--text-primary);border:1px solid var(--border);padding:7px 10px;font:12px 'IBM Plex Mono',monospace;letter-spacing:.06em;cursor:pointer;border-radius:0}
+  #isx-sd button{background:var(--raised);color:var(--text-primary);border:1px solid var(--border);padding:7px 10px;font:12px var(--ui-f);letter-spacing:.03em;cursor:pointer;border-radius:0}
   #isx-sd button:hover{border-color:var(--accent);color:var(--accent-text)}#isx-sd .pri{background:var(--accent);border-color:var(--accent);color:var(--on-accent);font-weight:600}
   #isx-sd .tabs{display:flex;gap:6px;margin-bottom:6px}#isx-sd .tabs .on{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
   #isx-sd .err{color:var(--error-text)}#isx-sd .ok{color:var(--success-text)}
   #isx-full{position:fixed;left:12px;right:12px;bottom:calc(12px + env(safe-area-inset-bottom));z-index:2147483647;background:var(--float-solid);border:1px solid var(--error-line);color:var(--text-primary);
-    padding:12px 40px 12px 14px;font:12px/1.5 'IBM Plex Mono',monospace;box-shadow:var(--shadow-pop)}
+    padding:12px 40px 12px 14px;font:12px/1.5 var(--ui-f);box-shadow:var(--shadow-pop)}
   #isx-full b{color:var(--error-text);display:block;margin-bottom:2px}
   #isx-full button{position:absolute;top:6px;right:6px;width:32px;height:32px;background:none;border:0;color:var(--text-primary);font-size:14px;cursor:pointer}`;
   const badge = document.createElement('button');

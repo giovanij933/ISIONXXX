@@ -4,9 +4,10 @@ A responsive, static homepage for the seven apps. The page includes an app map,
 Body / Mind / Growth filters, and a daily intention saved locally in the browser.
 Its header opens the affirmation (`affirmation/`): one statement for each app.
 It uses plain HTML, CSS, and JavaScript. The homepage shares `../ui.css`, the
-shell's icon, and the apps' IBM Plex Mono typography, panels, controls and
-colours: the palette in `../ui.css`, light, and dark when the device is. The optional Google Fonts stylesheet falls back
-to system monospace when unavailable. There is no build step or backend.
+shell's icon, and the apps' type, panels, controls and colours: the device's own
+font (SF Pro on an iPhone or a Mac), and the palette in `../ui.css`, light, and
+dark when the device is. Nothing is downloaded for either. There is no build step
+or backend.
 
 ## Run locally
 
@@ -32,8 +33,8 @@ This matches the existing GitHub Pages layout. The site uses the repository's
   signal too. The page also links the app's manifest and icons, so installing
   from here installs the same app.
 - The way back: every app's name in its header links here. It shows the ISIONXXX
-  mark (the app icon's monogram, from `../ui.css`) then the app's name: "// MIND"
-  on wider screens, "MIND" on phones. `../ui.js` adds the link, so all seven apps get it. Inside the
+  mark (the app icon's monogram, from `../ui.css`) then the app's name: "MIND".
+  `../ui.js` adds the link, so all seven apps get it. Inside the
   TODAY shell it opens this page in the whole window, not inside the app's frame.
 - The affirmation (`affirmation/index.html`) is the header's "My affirmation".
   It has seven statements, one for each app and what that app is for, in the

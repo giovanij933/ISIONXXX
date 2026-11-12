@@ -219,7 +219,18 @@ holds a colour of its own, so the palette changes in one file and every app foll
   it is black on a light page and white on a dark one.
 - **Guarded.** The release check fails a page, `sync.js` or the personal site if it holds a colour outside the
   palette (white and black excepted: the browser's own chrome, a candle's core, the stage behind a video).
-- **Not changed:** the app icons on the home screen keep their own colours.
+- **The app icons** are the accent: a blue tile (`#2E90FF` to `#005FC8`, the accent at the middle) with the tab bar's
+  glyph in white, and TODAY's with the monogram. Each glyph sits inside the middle 68% of the tile, so the 512 px icon
+  also serves as Android's "maskable" icon, which is cropped to a circle of 80%. iOS takes `apple-touch-icon.png`
+  (180 px, opaque) and has no dark form for a web app's icon.
+
+**2d. The device's own font.**
+Every app, TODAY and the personal site use the system font (`--ui-f` in `ui.css`): SF Pro on an iPhone or a Mac,
+Segoe UI on Windows, Roboto on Android. Nothing is downloaded, so the first paint never waits for a font and the
+apps need no font files offline. Code (LEARN's editor and code samples, any `code` or `pre`) uses the system
+monospace (`--ui-mono`). The terminal details that suited the old monospace (the `>` before headings, the blinking
+cursor after the app's name, `//` as a separator) are gone: a heading is just its words, and a separator is ` · `.
+Small uppercase labels keep a little tracking (about .05em); text has almost none.
 
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL

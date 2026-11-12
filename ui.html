@@ -5,17 +5,17 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
-<title>ISIONXXX // UI components</title>
+<title>ISIONXXX — UI components</title>
 <link rel="stylesheet" href="ui.css">
 <style>
 body{margin:0;background:var(--ui-bg);color:var(--ui-tx);font:13px/1.55 var(--ui-f);padding:24px max(16px,env(safe-area-inset-left)) 64px}
 main{max-width:1000px;margin:0 auto}
-h1{font-size:15px;letter-spacing:.14em;margin:0 0 4px}h1 b{color:var(--secondary)}
-h2{font-size:12px;letter-spacing:.16em;text-transform:uppercase;color:var(--text-primary);margin:36px 0 6px;padding-top:18px;border-top:1px solid var(--ui-line)}
+h1{font-size:15px;letter-spacing:.06em;margin:0 0 4px}
+h2{font-size:12px;letter-spacing:.06em;text-transform:uppercase;color:var(--text-primary);margin:36px 0 6px;padding-top:18px;border-top:1px solid var(--ui-line)}
 p.lede{color:var(--ui-dim);margin:0 0 8px;max-width:70ch}
 .demo{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:12px;margin:12px 0}
 .box{background:var(--ui-panel);border:1px solid var(--ui-line);padding:16px}
-.box>.lbl{display:block;font-size:10px;letter-spacing:.14em;text-transform:uppercase;color:var(--ui-dim);margin-bottom:10px}
+.box>.lbl{display:block;font-size:10px;letter-spacing:.06em;text-transform:uppercase;color:var(--ui-dim);margin-bottom:10px}
 pre{margin:8px 0 0;padding:12px;background:var(--raised);border:1px solid var(--ui-line);overflow-x:auto;font:12px/1.5 var(--ui-f);color:var(--text-primary)}
 table{width:100%;border-collapse:collapse;margin:8px 0;font-size:12px}th,td{text-align:left;padding:6px 8px;border-bottom:1px solid var(--ui-line);vertical-align:top}th{color:var(--ui-dim);font-weight:500}
 code{color:var(--text-primary);font-weight:500}
@@ -24,7 +24,7 @@ code{color:var(--text-primary);font-weight:500}
 </head>
 <body>
 <main id="root">
-<h1>ISIONXXX <b>//</b> UI components</h1>
+<h1>ISIONXXX UI components</h1>
 <p class="lede">Shared, accessible components for the ISIONXXX apps. Load <code>ui.css</code> and <code>ui.js</code>, call
 <code>UI.mount(root)</code> once, render with the functions below, and listen for <code>ui-change</code>. Components hold no state:
 your app keeps it and renders again.</p>
