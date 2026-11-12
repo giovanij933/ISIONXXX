@@ -135,7 +135,7 @@ nav button:focus-visible{outline:1px solid var(--accent);outline-offset:-4px}
 .ci-row .ui-rating{flex:1}.ci-row .ui-field-label{color:var(--dim)}
 .ld .ui-skeleton{width:min(420px,calc(100% - 32px))}
 #today .th .brand{white-space:nowrap}#today .th .dt b{font-weight:400}
-@media(max-width:420px){#today .th .dt i{display:none}}
+#today .th .dt i{font-style:normal}@media(max-width:420px){#today .th .dt i{display:none}}
 .nx{all:unset;box-sizing:border-box;cursor:pointer;flex:1;text-align:center;padding:11px 8px;border:1px solid var(--line2);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx);-webkit-tap-highlight-color:transparent;transition:background-color .15s,border-color .15s,transform .12s}
 .nx:active{transform:scale(.97)}
 .nx:focus-visible{outline:1px solid var(--accent)}
@@ -197,11 +197,16 @@ const TABS=[
   {id:'rewire',label:'REWIRE',path:'../rewire/',icon:'<path d="M3 8h6l6 8h6M17 12l4 4-4 4M3 16h5"/>'}
 ];
 const $=s=>document.querySelector(s),apps=$('#apps');
-// iOS home-screen app: size to the real screen (portrait or landscape), not the short viewport iOS reports
+// iOS home-screen app. iOS has drawn it two ways. Under the status bar (the safe area's top is the bar's height), it
+// reported the viewport a status bar short, which left a black strip under the tab bar: there, size to the real screen
+// (portrait or landscape). Below the status bar (the safe area's top is 0, as on iOS 26.1), the viewport is right, and
+// the screen's height would push the tab bar, and every app's bottom, off the screen by the bar's height.
 function fit(){
   if(!navigator.standalone)return;
+  const s=document.documentElement.style;
+  if(!(parseFloat(getComputedStyle(apps).top)>0))return s.removeProperty('--vh');
   const l=matchMedia('(orientation: landscape)').matches,a=screen.width,b=screen.height;
-  document.documentElement.style.setProperty('--vh',(l?Math.min(a,b):Math.max(a,b))+'px');
+  s.setProperty('--vh',(l?Math.min(a,b):Math.max(a,b))+'px');
 }
 fit();addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,300));
 // inside the shell every app gets the same frame: room for the tab bar, nothing floating over the content. The

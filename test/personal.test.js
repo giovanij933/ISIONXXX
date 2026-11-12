@@ -320,6 +320,21 @@ async function main() {
     assert.equal(await first.locator('link[rel="apple-touch-startup-image"]').count(), 0, 'the installed app draws no launch image');
     await app.close();
     pass('the installed app opens on the homepage once per launch, offline too, and the affirmation opens offline');
+
+    // the installed app below the status bar (as iOS 26.1 draws it, the safe area's top 0): an iPhone Pro Max's
+    // 956 pt screen leaves an 894 pt page. TODAY's tab bar, and the apps' frames, stay on it: sizing to the screen would
+    // push them off the bottom by the status bar's height.
+    const pro = await browser.newContext({ timezoneId: 'UTC', viewport: { width: 440, height: 894 }, screen: { width: 440, height: 956 }, hasTouch: true, isMobile: true });
+    await pro.route(/fonts\.g|gstatic|cdnjs|jsdelivr|youtube|ytimg/, route => route.abort());
+    await pro.addInitScript(() => { Object.defineProperty(Navigator.prototype, 'standalone', { get: () => true, configurable: true }); sessionStorage.setItem('isx.launched', '1'); });
+    const shellTab = await pro.newPage();
+    shellTab.on('pageerror', error => errors.push(error.message));
+    await shellTab.goto(origin + '/ISIONXXX/#today');
+    await shellTab.locator('#today.on').waitFor();
+    const fits = await shellTab.evaluate(() => ({ tabs: Math.round(document.querySelector('#tabs').getBoundingClientRect().bottom), apps: Math.round(document.querySelector('#apps').getBoundingClientRect().bottom), page: innerHeight }));
+    assert.ok(fits.tabs <= fits.page && fits.apps <= fits.page, `the tab bar (bottom ${fits.tabs}) and the apps (bottom ${fits.apps}) fit the ${fits.page} pt page`);
+    await pro.close();
+    pass('the installed app below the status bar keeps its tab bar and apps on the screen');
     assert.deepEqual(errors, [], 'browser page errors');
     pass('no browser JavaScript errors');
     console.log(`PASS: ${checks} personal-site checks`);
