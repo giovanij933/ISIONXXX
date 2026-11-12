@@ -723,16 +723,15 @@
     }), Object.assign(document.createElement('hr'), { className: 'ui-more-sep' }));
     acts.append(wrap);
   }
-  // the ISIONXXX name shows as its mark; on phones the // goes (ui.css), so the bar fits on one line. The name
-  // links to the personal homepage, which sits beside the apps the way GitHub Pages serves them
+  // the header reads "ISIONXXX JOURNAL": the ISIONXXX name shows as its mark (ui.css), and screen readers still hear
+  // it. The name links to the personal homepage, which sits beside the apps the way GitHub Pages serves them
   // (/ISIONXXX/personal/). Inside the TODAY shell the whole window goes there, not the app's frame.
   const brandInit = () => document.querySelectorAll('header.top:not(.th) .brand').forEach(h => {
-    const t = h.firstChild, b = t?.nextSibling;
-    if (t?.nodeType === 3 && b?.tagName === 'B') {
-      const s = document.createElement('span'); s.className = 'ui-brand-pre'; h.insertBefore(s, t);
-      // the ISIONXXX name shows as its mark (ui.css); screen readers still hear the name
-      if (t.textContent.trim() === 'ISIONXXX') { const m = document.createElement('span'); m.className = 'ui-brand-mark'; m.setAttribute('role', 'img'); m.setAttribute('aria-label', 'ISIONXXX'); t.replaceWith(m); s.append(m, b) }
-      else s.append(t, b);
+    const t = h.firstChild;
+    if (t?.nodeType === 3 && /^\s*ISIONXXX\s/.test(t.textContent)) {
+      const s = document.createElement('span'); s.className = 'ui-brand-pre';
+      const m = document.createElement('span'); m.className = 'ui-brand-mark'; m.setAttribute('role', 'img'); m.setAttribute('aria-label', 'ISIONXXX');
+      s.append(m); h.insertBefore(s, t); t.textContent = t.textContent.replace(/^\s*ISIONXXX\s+/, '');
     }
     if (h.querySelector('.ui-brand-a')) return;
     const a = document.createElement('a'); a.className = 'ui-brand-a'; a.href = '../ISIONXXX/personal/'; a.target = '_top';
