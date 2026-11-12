@@ -24,7 +24,7 @@ try{if((navigator.standalone||matchMedia('(display-mode: standalone)').matches)&
 <link rel="stylesheet" href="ui.css">
 <link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500;600&display=swap">
 <style>
-:root{color-scheme:light dark;--bg:var(--background);--panel:var(--surface);--line:var(--border-soft);--line2:var(--border);--green:var(--success);--red:var(--error);--tx:var(--text-primary);--dim:var(--text-secondary);--f:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace;--bar:58px}
+:root{color-scheme:light dark;--bg:var(--background);--panel:var(--surface);--line:var(--border-soft);--line2:var(--border);--green:var(--success);--red:var(--error);--tx:var(--text-primary);--dim:var(--text-secondary);--f:'IBM Plex Mono',ui-monospace,SFMono-Regular,Menlo,Consolas,monospace}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:12px var(--f);overflow:hidden}
 /* the whole app is one full-screen box. --vh is the real screen height: as a home-screen app iOS reports the
@@ -41,8 +41,8 @@ nav button:active{transform:scale(.94)}
 nav{position:absolute;z-index:5;left:max(12px,env(safe-area-inset-left));right:max(12px,env(safe-area-inset-right));
   bottom:max(10px,calc(env(safe-area-inset-bottom) - 12px));height:64px;padding:6px;border-radius:32px;
   display:flex;gap:0;
-  background:var(--bar);-webkit-backdrop-filter:blur(22px) saturate(180%);backdrop-filter:blur(22px) saturate(180%);
-  border:1px solid var(--border-soft);box-shadow:var(--shadow-pop)}
+  background:var(--glass-sheen),var(--glass);-webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);
+  border:1px solid var(--glass-edge);box-shadow:var(--shadow-pop)}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){nav{background:var(--float-solid)}}
 /* each tab is as wide as its label plus an equal share of the spare room, so the gaps between labels
    are the same whatever the names' lengths (equal-width tabs left short names floating in space) */
