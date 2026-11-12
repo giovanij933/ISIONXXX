@@ -25,9 +25,14 @@ try{if((navigator.standalone||matchMedia('(display-mode: standalone)').matches)&
 :root{color-scheme:light dark;--bg:var(--background);--panel:var(--surface);--line:var(--border-soft);--line2:var(--border);--green:var(--success);--red:var(--error);--tx:var(--text-primary);--dim:var(--text-secondary);--f:var(--ui-f)}
 *{box-sizing:border-box}
 html,body{margin:0;height:100%;background:var(--bg);color:var(--tx);font:12px var(--f);overflow:hidden}
-/* the whole app is one full-screen box. --vh is the real screen height: as a home-screen app iOS reports the
-   viewport a status bar short, which left a black strip under the tab bar */
-body{position:relative;height:100vh;height:var(--vh,100vh)}
+/* the whole app is one full-screen box, as tall as the page iOS gives it. Installed on an iPhone (iOS 26), iOS gets
+   two heights wrong, one for each status bar style: with the solid bar (this app's), 100vh is the whole screen though
+   the page starts below the bar (WebKit 316008), which put the tab bar and every app's bottom 62 pt off the screen;
+   with a see-through bar the page is a bar short (WebKit 301108), a strip under the tab bar. The smaller of the two is
+   right in both: the solid bar's safe-area top is 0. */
+body{position:relative;height:100%}
+@media(display-mode:standalone){body{height:min(100lvh,calc(100% + env(safe-area-inset-top)))}}
+html.isx-sa body{height:min(100lvh,calc(100% + env(safe-area-inset-top)))}
 /* each app runs in its own frame; frames stay alive so switching tabs keeps your place */
 /* apps run full height, under the tab bar: the bar is frosted glass floating over them (iOS 26 style) */
 #apps{position:absolute;inset:env(safe-area-inset-top) 0 0 0}
@@ -197,18 +202,20 @@ const TABS=[
   {id:'rewire',label:'REWIRE',path:'../rewire/',icon:'<path d="M3 8h6l6 8h6M17 12l4 4-4 4M3 16h5"/>'}
 ];
 const $=s=>document.querySelector(s),apps=$('#apps');
-// iOS home-screen app. iOS has drawn it two ways. Under the status bar (the safe area's top is the bar's height), it
-// reported the viewport a status bar short, which left a black strip under the tab bar: there, size to the real screen
-// (portrait or landscape). Below the status bar (the safe area's top is 0, as on iOS 26.1), the viewport is right, and
-// the screen's height would push the tab bar, and every app's bottom, off the screen by the bar's height.
-function fit(){
-  if(!navigator.standalone)return;
-  const s=document.documentElement.style;
-  if(!(parseFloat(getComputedStyle(apps).top)>0))return s.removeProperty('--vh');
-  const l=matchMedia('(orientation: landscape)').matches,a=screen.width,b=screen.height;
-  s.setProperty('--vh',(l?Math.min(a,b):Math.max(a,b))+'px');
-}
-fit();addEventListener('resize',fit);addEventListener('orientationchange',()=>setTimeout(fit,300));
+// an older iOS without display-mode: standalone still gets the home-screen app's height (above)
+if(navigator.standalone)document.documentElement.classList.add('isx-sa');
+// a tap on TODAY's date shows the sizes this phone reports (screen, page, viewport units, safe areas, the tab bar),
+// to fix a layout on a real iPhone from a screenshot; another tap hides them
+document.addEventListener('click',e=>{
+  if(!e.target.closest('#today .th .dt'))return;
+  const o=document.getElementById('isx-dbg');if(o)return o.remove();
+  const probe=css=>{const d=document.createElement('div');d.style.cssText='position:absolute;left:0;top:0;width:1px;visibility:hidden;pointer-events:none;'+css;document.body.append(d);const h=d.getBoundingClientRect().height,c=getComputedStyle(d),r=[h,parseFloat(c.paddingTop)||0,parseFloat(c.paddingBottom)||0];d.remove();return r};
+  const u=v=>Math.round(probe('height:'+v)[0]),[,st,sb]=probe('height:0;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)'),t=$('#tabs').getBoundingClientRect();
+  const p=document.createElement('p');p.id='isx-dbg';
+  p.textContent=`screen ${screen.width}×${screen.height} · page ${innerHeight} · html ${document.documentElement.clientHeight} · body ${Math.round(document.body.getBoundingClientRect().height)} · vh ${u('100vh')} · lvh ${u('100lvh')} · dvh ${u('100dvh')} · svh ${u('100svh')} · safe top ${st} bottom ${sb} · tabs ${Math.round(t.top)}–${Math.round(t.bottom)} · ${navigator.standalone?'installed':'browser'}${matchMedia('(display-mode: standalone)').matches?', standalone':''}`;
+  p.style.cssText='margin:0 0 10px;font:11px/1.45 var(--ui-mono);color:var(--dim);-webkit-user-select:text;user-select:text';
+  e.target.closest('.th').after(p);
+});
 // inside the shell every app gets the same frame: room for the tab bar, nothing floating over the content. The
 // pinned glass header comes from ui.css. Injected here so the apps stay unchanged when opened on their own.
 const EMBED_CSS=`
