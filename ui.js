@@ -855,5 +855,40 @@
   addEventListener('isx-sync', replan);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) replan() });
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.6.0' };
+  // the installed app's launch screen. Without one, iOS opens a home-screen web app on a white screen, a flash in dark
+  // mode. iOS takes the launch image when the page is added to the home screen from Safari, and keeps it; it only uses
+  // an image of the screen's exact size. So it is drawn here, on the phone, at that size, in the page's own background:
+  // the launch screen is the app's first frame (the page fades in over it), and plain, as Apple's guidelines ask. It is
+  // light or dark as the phone was when the app was added: iOS doesn't switch it later.
+  let launchT = 0, launchN = 0;
+  function launchImage() {
+    // Safari on an iPhone or iPad only: not the installed app, a frame inside TODAY, or a Mac
+    if (navigator.standalone !== false || window.top !== window || !(navigator.maxTouchPoints > 0)) return;
+    const n = ++launchN, seen = c => c && c !== 'transparent' && !/^rgba\(.*,\s*0\)$|\/\s*0\)$/.test(c);
+    const bg = [document.body, document.documentElement].map(e => e && getComputedStyle(e).backgroundColor).find(seen);
+    const cv = document.createElement('canvas'), cx = cv.getContext('2d'), r = devicePixelRatio || 1;
+    if (!bg || !cx || !cv.toBlob) return;
+    const w = Math.min(screen.width, screen.height), h = Math.max(screen.width, screen.height);
+    const draw = (o, x, y) => new Promise(done => {
+      cv.width = Math.round(x * r); cv.height = Math.round(y * r);
+      cx.fillStyle = bg; cx.fillRect(0, 0, cv.width, cv.height);
+      cv.toBlob(b => { if (!b) return done(null); const f = new FileReader(); f.onload = () => done([o, f.result]); f.onerror = () => done(null); f.readAsDataURL(b) }, 'image/png');
+    });
+    draw('portrait', w, h).then(p => draw('landscape', h, w).then(l => {
+      cv.width = cv.height = 0;
+      if (!p || !l || n !== launchN) return;  // a newer one (the phone switched light/dark meanwhile) replaces this
+      document.querySelectorAll('link[data-ui-launch]').forEach(x => x.remove());
+      for (const [o, src] of [p, l]) {
+        const x = document.createElement('link');
+        x.rel = 'apple-touch-startup-image'; x.media = `screen and (orientation: ${o})`; x.href = src; x.dataset.uiLaunch = '';
+        document.head.append(x);
+      }
+    }));
+  }
+  // after the page has settled, and again if the phone switches between light and dark before the app is added
+  const launchSoon = ms => { clearTimeout(launchT); launchT = setTimeout(launchImage, ms) };
+  document.readyState === 'complete' ? launchSoon(800) : addEventListener('load', () => launchSoon(800));
+  matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => launchSoon(100));
+
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.7.0' };
 })();

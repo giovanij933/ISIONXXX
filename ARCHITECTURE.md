@@ -192,7 +192,7 @@ holds a colour of its own, so the palette changes in one file and every app foll
   Apple's guidance is that every colour has a light and a dark form. With "Increase contrast" on
   (`prefers-contrast: more`), borders and secondary text get stronger.
 - **Made from it**, in the same block: the `-text` form of each colour (below), `-soft` tints and `-line` edges,
-  `--raised` (a field or a cell inside a card), and the layers that float (`--float`, `--bar`, `--scrim`, shadows).
+  `--raised` (a field or a cell inside a card), and the layers that float (`--float`, `--glass`, `--scrim`, shadows).
 - **How they are used** follows Apple's Human Interface Guidelines on colour:
   - *One meaning each.* `--accent` is what you can tap and what is selected: never plain text, never a heading.
     `--success`, `--error`, `--warning` and `--info` are status only. Headings and figures are text colours. A
@@ -231,6 +231,21 @@ apps need no font files offline. Code (LEARN's editor and code samples, any `cod
 monospace (`--ui-mono`). The terminal details that suited the old monospace (the `>` before headings, the blinking
 cursor after the app's name, `//` as a separator) are gone: a heading is just its words, and a separator is ` · `.
 Small uppercase labels keep a little tracking (about .05em); text has almost none.
+
+**2e. The launch screen is the app's first frame.**
+An iPhone opens a home-screen web app on a launch image, and without one it shows a white screen: a flash in dark
+mode. iOS uses an image only if it is the screen's exact size, takes it when the app is added to the home screen, and
+keeps it. So `ui.js` draws it on the phone itself: in Safari on an iPhone or iPad (`navigator.standalone` false, a
+touch screen, not inside TODAY's frames), a moment after the page loads, it fills a canvas the size of the screen in
+the page's own background and adds it as `apple-touch-startup-image`, portrait and landscape. That covers every
+iPhone and iPad, the ones still to come too, with no image files and no list of devices to keep up. It is plain, as
+Apple's guidelines ask: the page then fades in over the same colour. Every page also says
+`<meta name="color-scheme" content="light dark">`, so the browser knows the page is dark before `ui.css` arrives.
+- **Light or dark is fixed when the app is added.** iOS keeps the launch image it took then (WebKit bug 259328): add
+  the apps with the phone in the appearance it is usually in. Changing the image means removing the app from the
+  home screen and adding it again. The installed app draws nothing.
+- **Not testable here.** No headless browser shows a launch screen; the test checks the images each page offers (their
+  size, colour and orientations, light and dark) and that the installed app, a frame and a Mac offer none.
 
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL

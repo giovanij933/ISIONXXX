@@ -219,6 +219,72 @@ async function main() {
     }
     pass('every app’s header shows the ISIONXXX mark and opens the homepage, from inside the shell too');
 
+    // the launch screen (ui.js): in Safari on an iPhone (navigator.standalone false), every page an app can be added from
+    // carries a launch image for each orientation at the screen's exact size, plain, in the page's own background, light
+    // and dark. TODAY's frames, the installed app (below) and a Mac don't draw one.
+    const pages = [home, home + 'affirmation/', origin + '/ISIONXXX/', ...['MEDITATE', 'TRAINING', 'nutrition', 'data-analytics', 'JOURNAL', 'rewire'].map(a => `${origin}/${a}/`)];
+    const startup = 'link[rel="apple-touch-startup-image"]';
+    const safariOn = async (options) => {
+      const ctx = await browser.newContext({ timezoneId: 'UTC', ...options });
+      await ctx.route(/fonts\.g|gstatic|cdnjs|jsdelivr|youtube|ytimg/, route => route.abort());
+      await ctx.addInitScript(() => Object.defineProperty(Navigator.prototype, 'standalone', { get: () => false, configurable: true }));
+      const tab = await ctx.newPage();
+      tab.on('pageerror', error => errors.push(error.message));
+      return [ctx, tab];
+    };
+    for (const colorScheme of ['light', 'dark']) {
+      // an iPhone 17 Pro: 402 × 874 points at 3×
+      const [ctx, tab] = await safariOn({ viewport: { width: 402, height: 874 }, screen: { width: 402, height: 874 }, deviceScaleFactor: 3, hasTouch: true, isMobile: true, colorScheme });
+      for (const url of pages) {
+        await tab.goto(url);
+        await tab.waitForFunction(s => document.querySelectorAll(s).length === 2, startup, { timeout: 10000 });
+        const { bg, images } = await tab.evaluate(async s => ({
+          bg: getComputedStyle(document.body).backgroundColor,
+          images: await Promise.all([...document.querySelectorAll(s)].map(async link => {
+            const img = new Image(); img.src = link.href; await img.decode();
+            const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;
+            const x = c.getContext('2d'); x.drawImage(img, 0, 0);
+            // the corners and the middle: one colour, opaque
+            const px = [[0, 0], [c.width - 1, c.height - 1], [c.width >> 1, c.height >> 1]].map(([i, j]) => [...x.getImageData(i, j, 1, 1).data].join(','));
+            return { media: link.media, size: `${img.naturalWidth}x${img.naturalHeight}`, px: [...new Set(px)] };
+          })),
+        }), startup);
+        const rgb = bg.match(/\d+/g).slice(0, 3).join(',') + ',255';
+        assert.equal(bg, colorScheme === 'dark' ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)', `${url}: the palette's ${colorScheme} background`);
+        assert.deepEqual(images, [
+          { media: 'screen and (orientation: portrait)', size: '1206x2622', px: [rgb] },
+          { media: 'screen and (orientation: landscape)', size: '2622x1206', px: [rgb] },
+        ], `${url} in ${colorScheme}: the launch images`);
+      }
+      // inside TODAY an app is a frame: only the page that is added to the home screen draws one
+      await tab.goto(origin + '/ISIONXXX/#mind');
+      await tab.frameLocator('#f-mind').locator('h1.brand').waitFor();
+      await tab.waitForFunction(s => document.querySelectorAll(s).length === 2, startup);
+      await tab.waitForTimeout(1500);
+      assert.equal(await tab.frameLocator('#f-mind').locator(startup).count(), 0, 'no launch image inside a frame');
+      await ctx.close();
+    }
+    // the phone switches between light and dark before the app is added: the launch image follows
+    {
+      const [ctx, tab] = await safariOn({ viewport: { width: 402, height: 874 }, screen: { width: 402, height: 874 }, deviceScaleFactor: 3, hasTouch: true, isMobile: true, colorScheme: 'light' });
+      await tab.goto(home);
+      await tab.waitForFunction(s => document.querySelectorAll(s).length === 2, startup);
+      const before = await tab.locator(startup).first().getAttribute('href');
+      await tab.emulateMedia({ colorScheme: 'dark' });
+      await tab.waitForFunction(([s, b]) => document.querySelectorAll(s).length === 2 && document.querySelector(s).href !== b, [startup, before]);
+      await ctx.close();
+    }
+    // a Mac has no touch screen: no launch image
+    {
+      const [ctx, tab] = await safariOn({ viewport: { width: 1440, height: 900 } });
+      await tab.goto(home);
+      await tab.locator('html.ui-ready').waitFor();
+      await tab.waitForTimeout(1500);
+      assert.equal(await tab.locator(startup).count(), 0, 'no launch image on a Mac');
+      await ctx.close();
+    }
+    pass('Safari on a phone: every page carries a plain launch image at the screen’s exact size in its own background, light and dark');
+
     // the installed app (navigator.standalone, as on an iPhone's home screen) opens on this page, once per launch,
     // with no signal too: the shell's service worker keeps it
     const app = await browser.newContext({ timezoneId: 'UTC', viewport: { width: 390, height: 844 }, hasTouch: true, isMobile: true });
@@ -250,6 +316,8 @@ async function main() {
     await first.goto(origin + '/ISIONXXX/');
     await first.locator('#today.on').waitFor();
     assert.ok(!first.url().includes('/personal/'), 'the shell, not the homepage, later in the same launch');
+    await first.waitForTimeout(1500);
+    assert.equal(await first.locator('link[rel="apple-touch-startup-image"]').count(), 0, 'the installed app draws no launch image');
     await app.close();
     pass('the installed app opens on the homepage once per launch, offline too, and the affirmation opens offline');
     assert.deepEqual(errors, [], 'browser page errors');
