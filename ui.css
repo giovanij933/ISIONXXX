@@ -508,7 +508,7 @@ html body .ui-btn.ui-danger-fill{background:var(--error-fill);border-color:var(-
 /* no double-tap zoom anywhere */
 html{touch-action:manipulation}
 /* ---------- app header: a rounded frosted bar pinned to the top, the rarely used buttons behind ··· ---------- */
-html body header.top:not(.th){position:sticky;top:8px;z-index:7;padding:10px 14px;margin-top:-6px;gap:12px;border-bottom-color:transparent}
+html body header.top:not(.th){position:sticky;top:calc(env(safe-area-inset-top) + 8px);z-index:7;padding:10px 14px;margin-top:-6px;gap:12px;border-bottom-color:transparent}
 /* the glass sits on a rounded layer behind the header, so it floats like the tab bar */
 html body header.top:not(.th)::before{content:'';position:absolute;z-index:-1;inset:0;border-radius:22px;background:var(--glass-sheen),var(--glass);
   border:1px solid var(--glass-edge);box-shadow:var(--shadow-bar);
@@ -530,8 +530,10 @@ html body .ui-more-pop>button{all:unset;box-sizing:border-box;display:block;widt
 html body .ui-more-pop>button:hover,html body .ui-more-pop>button:focus-visible{background:var(--hover)}
 html body .ui-more-pop>button:focus-visible{outline:1px solid var(--accent);outline-offset:-1px}
 @keyframes ui-more-in{from{opacity:0;transform:translateY(-4px) scale(.98)}}
-/* phones: the same rounded bar on one line: the app name, the main button, a vertical ⋮ holding everything else, and
-   the sync dot. The everyday buttons show as the first items of the menu instead. */
+.ui-edge{display:none}
+/* phones: no bar. Like iOS 26's own apps, the header is separate glass pieces floating over the page: the app's name,
+   the main button, a vertical ⋮ holding everything else, and the sync dot. The everyday buttons show as the first items
+   of the menu instead. The page softens and fades as it slides under them (.ui-edge, added by ui.js). */
 .ui-more-v,html body .ui-more-pop>.ui-more-m,.ui-more-sep{display:none}
 .ui-more-sep{border:0;border-top:1px solid var(--border-soft);margin:4px 6px}
 /* the ISIONXXX mark: the app icon's monogram, drawn in --primary through its own shape (a mask), so it is black on a
@@ -552,18 +554,29 @@ html body .brand>.ui-brand-a:focus-visible{outline:2px solid var(--accent);outli
 html body .brand>.ui-brand-a:active{opacity:.7}
 @media (hover:hover){html body .brand>.ui-brand-a:hover{color:var(--accent-text)}}
 @media (max-width:640px){
-  html body header.top:not(.th){flex-wrap:nowrap;padding:7px 6px 7px 14px;gap:8px}
+  html body header.top:not(.th){flex-wrap:nowrap;align-items:center;padding:0;gap:8px}
+  html body header.top:not(.th)::before{display:none}
   html body header.top:not(.th) .brand{flex:0 1 auto;min-width:0;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  html body header.top:not(.th) .acts{flex:1 1 auto;justify-content:flex-end;gap:6px}
+  html body header.top:not(.th) :is(.brand,.ui-more-btn,#isx-sync.inl){background:var(--glass-sheen),var(--float);border:1px solid var(--glass-edge);box-shadow:var(--shadow-float);
+    -webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter)}
+  html body header.top:not(.th) .brand{display:flex;align-items:center;height:44px;padding:0 16px 0 12px;margin:0;border-radius:999px}
+  html body header.top:not(.th) .acts{flex:1 1 auto;justify-content:flex-end;align-items:center;gap:8px}
+  html body header.top:not(.th) .acts>:is(button.pri,.go){border-radius:999px;min-height:44px}
+  html body header.top:not(.th) .ui-more{align-self:center}
+  html body header.top:not(.th) .ui-more-btn{width:44px;min-width:44px;height:44px;padding:0;border-radius:50%}
   html body header.top:not(.th) .acts>button:not(.pri):not(.go){display:none}
   html body header.top:not(.th) .ui-brand-mark{margin-right:.2em}
   .ui-more-h{display:none}.ui-more-v{display:block}
   html body .ui-more-btn{min-width:38px;padding-left:8px;padding-right:8px}
   html body .ui-more-pop>.ui-more-m,.ui-more-sep{display:block}
-  html body header.top:not(.th) #isx-sync.inl{order:9;margin:-4px -2px -4px -4px}
+  html body header.top:not(.th) #isx-sync.inl{order:9;margin:0;width:44px;height:44px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+  .ui-edge{display:block;position:fixed;left:0;right:0;top:0;height:calc(env(safe-area-inset-top) + 64px);z-index:6;pointer-events:none;
+    -webkit-backdrop-filter:blur(8px);backdrop-filter:blur(8px);-webkit-mask-image:linear-gradient(#000 35%,transparent);mask-image:linear-gradient(#000 35%,transparent);
+    background:linear-gradient(color-mix(in srgb,var(--background) 88%,transparent),color-mix(in srgb,var(--background) 40%,transparent) 70%,transparent)}
 }
 @media (max-width:374px){html body header.top:not(.th) .brand{letter-spacing:.03em}html body header.top:not(.th) .ui-brand-mark{margin-right:0;width:1.4em;height:1.34em}}
-@media (prefers-reduced-transparency:reduce){html body header.top:not(.th)::before,.ui-more-pop{background:var(--float-solid);-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media (prefers-reduced-transparency:reduce){html body header.top:not(.th)::before,.ui-more-pop,html body header.top:not(.th) :is(.brand,.ui-more-btn,#isx-sync.inl){background:var(--float-solid);-webkit-backdrop-filter:none;backdrop-filter:none}
+  .ui-edge{-webkit-backdrop-filter:none;backdrop-filter:none}}
 @media (prefers-reduced-motion:reduce){.ui-more-pop{animation:none}}
 @media (max-width:640px){html body header.top:not(.th) .acts{overflow:visible}}
 /* ---------- dropdown lists on desktop: the same glass panel as the ··· menu (ui.js builds it in place of the browser's list) ---------- */

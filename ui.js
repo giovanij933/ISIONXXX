@@ -756,7 +756,9 @@
     const its = shown(open.nextSibling), i = its.indexOf(document.activeElement);
     its[(i + (e.key === 'ArrowDown' ? 1 : its.length - 1)) % its.length]?.focus(); e.preventDefault();
   });
-  const moreInit = () => brandInit() || document.querySelectorAll('header.top .acts').forEach(a => { moreMenu(a); new MutationObserver(() => moreMenu(a)).observe(a, { childList: true }) });
+  // phones: the page softens and fades as it slides under the floating header (.ui-edge in ui.css), as in iOS 26's own apps
+  const edgeInit = () => { if (document.querySelector('header.top:not(.th)') && !document.querySelector('.ui-edge')) { const e = document.createElement('div'); e.className = 'ui-edge'; e.setAttribute('aria-hidden', 'true'); document.body.prepend(e) } };
+  const moreInit = () => edgeInit() || brandInit() || document.querySelectorAll('header.top .acts').forEach(a => { moreMenu(a); new MutationObserver(() => moreMenu(a)).observe(a, { childList: true }) });
   document.readyState === 'loading' ? addEventListener('DOMContentLoaded', moreInit) : moreInit();
 
   // on desktop, dropdowns open as a glass list like the ··· menu instead of the browser's own; phones and tablets keep
@@ -890,5 +892,5 @@
   document.readyState === 'complete' ? launchSoon(800) : addEventListener('load', () => launchSoon(800));
   matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => launchSoon(100));
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.7.0' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.8.0' };
 })();

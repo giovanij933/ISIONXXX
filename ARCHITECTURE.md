@@ -207,6 +207,10 @@ holds a colour of its own, so the palette changes in one file and every app foll
 - **In a chart drawn from script**, a colour reaches the SVG as a style (`style="fill:var(--accent)"`): an
   attribute (`fill="…"`) can't hold a token.
 - **Glass** is for what floats over the page: the app header, TODAY's tab bar, menus, sheets and dialogs, toasts.
+  On a phone (640 pt and narrower) the header has no bar: like iOS 26's own apps, its pieces float as separate glass
+  pills (the app's name, the main button, ⋮, the sync dot; TODAY's name, date and sync dot), on the heavier `--float`
+  tint so they read over anything, and the page softens and fades as it slides under them (`.ui-edge`, which `ui.js`
+  adds to every app and TODAY draws with its page). Wider screens keep the one rounded bar.
   It is modelled on the menus iOS draws itself: the page shows through, blurred (`--glass-filter`, 26 px) with its
   colours kept, under a light or dark tint (`--glass`; `--float` is the heavier tint for a sheet full of text), with
   a light across it (`--glass-sheen`) and a bright rim (`--glass-rim`, carried by the shadows). Cards stay flat.
@@ -246,6 +250,16 @@ Apple's guidelines ask: the page then fades in over the same colour. Every page 
   home screen and adding it again. The installed app draws nothing.
 - **Not testable here.** No headless browser shows a launch screen; the test checks the images each page offers (their
   size, colour and orientations, light and dark) and that the installed app, a frame and a Mac offer none.
+
+**2f. The installed app is as tall as the page iOS gives it.**
+TODAY is one full-screen box: the tab bar and every app's frame hang from its bottom. Installed on an iPhone, iOS 26
+gets one of two heights wrong, depending on the status bar style. With the solid bar (this app's, `default`), the page
+starts below the bar but `100vh` and `100lvh` are the whole screen (WebKit 316008): sized to them, the tab bar and the
+bottom of every app sat 62 pt off the screen. With a see-through bar, the page is a bar short (WebKit 301108), a strip
+under the tab bar. `min(100lvh, 100% + env(safe-area-inset-top))` is right in both, because the solid bar's safe-area
+top is 0. Don't size to `screen.height` or branch on the safe-area top: both were tried, and both failed on the phone.
+A tap on TODAY's date shows the sizes the phone reports (screen, page, `vh`/`lvh`/`dvh`/`svh`, safe areas, the tab bar),
+so a layout can be fixed from one screenshot of a real iPhone. Headless Chromium can't reproduce these iOS heights.
 
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL
