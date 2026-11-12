@@ -141,6 +141,17 @@ nav button:focus-visible{outline:1px solid var(--accent);outline-offset:-4px}
 .ld .ui-skeleton{width:min(420px,calc(100% - 32px))}
 #today .th .brand{white-space:nowrap}#today .th .dt b{font-weight:400}
 #today .th .dt i{font-style:normal}@media(max-width:420px){#today .th .dt i{display:none}}
+/* phones: TODAY's header floats as glass pieces like the apps' (ui.css): the name, the date, the sync dot. The page
+   softens and fades as it slides under them (.ui-edge, drawn with the page) */
+@media(max-width:640px){
+  #today .th{top:8px;background:none;border-bottom:0;padding:0;margin:8px 0 14px;align-items:center;z-index:8}
+  #today .th :is(.brand,.dt,#isx-sync){background:var(--glass-sheen),var(--float);border:1px solid var(--glass-edge);box-shadow:var(--shadow-float);-webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter)}
+  #today .th .brand{display:flex;align-items:center;height:44px;padding:0 16px 0 12px;margin:0;border-radius:999px}
+  #today .th .acts{display:flex;align-items:center;gap:8px}
+  #today .th .dt{display:inline-flex;align-items:center;gap:.3em;height:44px;padding:0 16px;border-radius:999px}
+  #today .th #isx-sync{margin:0;width:44px;height:44px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+}
+@media(max-width:640px) and (prefers-reduced-transparency:reduce){#today .th :is(.brand,.dt,#isx-sync){background:var(--float-solid);-webkit-backdrop-filter:none;backdrop-filter:none}}
 .nx{all:unset;box-sizing:border-box;cursor:pointer;flex:1;text-align:center;padding:11px 8px;border:1px solid var(--line2);font-size:11px;letter-spacing:.05em;text-transform:uppercase;color:var(--tx);-webkit-tap-highlight-color:transparent;transition:background-color .15s,border-color .15s,transform .12s}
 .nx:active{transform:scale(.97)}
 .nx:focus-visible{outline:1px solid var(--accent)}
@@ -676,7 +687,7 @@ function drawToday(){
   const next=wins.find(c=>!c.done&&!c.rest);
   const d=new Date(),date=d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'}).toUpperCase();
   const ci=ciHTML();
-  const html=`<div class="in"><header class="th top"><h1 class="brand"><a class="ui-brand-a" href="personal/" title="ISIONXXX homepage"><span class="ui-brand-mark" role="img" aria-label="ISIONXXX"></span>TODAY</a></h1><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>
+  const html=`<div class="ui-edge" aria-hidden="true"></div><div class="in"><header class="th top"><h1 class="brand"><a class="ui-brand-a" href="personal/" title="ISIONXXX homepage"><span class="ui-brand-mark" role="img" aria-label="ISIONXXX"></span>TODAY</a></h1><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>
     ${stoHTML()}${ci}${heroHTML(wins,next,t)}${planHTML(t,C,next)}
     ${insHTML()}</div>`;
   // only touch the page when something changed
