@@ -261,6 +261,35 @@ async function main() {
     }
     pass('every app’s header shows the ISIONXXX mark and opens the homepage, from inside the shell too');
 
+    // TODAY's plan shows each app's picture (ARCHITECTURE.md, 2h), kept to plain shapes: no script, handler, link,
+    // style or foreign element gets into the page, and a picture that doesn't parse shows nothing
+    await page.goto(origin + '/ISIONXXX/#today');
+    await page.locator('#today.on').waitFor();
+    await page.evaluate(() => {
+      const sig = UI.planSig([]), at = Date.now();
+      const save = (app, art) => localStorage.setItem('isx.plan.' + app, JSON.stringify({ v: 1, app, sig, src: [], at, items: [{ title: 'Test ' + app, sub: 'a picture', act: 'plan', art }] }));
+      save('training', '<svg viewBox="0 0 100 220"><polygon class="pa-p" points="0 0 10 0 10 10"/><polygon points="20 0 30 0 30 10"/></svg>');
+      save('mind', '<svg viewBox="0 0 10 10" onload="window.__art=1"><script>window.__art=2</script><foreignObject><div>x</div></foreignObject>' +
+        '<a href="javascript:void 0"><rect width="5" height="5"/></a><rect class="pa-p evil" width="4" height="4" style="fill:red" fill="url(#g)"/><path d="M0 0L9 9" class="pa-sp" fill="none" stroke-width="2"/></svg>');
+      save('journal', '<svg><broken');
+    });
+    await page.reload();
+    await page.locator('.pl-training .pl-art svg').waitFor();
+    const art = await page.evaluate(() => {
+      const at = id => document.querySelector(`.pl-${id} .pl-art`);
+      return { n: at('training').querySelectorAll('polygon').length, cls: at('training').querySelector('polygon').getAttribute('class'),
+        mind: at('mind')?.innerHTML || '', ran: window.__art, journal: !!at('journal')?.querySelector('svg') };
+    });
+    assert.equal(art.n, 2, 'both shapes of a plain picture');
+    assert.equal(art.cls, 'pa-p');
+    assert.ok(art.mind && !/script|onload|foreignObject|href|style|url|evil|<a[ >]/i.test(art.mind), art.mind);
+    assert.match(art.mind, /<rect class="pa-p" width="4" height="4">/);
+    assert.match(art.mind, /<path d="M0 0L9 9" class="pa-sp" fill="none" stroke-width="2">/);
+    assert.equal(art.ran, undefined, 'nothing in a picture runs');
+    assert.equal(art.journal, false, 'a broken picture shows nothing');
+    await page.evaluate(() => ['training', 'mind', 'journal'].forEach(a => localStorage.removeItem('isx.plan.' + a)));
+    pass("TODAY's plan shows each app's picture, kept to plain shapes");
+
     // the launch screen (ui.js): in Safari on an iPhone (navigator.standalone false), every page an app can be added from
     // carries a launch image for each orientation at the screen's exact size, plain, in the page's own background, light
     // and dark. TODAY's frames, the installed app (below) and a Mac don't draw one.
