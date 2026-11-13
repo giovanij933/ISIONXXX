@@ -17,6 +17,7 @@ async function main() {
   // no signal: the server drops every connection. (context.setOffline doesn't reach the service worker's own requests,
   // so it can't show whether the app really opens from its cache.)
   let offline = false;
+  const swapped = new Map();   // file → the content to serve instead (a check's new version of the shell)
   const server = http.createServer(async (req, res) => {
     if (offline) { req.socket.destroy(); return; }
     try {
@@ -24,6 +25,7 @@ async function main() {
       let file = path.resolve(SITE, '.' + pathname);
       if (!file.startsWith(SITE + path.sep)) { res.writeHead(403).end(); return; }
       if ((await fs.stat(file)).isDirectory()) file = path.join(file, 'index.html');
+      if (swapped.has(file)) { res.writeHead(200, { 'content-type': MIME[path.extname(file)] || 'application/octet-stream' }); res.end(swapped.get(file)); return; }
       res.writeHead(200, { 'content-type': MIME[path.extname(file)] || 'application/octet-stream' });
       res.end(await fs.readFile(file));
     } catch { res.writeHead(404).end(); }
@@ -195,7 +197,8 @@ async function main() {
     pass('phones: 11 px text, 44 px targets, and the editor swipes closed');
 
     // swipe down (ui.js) on the apps' sheets: a session sheet before it starts closes (TRAINING's plan), a running one
-    // springs back and says why (a workout), a form with something typed asks first (NUTRITION's food)
+    // goes down to the bar and a tap brings it back (a workout, ARCHITECTURE.md 2j), one waiting to be saved springs back
+    // and says why (a finished workout), a form with something typed asks first (NUTRITION's food)
     {
       const sw = await browser.newContext({ timezoneId: 'UTC', viewport: { width: 430, height: 878 }, hasTouch: true, isMobile: true });
       await sw.route(/fonts\.g|gstatic|cdnjs|jsdelivr|youtube|ytimg/, route => route.abort());
@@ -220,7 +223,19 @@ async function main() {
       await tab.locator('#dlg[open] button:has-text("Begin")').click();
       await tab.locator('#ls').waitFor();
       await swipe('#dlg');
-      assert.equal(await tab.locator('#dlg[open]').count(), 1, 'a running workout stays open');
+      assert.equal(await tab.locator('#dlg[open]').count(), 0, 'a running workout goes down');
+      const bar = tab.locator('.ui-run');
+      assert.match(await bar.textContent(), /day.*\d+:\d\d/, 'to the bar, with the workout and its clock');
+      assert.ok((await bar.boundingBox()).height >= 44, 'a bar big enough to tap');
+      await tab.waitForTimeout(1100);
+      assert.notEqual(await bar.textContent(), await (async () => { await tab.waitForTimeout(1100); return bar.textContent() })(), 'its clock runs');
+      await bar.click();
+      await tab.locator('#dlg[open] #ls').waitFor();
+      assert.equal(await tab.locator('.ui-run').count(), 0, 'a tap brings the workout back, and the bar goes');
+      await tab.locator('#dlg[open] #fn').click();
+      await tab.locator('#dlg[open] #ff').waitFor();
+      await swipe('#dlg');
+      assert.equal(await tab.locator('#dlg[open]').count(), 1, 'a finished workout waiting to be saved stays open');
       assert.match(await tab.locator('.ui-toast.ui-on').textContent(), /finish or discard/i, 'and says why');
       assert.ok(await tab.locator('.ui-toast').evaluate(t => !t.showPopover || t.matches(':popover-open')), 'the message shows above the sheet');
       await tab.goto(origin + '/nutrition/');
@@ -234,7 +249,45 @@ async function main() {
       assert.equal(await tab.locator('#modal:not(.hidden)').count(), 0, 'a typed food form closes once Discard is confirmed');
       await sw.close();
     }
-    pass('swipe down closes a sheet, asks before discarding what was typed, and a running session springs back and says why');
+    pass('swipe down closes a sheet, puts a running session on the bar (a tap brings it back), asks before discarding what was typed, and a session waiting to be saved springs back and says why');
+
+    // an update takes over on the first reopen (ui.js, ARCHITECTURE.md 2i): the old version opens, the new one installs
+    // and takes over, and the page reloads into it by itself; with a sheet open it waits and offers a reload instead
+    {
+      const up = await browser.newContext({ timezoneId: 'UTC', viewport: { width: 430, height: 878 } });
+      await up.route(/fonts\.g|gstatic|cdnjs|jsdelivr|youtube|ytimg/, route => route.abort());
+      const tab = await up.newPage();
+      tab.on('pageerror', error => errors.push(error.message));
+      const shell = origin + '/ISIONXXX/', sw = path.join(SITE, 'ISIONXXX', 'sw.js'), ix = path.join(SITE, 'ISIONXXX', 'index.html');
+      const version = async (v, mark) => {
+        swapped.set(sw, (await fs.readFile(sw, 'utf8')).replace(/isx-shell-v\d+/, 'isx-shell-v' + v));
+        swapped.set(ix, (await fs.readFile(ix, 'utf8')).replace('<head>', `<head><meta name="isx-test" content="${mark}">`));
+      };
+      const mark = () => tab.evaluate(() => document.querySelector('meta[name=isx-test]')?.content || 'old');
+      // the first visit installs the service worker (and doesn't reload when it takes over), the next opens under it
+      await tab.goto(shell);
+      await tab.evaluate(async () => { await navigator.serviceWorker.ready; if (!navigator.serviceWorker.controller) await new Promise(r => navigator.serviceWorker.addEventListener('controllerchange', r, { once: true })) });
+      assert.equal(await mark(), 'old');
+      await tab.reload();
+      await tab.waitForFunction(() => !!navigator.serviceWorker.controller);
+      // a new version is out: reopening (the update check) is enough
+      await version(9001, 'new');
+      await tab.evaluate(() => navigator.serviceWorker.getRegistration().then(r => r.update()));
+      await tab.waitForSelector('meta[name=isx-test][content=new]', { state: 'attached', timeout: 20000 });
+      // another, while a sheet is open: no reload under it, a pill offers one, and a tap reloads into it
+      await tab.waitForFunction(() => !!navigator.serviceWorker.controller);
+      await tab.evaluate(() => { const d = document.createElement('dialog'); d.id = 'isx-t'; document.body.append(d); d.showModal() });
+      await version(9002, 'newer');
+      await tab.evaluate(() => navigator.serviceWorker.getRegistration().then(r => r.update()));
+      await tab.locator('.ui-upd').waitFor({ timeout: 20000 });
+      assert.equal(await mark(), 'new', 'no reload while a sheet is open');
+      await tab.evaluate(() => document.getElementById('isx-t').close());
+      await tab.locator('.ui-upd').click();
+      await tab.waitForSelector('meta[name=isx-test][content=newer]', { state: 'attached', timeout: 20000 });
+      swapped.clear();
+      await up.close();
+    }
+    pass('an update takes over on the first reopen, and waits with a reload button while a sheet is open');
 
     for (const [hash, app] of [['today', null], ['mind', 'MEDITATE'], ['training', 'TRAINING'], ['nutrition', 'nutrition'], ['learn', 'data-analytics'], ['journal', 'JOURNAL'], ['rewire', 'rewire']]) {
       await page.goto(home);
