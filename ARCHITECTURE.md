@@ -270,6 +270,18 @@ your changes?" before it closes (a session sheet's fields are its sets, saved as
 The toast is a popover, so it shows above an open sheet (a `<dialog>` sits above any z-index). `personal.test.js`
 swipes TRAINING's plan, a running workout and NUTRITION's food form.
 
+**2h. TODAY's plan shows each app's picture.**
+Each app draws a picture beside its items (TRAINING's muscles, MIND's breath or attention, NUTRITION's macro ring,
+LEARN's before → after table, JOURNAL's focus rule, REWIRE's urge map), styled by its own CSS. TODAY has none of that
+CSS, so a plan row (`UI.planner`, saved as `isx.plan.<app>`) can carry `art`: a small SVG in the plan-art classes,
+which TODAY colours from the palette (light and dark follow the page). Fills: `pa-p` accent, `pa-s` light accent,
+`pa-n` track, `pa-c` cell grey, `pa-x` faded, `pa-a` accent tint, `pa-i` info, `pa-g` secondary, `pa-e` error,
+`pa-w` success; an unclassed polygon is the body's grey. Strokes (with `fill="none"` and their own widths):
+`pa-sp` accent, `pa-si`, `pa-sg`, `pa-st` track, `pa-se`, `pa-sw`, `pa-sk` text, `pa-sm` secondary text, `pa-sb`
+border. Each app's map file converts its own picture with `toArt` (its class → plan-art class). TODAY keeps only plain
+shapes (svg, g, polygon, path, circle, rect, line, with geometry attributes and pa-* classes) before the picture goes in
+the page, so a plan can't put anything else there. `personal.test.js` checks both.
+
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL
 would tie every app's offline start-up and update timing to the shell's deploy. That would also break the
