@@ -261,6 +261,15 @@ top is 0. Don't size to `screen.height` or branch on the safe-area top: both wer
 A tap on TODAY's date shows the sizes the phone reports (screen, page, `vh`/`lvh`/`dvh`/`svh`, safe areas, the tab bar),
 so a layout can be fixed from one screenshot of a real iPhone. Headless Chromium can't reproduce these iOS heights.
 
+**2g. Every sheet swipes down.**
+`ui.js` lets a swipe down from a sheet's top close it, as on iOS: every `<dialog>`, NUTRITION's and LEARN's `.modal > .box`
+sheets, and the session sheets (`.ss`: MIND's, TRAINING's and REWIRE's, NUTRITION's cook mode) too. A swipe does
+what Escape does, so an app's own rule decides: while a session runs (or waits to be saved) the app refuses the
+`cancel`, and the sheet springs back with "Finish or discard this first". A form with something typed asks "Discard
+your changes?" before it closes (a session sheet's fields are its sets, saved as they're logged, so it doesn't ask).
+The toast is a popover, so it shows above an open sheet (a `<dialog>` sits above any z-index). `personal.test.js`
+swipes TRAINING's plan, a running workout and NUTRITION's food form.
+
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL
 would tie every app's offline start-up and update timing to the shell's deploy. That would also break the

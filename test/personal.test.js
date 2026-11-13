@@ -194,6 +194,48 @@ async function main() {
     await phone.close();
     pass('phones: 11 px text, 44 px targets, and the editor swipes closed');
 
+    // swipe down (ui.js) on the apps' sheets: a session sheet before it starts closes (TRAINING's plan), a running one
+    // springs back and says why (a workout), a form with something typed asks first (NUTRITION's food)
+    {
+      const sw = await browser.newContext({ timezoneId: 'UTC', viewport: { width: 430, height: 878 }, hasTouch: true, isMobile: true });
+      await sw.route(/fonts\.g|gstatic|cdnjs|jsdelivr|youtube|ytimg/, route => route.abort());
+      const tab = await sw.newPage();
+      tab.on('pageerror', error => errors.push(error.message));
+      tab.on('dialog', d => d.accept());
+      const cdp = await sw.newCDPSession(tab);
+      const swipe = async sel => {
+        const y0 = (await tab.locator(sel).first().boundingBox()).y + 18;
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchStart', touchPoints: [{ x: 215, y: y0 }] });
+        for (let i = 1; i <= 10; i++) { await cdp.send('Input.dispatchTouchEvent', { type: 'touchMove', touchPoints: [{ x: 215, y: y0 + i * 28 }] }); await tab.waitForTimeout(16); }
+        await cdp.send('Input.dispatchTouchEvent', { type: 'touchEnd', touchPoints: [] });
+        await tab.waitForTimeout(600);
+      };
+      await tab.goto(origin + '/TRAINING/');
+      await tab.locator('[data-a=sample]').click();
+      await tab.locator('[data-a=go] >> visible=true').first().click();
+      await tab.locator('#dlg[open]').waitFor();
+      await swipe('#dlg');
+      assert.equal(await tab.locator('#dlg[open]').count(), 0, "TRAINING's plan closes with a swipe down");
+      await tab.locator('[data-a=go] >> visible=true').first().click();
+      await tab.locator('#dlg[open] button:has-text("Begin")').click();
+      await tab.locator('#ls').waitFor();
+      await swipe('#dlg');
+      assert.equal(await tab.locator('#dlg[open]').count(), 1, 'a running workout stays open');
+      assert.match(await tab.locator('.ui-toast.ui-on').textContent(), /finish or discard/i, 'and says why');
+      assert.ok(await tab.locator('.ui-toast').evaluate(t => !t.showPopover || t.matches(':popover-open')), 'the message shows above the sheet');
+      await tab.goto(origin + '/nutrition/');
+      await tab.evaluate(() => doAct('demo'));
+      await tab.locator('[data-act=quick] >> visible=true').first().click();
+      await tab.locator('#q_name').fill('Oats');
+      await swipe('#mbox');
+      await tab.locator('dialog.ui-cf[open]').waitFor();
+      await tab.locator('dialog.ui-cf[open] button[type=submit]').click();
+      await tab.waitForTimeout(500);
+      assert.equal(await tab.locator('#modal:not(.hidden)').count(), 0, 'a typed food form closes once Discard is confirmed');
+      await sw.close();
+    }
+    pass('swipe down closes a sheet, asks before discarding what was typed, and a running session springs back and says why');
+
     for (const [hash, app] of [['today', null], ['mind', 'MEDITATE'], ['training', 'TRAINING'], ['nutrition', 'nutrition'], ['learn', 'data-analytics'], ['journal', 'JOURNAL'], ['rewire', 'rewire']]) {
       await page.goto(home);
       await page.locator(`.app-card[href="../#${hash}"]`).click();

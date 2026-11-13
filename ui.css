@@ -152,7 +152,9 @@ code,pre,kbd,samp{font-family:var(--ui-mono)}
 
 /* toast */
 .ui-toast{position:fixed;left:50%;bottom:calc(var(--isx-tabs,24px) + 16px + env(safe-area-inset-bottom));transform:translate(-50%,8px);width:max-content;max-width:min(90vw,420px);box-sizing:border-box;padding:10px 14px;background:var(--ui-panel);border:1px solid var(--border-soft);color:var(--text-primary);font:12px var(--ui-f);opacity:0;pointer-events:none;transition:opacity .2s,transform .2s var(--ui-ease);z-index:50}
-.ui-toast.ui-on{opacity:1;transform:translate(-50%,0)}.ui-toast.ui-bad{border-color:var(--error-line);color:var(--error-text)}
+.ui-toast.ui-on{opacity:1;transform:translate(-50%,0)}
+/* the toast is a popover (ui.js), to show above an open sheet: undo the browser's popover box, keep it where it was */
+.ui-toast[popover]{top:auto;right:auto;margin:0;overflow:visible}.ui-toast.ui-bad{border-color:var(--error-line);color:var(--error-text)}
 
 /* focus: always visible for keyboard users, never for taps */
 .ui-btn:focus-visible,.ui-seg>button:focus-visible,.ui-list>button:focus-visible,.ui-stepper>button:focus-visible,.ui-stepper>output:focus-visible{outline:2px solid var(--accent);outline-offset:2px;position:relative;z-index:2}
