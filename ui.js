@@ -140,10 +140,13 @@
   /* ---------- toast: a short announcement ----------
      UI.toast('Saved') — shown for 3 s and read by screen readers (polite).                                 */
   let toastEl, toastT;
+  // a toast shows above an open sheet too: a <dialog> sits in the page's top layer, above any z-index, so the toast is a
+  // popover, shown (again) last to be on top of it; it leaves the top layer once it has faded
+  const pop = el => { if (!el.showPopover) return; try { if (el.matches(':popover-open')) el.hidePopover(); el.showPopover() } catch (e) {} };
   function toast(msg, { tone } = {}) {
-    if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'ui-toast'; toastEl.setAttribute('role', 'status'); toastEl.setAttribute('aria-live', 'polite'); document.body.appendChild(toastEl) }
-    toastEl.textContent = msg; toastEl.className = 'ui-toast ui-on' + (tone ? ' ui-' + tone : '');
-    clearTimeout(toastT); toastT = setTimeout(() => toastEl.classList.remove('ui-on'), 3000);
+    if (!toastEl) { toastEl = document.createElement('div'); toastEl.className = 'ui-toast'; toastEl.setAttribute('role', 'status'); toastEl.setAttribute('aria-live', 'polite'); toastEl.setAttribute('popover', 'manual'); document.body.appendChild(toastEl) }
+    toastEl.textContent = msg; pop(toastEl); toastEl.className = 'ui-toast ui-on' + (tone ? ' ui-' + tone : '');
+    clearTimeout(toastT); toastT = setTimeout(() => { toastEl.classList.remove('ui-on'); toastT = setTimeout(() => { try { toastEl.hidePopover?.() } catch (e) {} }, 300) }, 3000);
   }
 
   /* ---------- confirm, ask, undo: the app's own versions of confirm(), prompt() and "are you sure?" ----------
@@ -513,38 +516,49 @@
       }).observe(m, { attributes: true, attributeFilter: ['class'], attributeOldValue: true, childList: true });
     });
     addEventListener('resize', () => document.querySelectorAll('.modal:not(.hidden)').forEach(keep), { passive: true });
-    // swipe down to dismiss: <dialog>s, and the .modal > .box sheets NUTRITION and LEARN draw (those close through the
-    // Escape key both apps already handle). Not once something was typed, not a full-screen session sheet (.ss)
+    // swipe down to dismiss: every <dialog>, and the .modal > .box sheets NUTRITION and LEARN draw (those close through
+    // the Escape key both apps already handle), the session sheets (.ss) too. A swipe does what Escape does: a session
+    // that's running (or waiting to be saved) refuses it, so its sheet springs back and says why. In a form with
+    // something typed, a swipe asks before throwing it away (a session sheet's fields are its sets, saved as you go)
     let drag = null;
     document.addEventListener('input', e => { const d = e.target.closest && e.target.closest('dialog,.modal'); if (d) d.__dirty = true }, true);
     document.addEventListener('touchstart', e => {
       const t = e.target.closest ? e.target : null; if (!t || e.touches.length > 1) return;
       const dlg = t.closest('dialog[open]'), box = dlg ? null : t.closest('.modal:not(.hidden)>.box'), d = dlg || box;
-      if (!d || d.classList.contains('ss') || (box ? box.parentElement.__dirty : d.__dirty) || d.scrollTop > 0) return;
+      if (!d || d.scrollTop > 0) return;
       if (t.closest('input,textarea,select,[contenteditable],.tw,pre')) return;
-      drag = { d, box, y0: e.touches[0].clientY, t0: Date.now(), dy: 0 };
+      const dirty = !d.classList.contains('ss') && !!(box ? box.parentElement.__dirty : d.__dirty);
+      drag = { d, box, dirty, y0: e.touches[0].clientY, t0: Date.now(), dy: 0 };
     }, { passive: true });
     document.addEventListener('touchmove', e => {
       if (!drag) return; const dy = e.touches[0].clientY - drag.y0;
       if (dy < 0 || drag.d.scrollTop > 0) { drag.d.style.transform = ''; return }
       drag.dy = dy; drag.d.style.transition = 'none'; drag.d.style.transform = `translateY(${dy * .85}px)`;
     }, { passive: true });
-    document.addEventListener('touchend', () => {
-      if (!drag) return; const { d, box, dy, t0 } = drag; drag = null;
-      const fast = dy > 60 && dy / (Date.now() - t0) > .6;
-      if (dy > 140 || fast) {
-        if (box) {
-          const m = box.parentElement; m.__dy = dy * .85;
-          box.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));   // from the sheet: apps read e.target
-          if (m.classList.contains('hidden')) { box.style.transition = ''; box.style.transform = ''; return }
-          m.__dy = 0;   // the app kept it open: spring back below
-        } else {
-          const ev = new Event('cancel', { cancelable: true });
-          if (d.dispatchEvent(ev)) { d.__dy = dy * .85; d.close(); return }
-        }
+    const back = d => { d.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1)'; d.style.transform = ''; setTimeout(() => { d.style.transition = '' }, 260) };
+    // close as Escape would; false when the app keeps it open
+    const dismiss = (d, box, dy) => {
+      if (box) {
+        const m = box.parentElement; m.__dy = dy;
+        box.dispatchEvent(new KeyboardEvent('keydown', { key: 'Escape', bubbles: true }));   // from the sheet: apps read e.target
+        if (m.classList.contains('hidden')) { box.style.transition = ''; box.style.transform = ''; return true }
+        m.__dy = 0; return false;
       }
-      d.style.transition = 'transform .25s cubic-bezier(.2,.8,.2,1)'; d.style.transform = '';
-      setTimeout(() => { d.style.transition = '' }, 260);
+      if (!d.dispatchEvent(new Event('cancel', { cancelable: true }))) return false;
+      d.__dy = dy; d.close(); return true;
+    };
+    document.addEventListener('touchend', () => {
+      if (!drag) return; const { d, box, dy, t0, dirty } = drag; drag = null;
+      const fast = dy > 60 && dy / (Date.now() - t0) > .6;
+      if (!(dy > 140 || fast)) return back(d);
+      if (dirty) {
+        back(d);
+        confirmSheet({ title: 'Discard your changes?', body: "What you typed here hasn't been saved.", ok: 'Discard', cancel: 'Keep editing', danger: true })
+          .then(yes => { if (yes && !dismiss(d, box, 0)) toast('Finish or discard this first') });
+        return;
+      }
+      if (dismiss(d, box, dy * .85)) return;
+      back(d); toast('Finish or discard this first');
     });
     // a fresh open starts clean
     const show = HTMLDialogElement.prototype.showModal;
@@ -892,5 +906,5 @@
   document.readyState === 'complete' ? launchSoon(800) : addEventListener('load', () => launchSoon(800));
   matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => launchSoon(100));
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.8.0' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.9.0' };
 })();
