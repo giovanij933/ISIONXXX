@@ -621,6 +621,12 @@ function planArt(src){
     if(r.localName==='svg'&&!r.getElementsByTagName('parsererror').length){out=clean(r);if(!/<(polygon|path|circle|rect|line)/.test(out))out=''}}catch(e){out=''}
   ARTS.set(src,out);return out;
 }
+// a session under way: its clock on TODAY's plan, from what the app shares (run: t0, the start; mins, a set length to
+// count down; paused). Filled in every second here, not in the HTML, so a redraw with nothing changed stays the same
+const clk=ms=>{const s=Math.max(0,Math.round(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60);return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(s%60).padStart(2,'0')};
+const runText=z=>!z.saved?'Finished · not saved yet':z.paused?'Paused':!z.t0?'':z.mins?(z.mins*6e4-(Date.now()-z.t0)>0?clk(z.mins*6e4-(Date.now()-z.t0))+' left':'Ending'):clk(Date.now()-z.t0);
+function runTick(){document.querySelectorAll('#today .pl-clk').forEach(el=>{try{el.textContent=runText(JSON.parse(el.dataset.run))}catch(e){}})}
+setInterval(()=>{if(!document.hidden)runTick()},1000);
 function planHTML(t,C,next){
   const h=new Date().getHours(),R=[],N=[];
   TABS.filter(a=>!a.pane).forEach(a=>{
@@ -630,24 +636,32 @@ function planHTML(t,C,next){
     const x=planRow(arr(p.items),h);if(!x)return;
     // the plan's tick only counts for the day it was given (a plan from yesterday isn't done today)
     const pd=!!x.done&&dayAt(p.at)===t;
-    R.push({a,c,x,pd,old:!p.fresh,ok:c?.done==null?pd:!!c.done});
+    // a session under way in the app (run) is never "done": it's the thing to go back to
+    R.push({a,c,x,pd:x.run?false:pd,old:!p.fresh&&!x.run,ok:x.run?false:c?.done==null?pd:!!c.done});
   });
   if(!R.length&&!N.length)return '';
   // one row with a picture keeps the picture's column on every row, so the titles line up
-  const arts=R.some(r=>r.x?.art&&planArt(r.x.art)),go=r=>!r.wait&&!r.old&&!r.ok,first=next?R.find(r=>r.a.id===next.id&&go(r)):C.some(c=>c&&c.done!=null)?null:R.find(go);
+  // a session under way comes first: its RETURN is the filled button
+  const arts=R.some(r=>r.x?.art&&planArt(r.x.art)),go=r=>!r.wait&&!r.old&&!r.ok,live=R.find(r=>r.x?.run&&r.x.run.saved!==false),
+    first=live||(next?R.find(r=>r.a.id===next.id&&go(r)):C.some(c=>c&&c.done!=null)?null:R.find(go));
   // MIND's plan ticks its suggestion once anything is logged, so a done MIND row shows what you practiced instead
   const row=r=>{const{a,c,x}=r,l=a.label,did=r.ok&&c?.did,q=QA[a.id][0];
-    let ti=(did?did.title:x?.title)||'',su=did?did.sub:x?.sub,bl='▶ Start',act=x?.act,va=r===first?'primary':'secondary',ar=`Start ${l}: ${ti}`,em='';
+    // a button can have its own words (NUTRITION's Log it: one tap logs the suggestion)
+    const own=x?.btn&&/^[\w ,.'·+-]{1,16}$/.test(x.btn)?x.btn:'';
+    let ti=(did?did.title:x?.title)||'',su=did?did.sub:x?.sub,bl=own?'+ '+own:'▶ Start',act=x?.act,va=r===first?'primary':'secondary',ar=own?`${own} in ${l}: ${ti}`:`Start ${l}: ${ti}`,em='';
     // out of date: it opens the app (the act may be yesterday's) while the app rebuilds it
     if(r.wait||r.old){ti=ti||'Getting the plan';bl='Open';act=null;va='ghost';ar=r.wait?`Open ${l}`:`Open ${l}: ${ti}, plan updating`;em='updating…'}
     else if(did||r.ok&&r.pd){bl='Open';act=did?'today':act;va='ghost';ar=`Open ${l}: ${ti}, done today`}
     // done today, and START has more: it's what's next there, not the thing to do
-    else if(r.ok){ti='Next: '+ti;va='ghost';ar=`Start ${l}: ${x.title}, up next (${l} is done today)`}
+    else if(r.ok){ti='Next: '+ti;va='ghost';ar=`${own?own+' in':'Start'} ${l}: ${x.title}, up next (${l} is done today)`}
     // the planned session is done but the ring isn't (it doesn't count a MOBILITY day, say): the hero's action for the app
     else if(r.pd){ti='Done: '+ti;bl=q[1];act=q[0];em='Not yet';ar=`${q[1].replace(/^\W+/,'')} in ${l}: ${x.title} done, ${l} not done today yet`}
+    // a session under way (or waiting to be saved): its clock, ticking (runTick), and RETURN, back into it
+    const run=x?.run&&typeof x.run==='object'?x.run:null;
+    if(run){ti=x.title||'';su='';act=x.act;const s=run.saved===false;em=s?'Not saved':'● Running';bl=s?'Open':'Return';if(!s)va='primary';ar=`Return to ${l}: ${ti}${s?', finished, not saved yet':', under way'}`}
     const art=x?.art?planArt(x.art):'';
     return `<li class="pl-r pl-${a.id}${r.ok?' done':''}${r.wait||r.old?' old':''}">${arts?`<span class="pl-art" aria-hidden="true">${art}</span>`:''}<div class="pl-x"><span class="pl-a"><i aria-hidden="true"></i>${l}${r.ok?'<em>✓ Done</em>':''}${em?`<em>${em}</em>`:''}</span>
-      <b class="pl-t">${esc(ti)}</b>${su?`<span class="pl-s">${esc(su)}</span>`:''}</div>
+      <b class="pl-t">${esc(ti)}</b>${run?`<span class="pl-s pl-clk" data-run="${esc(JSON.stringify({t0:+run.t0||0,mins:+run.mins||0,paused:!!run.paused,saved:run.saved!==false}))}"></span>`:su?`<span class="pl-s">${esc(su)}</span>`:''}</div>
       ${UI.button({label:bl,act:act||null,variant:va,attrs:{'data-go':a.id,'aria-label':ar}})}</li>`};
   // quiet next to real sessions; on a new device they're all there is, so they're outlined
   const none=a=>`<li class="pl-r pl-${a.id} none">${arts?'<span class="pl-art" aria-hidden="true"></span>':''}<div class="pl-x"><span class="pl-a"><i aria-hidden="true"></i>${a.label}</span>
@@ -710,6 +724,7 @@ function drawToday(){
     lastToday=html;el.innerHTML=html;
     animateToday(el);celebrate(el,wins);UI.animate(el);firstDraw=false;
   }
+  runTick();
   wins.forEach(c=>PREV.ring[c.id]=ringOf(c));
   if(!el.classList.contains('drawn'))requestAnimationFrame(()=>setTimeout(()=>el.classList.add('drawn'),400));
   if(fuelStale)preload('nutrition');
