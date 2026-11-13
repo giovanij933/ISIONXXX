@@ -325,6 +325,8 @@ async function main() {
       save('mind', '<svg viewBox="0 0 10 10" onload="window.__art=1"><script>window.__art=2</script><foreignObject><div>x</div></foreignObject>' +
         '<a href="javascript:void 0"><rect width="5" height="5"/></a><rect class="pa-p evil" width="4" height="4" style="fill:red" fill="url(#g)"/><path d="M0 0L9 9" class="pa-sp" fill="none" stroke-width="2"/></svg>');
       save('journal', '<svg><broken');
+      // a workout under way: Running, its clock, RETURN (ARCHITECTURE.md 2k)
+      localStorage.setItem('isx.plan.rewire', JSON.stringify({ v: 1, app: 'rewire', sig, src: [], at, items: [{ title: 'Surf · Test', act: 'urge', run: { t0: Date.now() - 65000, mins: 5 } }] }));
     });
     await page.reload();
     await page.locator('.pl-training .pl-art svg').waitFor();
@@ -340,8 +342,15 @@ async function main() {
     assert.match(art.mind, /<path d="M0 0L9 9" class="pa-sp" fill="none" stroke-width="2">/);
     assert.equal(art.ran, undefined, 'nothing in a picture runs');
     assert.equal(art.journal, false, 'a broken picture shows nothing');
-    await page.evaluate(() => ['training', 'mind', 'journal'].forEach(a => localStorage.removeItem('isx.plan.' + a)));
-    pass("TODAY's plan shows each app's picture, kept to plain shapes");
+    const surf = async () => page.evaluate(() => { const r = document.querySelector('.pl-rewire'); return { em: r.querySelector('.pl-a em')?.textContent, clk: r.querySelector('.pl-clk')?.textContent, btn: r.querySelector('button')?.textContent.trim() } });
+    const s1 = await surf();
+    assert.match(s1.em, /Running/, 'a session under way says so');
+    assert.match(s1.clk, /^3:5\d left$/, 'with its clock');
+    assert.equal(s1.btn, 'Return', 'and a way back into it');
+    await page.waitForTimeout(2100);
+    assert.notEqual((await surf()).clk, s1.clk, 'the clock ticks');
+    await page.evaluate(() => ['training', 'mind', 'journal', 'rewire'].forEach(a => localStorage.removeItem('isx.plan.' + a)));
+    pass("TODAY's plan shows each app's picture, kept to plain shapes, and a session under way with its clock and Return");
 
     // the launch screen (ui.js): in Safari on an iPhone (navigator.standalone false), every page an app can be added from
     // carries a launch image for each orientation at the screen's exact size, plain, in the page's own background, light

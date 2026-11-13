@@ -302,6 +302,15 @@ brings it back. A session waiting to be saved still refuses (2g). The bar is cen
 transform, because a pressed button's `:active` scale would replace the transform and move the bar from under the
 finger. `personal.test.js` puts a workout on the bar and back; MIND and REWIRE are checked by hand.
 
+**2k. TODAY shows what's under way, and can log in one tap.**
+A plan row (2h) can also carry `run`: a session under way in the app (MIND's session, TRAINING's workout, REWIRE's surf),
+with its start (`t0`), a set length to count down (`mins`) and `paused`, or `saved: false` once it's over and waiting to
+be saved. TODAY shows it first, "Running", with its clock (filled in every second, not in the HTML, so a redraw with
+nothing changed stays the same) and RETURN, which goes back into it, on the bar (2j) or not. Each app puts its run
+key (`isx.<app>.run`) among the plan's sources and replans as the run is saved, so the row follows. A row can also name
+its button (`btn`, a few plain words): NUTRITION's "Log it" logs the suggested meal in one tap (`eatnext`), with Undo
+there. `personal.test.js` checks a session's row.
+
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL
 would tie every app's offline start-up and update timing to the shell's deploy. That would also break the
