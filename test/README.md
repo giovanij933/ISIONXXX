@@ -48,7 +48,8 @@ They cover:
 Every run also runs `personal.test.js`, the tests for the personal homepage (`personal/`). It links into every
 app, so a change in any repo can break it. It also checks the launch image `ui.js` offers in Safari on a phone, on
 the homepage, TODAY and every app (ARCHITECTURE.md 2e), and that TODAY's plan shows each app's picture and lets
-only plain shapes into the page (2h). Any failure there fails the run. See `personal/README.md`.
+only plain shapes into the page (2h), that an update takes over on the first reopen (2i) and that a running workout
+goes down to the bar and back (2j). Any failure there fails the run. See `personal/README.md`.
 
 The CDN, fonts and video hosts are blocked in every run, so results don't depend on the network. The apps must
 start without them anyway.

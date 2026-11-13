@@ -225,18 +225,6 @@ const TABS=[
 const $=s=>document.querySelector(s),apps=$('#apps');
 // an older iOS without display-mode: standalone still gets the home-screen app's height (above)
 if(navigator.standalone)document.documentElement.classList.add('isx-sa');
-// a tap on TODAY's date shows the sizes this phone reports (screen, page, viewport units, safe areas, the tab bar),
-// to fix a layout on a real iPhone from a screenshot; another tap hides them
-document.addEventListener('click',e=>{
-  if(!e.target.closest('#today .th .dt'))return;
-  const o=document.getElementById('isx-dbg');if(o)return o.remove();
-  const probe=css=>{const d=document.createElement('div');d.style.cssText='position:absolute;left:0;top:0;width:1px;visibility:hidden;pointer-events:none;'+css;document.body.append(d);const h=d.getBoundingClientRect().height,c=getComputedStyle(d),r=[h,parseFloat(c.paddingTop)||0,parseFloat(c.paddingBottom)||0];d.remove();return r};
-  const u=v=>Math.round(probe('height:'+v)[0]),[,st,sb]=probe('height:0;padding:env(safe-area-inset-top) 0 env(safe-area-inset-bottom)'),t=$('#tabs').getBoundingClientRect();
-  const p=document.createElement('p');p.id='isx-dbg';
-  p.textContent=`screen ${screen.width}×${screen.height} · page ${innerHeight} · html ${document.documentElement.clientHeight} · body ${Math.round(document.body.getBoundingClientRect().height)} · vh ${u('100vh')} · lvh ${u('100lvh')} · dvh ${u('100dvh')} · svh ${u('100svh')} · safe top ${st} bottom ${sb} · tabs ${Math.round(t.top)}–${Math.round(t.bottom)} · ${navigator.standalone?'installed':'browser'}${matchMedia('(display-mode: standalone)').matches?', standalone':''}`;
-  p.style.cssText='margin:0 0 10px;font:11px/1.45 var(--ui-mono);color:var(--dim);-webkit-user-select:text;user-select:text';
-  e.target.closest('.th').after(p);
-});
 // inside the shell every app gets the same frame: room for the tab bar, nothing floating over the content. The
 // pinned glass header comes from ui.css. Injected here so the apps stay unchanged when opened on their own.
 const EMBED_CSS=`

@@ -544,8 +544,10 @@
         if (m.classList.contains('hidden')) { box.style.transition = ''; box.style.transform = ''; return true }
         m.__dy = 0; return false;
       }
-      if (!d.dispatchEvent(new Event('cancel', { cancelable: true }))) return false;
-      d.__dy = dy; d.close(); return true;
+      d.__dy = dy;
+      // refused: it stays open, unless the app closed it itself (a running session goes down to the bar, UI.runBar)
+      if (!d.dispatchEvent(new Event('cancel', { cancelable: true }))) { if (d.open) { d.__dy = 0; return false } return true }
+      d.close(); return true;
     };
     document.addEventListener('touchend', () => {
       if (!drag) return; const { d, box, dy, t0, dirty } = drag; drag = null;
@@ -906,5 +908,57 @@
   document.readyState === 'complete' ? launchSoon(800) : addEventListener('load', () => launchSoon(800));
   matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => launchSoon(100));
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, version: '1.9.0' };
+  /* ---------- the session bar: a running session, put away ----------
+     UI.runBar({label, text, open}) shows a bar at the bottom: a pulsing dot, the label (the session), text() (its clock,
+     read every second) and an arrow up. A tap brings the session back: the bar goes and open() runs. UI.runBar(null)
+     takes it away. One at a time. Apps show it when a swipe down (or Escape) on a running session's sheet puts it away
+     (ARCHITECTURE.md, 2j); the session keeps running underneath. */
+  let runEl = null, runT = 0;
+  function runBar(o) {
+    clearInterval(runT); runT = 0;
+    if (!o) { if (runEl) { runEl.remove(); runEl = null; document.documentElement.classList.remove('ui-has-run') } return }
+    if (!runEl) {
+      runEl = document.createElement('button'); runEl.type = 'button'; runEl.className = 'ui-run';
+      runEl.innerHTML = '<i aria-hidden="true"></i><b></b><span></span><em aria-hidden="true"></em>';
+      document.body.appendChild(runEl); document.documentElement.classList.add('ui-has-run');
+    }
+    const b = runEl.querySelector('b'), t = runEl.querySelector('span');
+    const paint = () => { let x = ''; try { x = String(o.text?.() ?? '') } catch (e) { } b.textContent = o.label || ''; t.textContent = x; runEl.setAttribute('aria-label', `${o.label}${x ? ', ' + x : ''}: back to the session`) };
+    paint(); runT = setInterval(paint, 1000);
+    runEl.onclick = () => { const f = o.open; runBar(null); try { f && f() } catch (e) { console.warn('UI.runBar', e) } };
+  }
+
+  /* ---------- updates: a new version takes over on the first reopen ----------
+     Each app's service worker installs a new version as soon as the browser sees it and takes over the open page
+     (skipWaiting, clients.claim), but the page keeps running the version it loaded, so an update used to take two
+     launches. When the new version takes over (controllerchange), the page reloads into it if nothing would be lost:
+     no sheet open, no field in use, no session on the bar, here or in a frame inside it (TODAY's apps), and within 30 s
+     of the page being shown, so it never reloads under you mid-task. Otherwise a pill offers it ("Updated · tap to
+     reload"), and the next time the app comes back it reloads by itself if it can. Coming back to the app (iOS keeps it
+     in memory, so that is often what reopening it is) checks for a new version, at most once a minute. A page that had
+     no service worker yet (the first visit) doesn't reload when one takes it over. */
+  if ('serviceWorker' in navigator) {
+    const had = !!navigator.serviceWorker.controller;
+    let shown = Date.now(), pend = false, checked = Date.now(), pill = null;
+    const busyIn = doc => { try {
+      const a = doc.activeElement;
+      return !!(doc.querySelector('dialog[open],.modal:not(.hidden),.po:not(.hidden),.ui-run') || a && /^(INPUT|TEXTAREA|SELECT)$/.test(a.tagName) && !a.readOnly && a.type !== 'button' || a?.isContentEditable)
+        || [...doc.querySelectorAll('iframe')].some(f => { try { return f.contentDocument && busyIn(f.contentDocument) } catch (e) { return false } });
+    } catch (e) { return true } };
+    const offer = () => {
+      if (pill || document.hidden) return;
+      pill = document.createElement('button'); pill.type = 'button'; pill.className = 'ui-upd'; pill.textContent = 'Updated · tap to reload';
+      pill.onclick = () => location.reload(); document.body.appendChild(pill);
+    };
+    const settle = () => { if (!pend || document.hidden) return; if (Date.now() - shown < 30000 && !busyIn(document)) location.reload(); else offer() };
+    navigator.serviceWorker.addEventListener('controllerchange', () => { if (had) { pend = true; settle() } });
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) return;
+      shown = Date.now();
+      if (pend) return settle();
+      if (Date.now() - checked > 60000) { checked = Date.now(); navigator.serviceWorker.getRegistration().then(r => r && r.update()).catch(() => { }) }
+    });
+  }
+
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, runBar, version: '1.10.0' };
 })();

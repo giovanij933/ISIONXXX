@@ -258,14 +258,14 @@ starts below the bar but `100vh` and `100lvh` are the whole screen (WebKit 31600
 bottom of every app sat 62 pt off the screen. With a see-through bar, the page is a bar short (WebKit 301108), a strip
 under the tab bar. `min(100lvh, 100% + env(safe-area-inset-top))` is right in both, because the solid bar's safe-area
 top is 0. Don't size to `screen.height` or branch on the safe-area top: both were tried, and both failed on the phone.
-A tap on TODAY's date shows the sizes the phone reports (screen, page, `vh`/`lvh`/`dvh`/`svh`, safe areas, the tab bar),
-so a layout can be fixed from one screenshot of a real iPhone. Headless Chromium can't reproduce these iOS heights.
+Headless Chromium can't reproduce these iOS heights: they were found with a size readout on TODAY (screen, page,
+`vh`/`lvh`/`dvh`/`svh`, safe areas, the tab bar) shown on a real iPhone, removed once the fix held.
 
 **2g. Every sheet swipes down.**
 `ui.js` lets a swipe down from a sheet's top close it, as on iOS: every `<dialog>`, NUTRITION's and LEARN's `.modal > .box`
 sheets, and the session sheets (`.ss`: MIND's, TRAINING's and REWIRE's, NUTRITION's cook mode) too. A swipe does
-what Escape does, so an app's own rule decides: while a session runs (or waits to be saved) the app refuses the
-`cancel`, and the sheet springs back with "Finish or discard this first". A form with something typed asks "Discard
+what Escape does, so an app's own rule decides: a running session goes down to the bar (2j), and one waiting to be
+saved refuses the `cancel`: the sheet springs back with "Finish or discard this first". A form with something typed asks "Discard
 your changes?" before it closes (a session sheet's fields are its sets, saved as they're logged, so it doesn't ask).
 The toast is a popover, so it shows above an open sheet (a `<dialog>` sits above any z-index). `personal.test.js`
 swipes TRAINING's plan, a running workout and NUTRITION's food form.
@@ -281,6 +281,26 @@ which TODAY colours from the palette (light and dark follow the page). Fills: `p
 border. Each app's map file converts its own picture with `toArt` (its class → plan-art class). TODAY keeps only plain
 shapes (svg, g, polygon, path, circle, rect, line, with geometry attributes and pa-* classes) before the picture goes in
 the page, so a plan can't put anything else there. `personal.test.js` checks both.
+
+**2i. An update takes over on the first reopen.**
+Each service worker installs a new version as soon as the browser sees it, and takes over the open page (`skipWaiting`,
+`clients.claim`), but the page keeps running the version it loaded, so an update used to need two launches. `ui.js`
+reloads the page when the new version takes over (`controllerchange`), if nothing would be lost: no sheet open, no
+field in use, no session on the bar (in the page or a frame inside it: TODAY's apps), and within 30 s of the page being
+shown, so it never reloads mid-task. Otherwise a pill offers it ("Updated · tap to reload"), and the next return to the
+app reloads by itself if it can. iOS keeps an installed app in memory, so reopening it is often a return, not a
+launch: a return checks for a new version (`registration.update()`, at most once a minute). The first visit, which had
+no service worker, doesn't reload when one takes over. `personal.test.js` serves TODAY a new version and checks both.
+
+**2j. A running session goes down to a bar.**
+A swipe down (or Escape) on a running session's sheet (MIND's session, TRAINING's workout, REWIRE's surf) puts it away
+instead of refusing: the sheet closes and `UI.runBar` shows a bar at the bottom with the session and its clock, above
+TODAY's tab bar inside the shell. A tap brings the session back where it was. The session runs on underneath (the
+timers, the bells): MIND's bell at the end and the end of REWIRE's surf bring the sheet back to save it; TRAINING's rest
+and hold timers chime but leave it on the bar, which says where the workout is. START (or the app's own button) also
+brings it back. A session waiting to be saved still refuses (2g). The bar is centred with auto margins, not a
+transform, because a pressed button's `:active` scale would replace the transform and move the bar from under the
+finger. `personal.test.js` puts a workout on the bar and back; MIND and REWIRE are checked by hand.
 
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL

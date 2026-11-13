@@ -127,6 +127,11 @@ t('hero log: "a · b · c" wraps between its parts: no line starts with a dot, a
 t('hero: the same data gives the same HTML (no running ids), so paint can tell that nothing changed',()=>{const o={key:'k',title:'Today',stats:[{label:'A',value:'1'}],log:[{at:Date.now(),label:'x'}]};return UI.hero(o)===UI.hero(o)});
 
 document.getElementById('sum').textContent=`${pass} passed, ${fail} failed`;document.getElementById('sum').className=fail?'no':'ok';
+t('runBar: one bar with the label and the clock, escaped, labelled for a screen reader',()=>{let n=0;UI.runBar({label:'<b>Workout</b>',text:()=>'1:0'+(n++%10),open:()=>{}});UI.runBar({label:'Surf',text:()=>'4:58',open:()=>{}});
+  const b=document.querySelectorAll('.ui-run');const ok=b.length===1&&b[0].tagName==='BUTTON'&&b[0].querySelector('b').textContent==='Surf'&&b[0].querySelector('span').textContent==='4:58'&&/Surf, 4:58: back to the session/.test(b[0].getAttribute('aria-label'))&&document.documentElement.classList.contains('ui-has-run');UI.runBar(null);return ok});
+t('runBar: a tap takes the bar away and brings the session back; null removes it',()=>{let back=0;UI.runBar({label:'x',text:()=>'',open:()=>back++});document.querySelector('.ui-run').click();
+  const gone=!document.querySelector('.ui-run')&&!document.documentElement.classList.contains('ui-has-run');UI.runBar({label:'y',open:()=>{}});UI.runBar(null);return back===1&&gone&&!document.querySelector('.ui-run')});
+t('runBar: a clock that throws shows nothing, not an error',()=>{UI.runBar({label:'z',text:()=>{throw new Error('x')},open:()=>{}});const ok=document.querySelector('.ui-run span').textContent==='';UI.runBar(null);return ok});
 window.UI_TEST={pass,fail};
 </script>
 </body>
