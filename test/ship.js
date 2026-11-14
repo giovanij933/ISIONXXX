@@ -45,7 +45,13 @@ const settle=async(p,ms)=>{await p.waitForLoadState('load').catch(()=>{});await 
     if(have.length<Object.keys(APPS).length)R.notes.push('not in the site: '+Object.keys(APPS).filter(a=>!have.includes(a)).join(', '));
     for(const f of SHARED){const by={};for(const a of have){const p=path.join(SITE,a,f);const k=fs.existsSync(p)?require('crypto').createHash('md5').update(fs.readFileSync(p)).digest('hex').slice(0,8):'missing';(by[k]=by[k]||[]).push(a)}
       const v=Object.entries(by).sort((x,y)=>y[1].length-x[1].length);
-      if(v.length>1)R.issues.push({sev:'high',area:'drift',msg:`${f} differs: ${v.map(([k,a])=>`${a.join(', ')} (${k})`).join(' vs ')}`})}}
+      if(v.length>1)R.issues.push({sev:'high',area:'drift',msg:`${f} differs: ${v.map(([k,a])=>`${a.join(', ')} (${k})`).join(' vs ')}`})}
+    // Settings › Appearance › Dark is the device's dark, copied: the two blocks in ui.css (and their Increase
+    // Contrast forms) must hold the same colours (ARCHITECTURE.md, 2c)
+    if(have.length){const css=fs.readFileSync(path.join(SITE,have[0],'ui.css'),'utf8'),get=re=>(css.match(re)||[])[1]?.trim();
+      const pairs=[['dark',/@media \(prefers-color-scheme:dark\)\{:root:not\(\[data-theme=light\]\)\{([^}]*)\}\}/,/\n:root\[data-theme=dark\]\{([^}]*)\}/],
+        ['dark, Increase Contrast',/@media \(prefers-contrast:more\) and \(prefers-color-scheme:dark\)\{:root:not\(\[data-theme=light\]\)\{([^}]*)\}\}/,/@media \(prefers-contrast:more\)\{:root\[data-theme=dark\]\{([^}]*)\}\}/]];
+      for(const [n,a,b2] of pairs){const x=get(a),y=get(b2);if(!x||!y||x!==y)R.issues.push({sev:'high',area:'appearance',msg:`ui.css: the ${n} colours for a dark device and for Appearance › Dark ${x&&y?'differ':'are missing'}`})}}}
   for(const [app,cfg] of Object.entries(APPS)){if(only.length&&!only.includes(app))continue;
     const R={app,issues:[],notes:[]};all.push(R);const I=(sev,area,msg)=>{if(!ACCEPTED.some(x=>x.test(msg))&&!R.issues.some(i=>i.area===area&&i.msg===msg))R.issues.push({sev,area,msg})};
     const DIR=path.join(SITE,app);if(!fs.existsSync(DIR)){I('high','site',`${DIR} is missing`);continue}
@@ -117,6 +123,12 @@ const settle=async(p,ms)=>{await p.waitForLoadState('load').catch(()=>{});await 
       const files=[['index.html',own(html,OWN).concat(own(css,OWN3))]];
       for(const f of ['sync.js','db.js','ui.js','personal/style.css','personal/site.js','personal/index.html','personal/affirmation/index.html'])if(fs.existsSync(path.join(DIR,f)))files.push([f,own(fs.readFileSync(path.join(DIR,f),'utf8'),OWN)]);
       for(const [f,bad] of files)if(bad.length)I('medium','colour',`${f} holds ${bad.length} colour${bad.length>1?'s':''} of its own, outside the palette in ui.css: ${bad.slice(0,6).join(' ')}`)}
+    // 2b. Settings › Appearance (Auto, Light, Dark): each page's head sets it before the first paint, so a page set to
+    // Light or Dark never flashes the device's appearance; and each app's Settings offers it (ARCHITECTURE.md, 2c)
+    for(const f of ['index.html','personal/index.html','personal/affirmation/index.html'])if(fs.existsSync(path.join(DIR,f))){
+      const h=fs.readFileSync(path.join(DIR,f),'utf8'),head=h.slice(0,h.indexOf('</head>'));
+      if(!/localStorage\.getItem\('isx\.theme'\)[^<]*dataset\.theme/.test(head))I('high','appearance',`${f}: the head doesn't set Settings › Appearance before the first paint`)}
+    if(app!=='ISIONXXX'&&!html.includes('UI.appearance()'))I('medium','appearance','Settings has no Appearance row (UI.appearance())');
     const man=(html.match(/<link[^>]+rel=["']manifest["'][^>]*href=["']([^"']+)/)||html.match(/<link[^>]+href=["']([^"']+)["'][^>]*rel=["']manifest/)||[])[1];
     if(!man)I('high','pwa','no <link rel="manifest">');else if(!fs.existsSync(file(man)))I('high','pwa',`manifest ${man} missing`);else{let M;try{M=JSON.parse(fs.readFileSync(file(man),'utf8'))}catch(e){I('high','pwa','manifest is not valid JSON')}
       if(M){['name','short_name','start_url','display','icons'].forEach(k=>{if(!M[k])I('medium','pwa',`manifest has no ${k}`)});

@@ -28,6 +28,9 @@ For each app, in Chromium at 390 px and 1440 px:
    gives the same answer on any machine.
 
 Each app's files are also read, without a browser:
+- **Appearance (Settings: Auto, Light, Dark).** Each page's head sets it before the first paint, each app's Settings
+  offers it (`UI.appearance()`), and the two copies of the dark colours in `ui.css` (a dark device, and Dark picked
+  in Settings) stay identical. `ui.test.html` checks the choice, the row, its keys and the browser's bar colour.
 - **Colours come from the palette.** A page, `sync.js` or the personal site must not hold a colour of its own
   (a hex or `rgb()` value): every colour is a token from the top of `ui.css`, which is what gives it a dark form
   and keeps the seven apps the same. White and black are allowed (medium). See ARCHITECTURE.md, decision 2c.

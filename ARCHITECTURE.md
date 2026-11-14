@@ -191,6 +191,16 @@ holds a colour of its own, so the palette changes in one file and every app foll
   Light is the palette as given. Dark is its counterpart and follows the device (`prefers-color-scheme`), because
   Apple's guidance is that every colour has a light and a dark form. With "Increase contrast" on
   (`prefers-contrast: more`), borders and secondary text get stronger.
+- **Appearance: Auto, Light or Dark.** Every app's Settings has the row (`UI.appearance()`); Auto follows the device.
+  It is one choice for TODAY, the six apps and the personal homepage on this device: they share an origin, so it is
+  one localStorage key, `isx.theme` (`auto`, `light` or `dark`; per device, not synced). Light or Dark puts
+  `data-theme` on `<html>`, and `ui.css` gives the dark colours to a dark device unless it says `light`, and to
+  `data-theme="dark"` whatever the device: the same block twice, which the release check keeps identical. Each
+  page's head sets `data-theme` in one line before the first paint, so a page set to Light or Dark never shows the
+  device's appearance first; `ui.js` keeps it in step, moves the browser's bar colour (`theme-color`) with it, and
+  hears a change made in another app, or in a frame inside TODAY, through the `storage` event. Auto is saved as
+  `auto` rather than removed, because `db.js` holds a removed key back from the other pages for a second. The launch
+  image (2e) is drawn in the page's own background, so it follows the choice too.
 - **Made from it**, in the same block: the `-text` form of each colour (below), `-soft` tints and `-line` edges,
   `--raised` (a field or a cell inside a card), and the layers that float (`--float`, `--glass`, `--scrim`, shadows).
 - **How they are used** follows Apple's Human Interface Guidelines on colour:
