@@ -30,7 +30,7 @@ giovanij933.github.io
 | Database | `db.js` | where data lives: IndexedDB, with a localStorage copy while it fits; routes `localStorage.getItem/setItem/removeItem`; starts the app's script once its data can be read |
 | Data | `sync.js` | the `localStorage` write path (`Storage.prototype.setItem`), the storage budget, gist sync |
 | Offline | `sw.js` | precache + revalidate, one cache name per app (`isx-<app>-vN`) |
-| 3D | `three.module.min.js` (TODAY, MIND, REWIRE only) | Three.js r160 (MIT), as published; loaded by `UI.gl` only when a moment is on screen |
+| 3D | `three.module.min.js` (each app's own copy) | Three.js r160 (MIT), as published; loaded by `UI.gl` only when a moment is on screen |
 
 `ui.js`, `ui.css`, `sync.js` and `db.js` are **shared files**: byte-identical in all seven repos and copied there on every
 change. A copy that drifts is a bug.
@@ -353,23 +353,33 @@ two (2c's glass on the header pills, tab bar, menus, sheets and toasts; flat car
   `backdrop-filter`, so the glass stays blur, sheen and rim (2c). The tab bar hides on scroll rather than shrinking to
   the current tab (iOS 26's behaviour), by choice.
 
-**2m. 3D moments: four, each an extra over the 2D page.**
-Three.js gives the apps four moments of motion with a meaning, and nowhere else: MIND's **breathing orb** (the session's
-bubble as a lit sphere, breathing with the pacer), REWIRE's **urge wave** (the surf's circle as a small sea whose waves
-rise to a peak a third of the way in and ease off, with you riding the swell, and the water lifting with each breath),
-and on TODAY a **living backdrop** (the palette drifting behind the top of the page, so the clear glass header has
-colour to show) and the day's **bloom** (light rising from the rings when the last one closes).
-- **Always an extra.** `UI.gl(canvas, setup)` (ui.js) gives a scene or `null`: no WebGL, no Three.js beside the app, or
-  any failure, and the page simply stays as it was (the 2D bubble, no backdrop, the CSS glow and the toast). A moment
-  is drawn on top of what's already there and never replaces it in the markup, so nothing depends on it.
-- **Cost, and where it's paid.** Three.js is 671 KB (167 KB compressed), more than the four shared files together, so
-  it isn't a shared file: only TODAY, MIND and REWIRE carry `three.module.min.js`, their service workers precache it,
-  and `UI.gl` imports it from beside ui.js the first time a moment needs it. JOURNAL, TRAINING, NUTRITION and LEARN
-  never download it.
+**2m. 3D moments: in every app, each an extra over the 2D page.**
+Three.js gives the apps moments of motion with a meaning. Shared, in ui.js:
+- **`UI.backdrop`, the living backdrop**, in all seven: three palette colours drifting behind the top of the page and
+  fading into it, so the clear glass header has colour to show. Each app has its own three (MIND blue and light blue,
+  TRAINING green and blue, NUTRITION green and orange, LEARN light blue and blue, JOURNAL blue and green, REWIRE orange
+  and blue, TODAY blue, light blue and green). On wider screens TODAY's header is the apps' rounded glass bar, so the
+  colour shows through it rather than stopping in a band under a solid strip.
+- **`UI.orb`, the breathing orb**: a breathing bubble as a soft, lit sphere, breathing with the same pacer. MIND's
+  sessions, and TRAINING's rests (warm just after the set, cooling to calm as the rest runs out) and stretch holds.
+- **`UI.bloom`, light rising** from what was just done, for about two seconds, at a real step and never at a result:
+  TODAY's last ring closing, an urge beaten (REWIRE), a workout saved (TRAINING), a lesson complete (LEARN), the day's
+  food on target (NUTRITION), the pre-market checklist ready (JOURNAL; the process, never a trade's outcome), a
+  session saved (MIND). Over a sheet when one is open.
+- And one of its own: REWIRE's **urge wave**, the surf's circle as a small sea whose waves rise to a peak a third of
+  the way in and ease off, with you riding the swell and the water lifting with each breath.
+
+The rules:
+- **Always an extra.** `UI.gl(canvas, setup)` gives a scene or `null`: no WebGL, no Three.js beside the app, or any
+  failure, and the page simply stays as it was (the 2D bubble, no backdrop, the toast and the words). A moment is drawn
+  on top of what's already there and never replaces it in the markup, so nothing depends on it.
+- **Cost.** Three.js is 671 KB (167 KB compressed), more than the four shared files together. Every app now carries
+  `three.module.min.js` (an app's own copy, like the shared files, so each one still works alone) and precaches it;
+  `UI.gl` imports it from beside ui.js the first time a moment needs it.
 - **Battery.** One loop draws every moment, only while its canvas is on screen and the page visible. The orb and the
   wave draw only during a session (not while paused), the bloom for about two seconds, and the backdrop only while
-  TODAY is the tab on screen with its top in view, at half resolution and 24 frames a second. A moment's GPU context
-  is freed when it leaves (the sheet closes, the bloom ends).
+  its page is the one showing (in TODAY, its tab), its top is in view and no sheet is open, at half resolution and 24
+  frames a second (a check once a second wakes it when that changes). A moment's GPU context is freed when it leaves.
 - **Reduce Motion.** The backdrop is a still frame and the bloom doesn't play. The orb and the wave keep doing their job
   (they are the breath pacer, like the bubble) with their surfaces held still.
 - **Colours** come from the palette at run time (`s.rgb('--accent')`), so they follow Appearance and dark mode, and
