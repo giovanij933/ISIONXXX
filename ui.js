@@ -1136,13 +1136,15 @@ void main(){ vec3 n=normalize(vN); float fr=pow(1.0-max(dot(n,normalize(vV)),0.0
     }).then(s => { if (!s || !c.isConnected) { s?.dispose(); return c.remove() } h = s; s.kick() });
   }
 
-  /* UI.backdrop({host, tint, active}) — the living backdrop: three palette colours (tint, as tokens) drifting slowly
-     behind the top of the page and fading into it, so the clear glass header has colour to show. It scrolls away
-     with the page. It starts as the page's own colour at the very top, the colour of iOS's solid status bar above it,
+  /* UI.backdrop({host, under, tint, active}) — the living backdrop: three palette colours (tint, as tokens) drifting
+     slowly behind the top of the page and fading into it, so the clear glass header has colour to show. It scrolls
+     away with the page. On a page that scrolls itself (the apps), it's the first thing in host (the body) and sits under
+     the content (the body goes see-through; its colour comes from <html>). Under a box that scrolls (TODAY's page),
+     pass under: it goes just before that box, behind it, and follows its scroll. Never a layer below the content inside
+     a scrolling box: Safari on iPhone can leave that box's content undrawn (TODAY lost everything under its first card). It starts as the page's own colour at the very top, the colour of iOS's solid status bar above it,
      and builds up over the first 50 px, so the bar flows into it rather than meeting it at a line. Drawn at half resolution, 24 times a second, and only while the top is on screen, the page (and in
      TODAY its tab) is showing, no sheet is open, and active() says so; a still frame under Reduce Motion. Call it once
-     (TODAY again after each redraw: its page is rewritten, and the same canvas goes back at the top). Returns a handle
-     with kick(), to wake it when active() changes. */
+     (again is harmless: it only updates active). Returns a handle with kick(), to wake it when active() changes. */
   const AURF = `uniform float uT; uniform vec2 uR; uniform vec3 uC1; uniform vec3 uC2; uniform vec3 uC3; uniform vec3 uBg; varying vec2 vUv;
 float hs(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
 float ns(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 w=f*f*(3.0-2.0*f);
@@ -1154,10 +1156,14 @@ void main(){ vec2 p=vec2(vUv.x*uR.x/uR.y,vUv.y)*1.7; float t=uT*.05;
   float f=fbm(p+2.4*r); vec3 c=mix(uC1,uC2,smoothstep(.25,.8,f)); c=mix(c,uC3,smoothstep(.5,.95,r.x));
   gl_FragColor=vec4(mix(uBg,c,smoothstep(0.0,.85,vUv.y)*smoothstep(1.0,.86,vUv.y)),1.0); }`;
   let bd = null;
-  function backdrop({ host = document.body, tint = ['--accent', '--info', '--success'], active = () => true } = {}) {
+  function backdrop({ host = document.body, under = null, tint = ['--accent', '--info', '--success'], active = () => true } = {}) {
     if (!glSupported()) return { kick() { } };
-    if (bd) { bd.active = active; if (!bd.failed) { if (host.firstChild !== bd.c) host.prepend(bd.c); host.classList.add('ui-bd-host') } glKick(); return bd.h }
-    const c = document.createElement('canvas'); c.className = 'ui-bd'; c.setAttribute('aria-hidden', 'true'); host.prepend(c); host.classList.add('ui-bd-host');
+    if (bd) { bd.active = active; glKick(); return bd.h }
+    const c = document.createElement('canvas'); c.className = 'ui-bd'; c.setAttribute('aria-hidden', 'true');
+    const box = under || host, undo = () => { c.remove(); box.classList.remove('ui-bd-host', 'ui-bd-over') };
+    if (under) { c.classList.add('ui-bd-under'); under.before(c); under.classList.add('ui-bd-over');
+      const follow = () => { c.style.transform = `translate3d(0,${-under.scrollTop}px,0)` }; under.addEventListener('scroll', follow, { passive: true }); follow() }
+    else { host.prepend(c); host.classList.add('ui-bd-host') }
     bd = { c, active, failed: false, h: { kick: glKick } };
     gl(c, s => {
       const T = s.THREE; let tm = 20;
@@ -1170,7 +1176,7 @@ void main(){ vec2 p=vec2(vUv.x*uR.x/uR.y,vUv.y)*1.7; float t=uT*.05;
       s.resize = (w, h) => u.uR.value.set(w, h);
       s.running = () => { if (s.still || document.hidden || !glShown() || glSheet()) return false; try { return !!bd.active() } catch (e) { return false } };
       s.update = dt => { tm += dt; u.uT.value = tm };
-    }, { ratio: .5, fps: 24 }).then(s => { if (s) { s.draw(); s.kick(); setInterval(glKick, 1000) } else { bd.failed = true; c.remove(); document.querySelectorAll('.ui-bd-host').forEach(e => e.classList.remove('ui-bd-host')) } });
+    }, { ratio: .5, fps: 24 }).then(s => { if (s) { s.draw(); s.kick(); setInterval(glKick, 1000) } else { bd.failed = true; undo() } });
     return bd.h;
   }
 

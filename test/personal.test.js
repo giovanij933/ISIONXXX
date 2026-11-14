@@ -372,7 +372,8 @@ async function main() {
         await tab.goto(url);
         await tab.waitForFunction(s => document.querySelectorAll(s).length === 2, startup, { timeout: 10000 });
         const { bg, images } = await tab.evaluate(async s => ({
-          bg: getComputedStyle(document.body).backgroundColor,
+          // the colour the page shows: the body's, or <html>'s when the body is see-through (under the living backdrop)
+          bg: (b => /rgba\(.*,\s*0\)$/.test(b) ? getComputedStyle(document.documentElement).backgroundColor : b)(getComputedStyle(document.body).backgroundColor),
           images: await Promise.all([...document.querySelectorAll(s)].map(async link => {
             const img = new Image(); img.src = link.href; await img.decode();
             const c = document.createElement('canvas'); c.width = img.naturalWidth; c.height = img.naturalHeight;

@@ -373,6 +373,11 @@ The rules:
 - **Always an extra.** `UI.gl(canvas, setup)` gives a scene or `null`: no WebGL, no Three.js beside the app, or any
   failure, and the page simply stays as it was (the 2D bubble, no backdrop, the toast and the words). A moment is drawn
   on top of what's already there and never replaces it in the markup, so nothing depends on it.
+- **Where the backdrop sits.** Behind the content, never as a layer below it inside a box that scrolls: Safari on
+  iPhone then drew only what overlapped the canvas and left the rest of TODAY's page empty under its first card. In an
+  app (the page scrolls itself) it is the body's first child under its content, the body see-through; on TODAY it
+  sits just before the scrolling page, behind it, and follows its scroll. TODAY's cards finish their fade on a timer
+  alone, so they show even when a page isn't painting frames yet.
 - **Cost.** Three.js is 671 KB (167 KB compressed), more than the four shared files together. Every app now carries
   `three.module.min.js` (an app's own copy, like the shared files, so each one still works alone) and precaches it;
   `UI.gl` imports it from beside ui.js the first time a moment needs it.
