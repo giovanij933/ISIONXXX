@@ -12,7 +12,8 @@
    plus UI.toast(message) for announcements, and UI.confirm / UI.ask / UI.undo in place of the browser's confirm() and
    prompt(). See ui.html for every component, its props and its states.
    UI.appearance() is the Settings row for Auto / Light / Dark; UI.theme() reads the choice, UI.theme(v) sets it.
-   UI.gl(canvas, setup) draws a 3D moment with Three.js where the device can, and gives null where it can't.
+   UI.gl(canvas, setup) draws a 3D moment with Three.js where the device can, and gives null where it can't; on it,
+   UI.orb (the breathing orb), UI.bloom (light rising from what was just done) and UI.backdrop (behind the header).
 */
 (() => {
   'use strict';
@@ -1037,6 +1038,140 @@
     }).catch(() => { glLib = null; return null });
   }
   gl.ok = glSupported; gl.rgb = glRgb;
+  const glMix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t), glDark = s => { const b = s.rgb('--background'); return b[0] + b[1] + b[2] < 1.5 };
+  const glCalm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
+  // inside TODAY an app is a frame, and only the frame of the tab on screen is shown (the others are hidden, not gone)
+  const glShown = () => { try { const f = window.frameElement; return !f || !f.classList.contains('pane') || f.classList.contains('on') } catch (e) { return true } };
+  const glSheet = () => !!document.querySelector('dialog[open],.modal:not(.hidden),.po:not(.hidden)');
+
+  /* UI.orb(bub, {active}) — the breathing orb: a .bub breathing bubble (its .ball and .cue) gets a soft, lit sphere in
+     the bubble's place, pale in light and deep in dark so the cue on it reads. Returns at once: h.level(scale, warm)
+     each frame with the bubble's scale (.45 empty – 1 full) and, for a rest, how warm it is (1 just after the effort,
+     cooling to 0); h.drop() when the view goes. active() says when it moves (a session under way, not paused). Under
+     Reduce Motion the surface holds still and only the breath moves it, like the bubble. Without WebGL h does nothing
+     and the bubble stays. MIND's sessions, TRAINING's rests and holds. */
+  const ORBV = `uniform float uT; uniform float uAmp; varying vec3 vN; varying vec3 vV; varying float vZ;
+vec3 m289(vec3 x){return x-floor(x*(1.0/289.0))*289.0;} vec4 m289(vec4 x){return x-floor(x*(1.0/289.0))*289.0;}
+vec4 prm(vec4 x){return m289(((x*34.0)+1.0)*x);} vec4 tis(vec4 r){return 1.79284291400159-0.85373472095314*r;}
+float sn(vec3 v){ const vec2 C=vec2(1.0/6.0,1.0/3.0); const vec4 D=vec4(0.0,0.5,1.0,2.0);
+  vec3 i=floor(v+dot(v,C.yyy)); vec3 x0=v-i+dot(i,C.xxx); vec3 g=step(x0.yzx,x0.xyz); vec3 l=1.0-g;
+  vec3 i1=min(g.xyz,l.zxy); vec3 i2=max(g.xyz,l.zxy); vec3 x1=x0-i1+C.xxx; vec3 x2=x0-i2+C.yyy; vec3 x3=x0-D.yyy; i=m289(i);
+  vec4 p=prm(prm(prm(i.z+vec4(0.0,i1.z,i2.z,1.0))+i.y+vec4(0.0,i1.y,i2.y,1.0))+i.x+vec4(0.0,i1.x,i2.x,1.0));
+  vec3 ns=0.142857142857*D.wyz-D.xzx; vec4 j=p-49.0*floor(p*ns.z*ns.z); vec4 a_=floor(j*ns.z); vec4 b_=floor(j-7.0*a_);
+  vec4 x=a_*ns.x+ns.yyyy; vec4 y=b_*ns.x+ns.yyyy; vec4 h=1.0-abs(x)-abs(y); vec4 b0=vec4(x.xy,y.xy); vec4 b1=vec4(x.zw,y.zw);
+  vec4 s0=floor(b0)*2.0+1.0; vec4 s1=floor(b1)*2.0+1.0; vec4 sh=-step(h,vec4(0.0));
+  vec4 a0=b0.xzyw+s0.xzyw*sh.xxyy; vec4 a1=b1.xzyw+s1.xzyw*sh.zzww;
+  vec3 p0=vec3(a0.xy,h.x); vec3 p1=vec3(a0.zw,h.y); vec3 p2=vec3(a1.xy,h.z); vec3 p3=vec3(a1.zw,h.w);
+  vec4 nm=tis(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3))); p0*=nm.x; p1*=nm.y; p2*=nm.z; p3*=nm.w;
+  vec4 m=max(0.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0); m=m*m;
+  return 42.0*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3))); }
+void main(){ vec3 p=position; float n=sn(p*1.05+vec3(0.0,uT*.2,uT*.13)); float n2=sn(p*2.2-vec3(uT*.25));
+  p+=normal*uAmp*(n*.85+n2*.15); vZ=n; vec4 mv=modelViewMatrix*vec4(p,1.0);
+  vN=normalize(normalMatrix*normal); vV=normalize(-mv.xyz); gl_Position=projectionMatrix*mv; }`;
+  const ORBF = `uniform vec3 uA; uniform vec3 uB; uniform vec3 uRim; uniform vec3 uWA; uniform vec3 uWB; uniform float uW; varying vec3 vN; varying vec3 vV; varying float vZ;
+void main(){ vec3 n=normalize(vN); float fr=pow(1.0-max(dot(n,normalize(vV)),0.0),2.2); float k=clamp(.5+.45*n.y+.35*vZ,0.0,1.0);
+  vec3 c=mix(mix(uA,uB,k),mix(uWA,uWB,k),uW); c+=.08*max(dot(n,normalize(vec3(-.4,.7,.6))),0.0);
+  gl_FragColor=vec4(mix(c,uRim,fr*.7),1.0); }`;
+  const GLOWV = 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=projectionMatrix*modelViewMatrix*vec4(position,1.0); }';
+  const GLOWF = 'uniform vec3 uC; uniform float uK; varying vec2 vUv; void main(){ float r=length(vUv-.5)*2.0; gl_FragColor=vec4(uC,pow(max(1.0-r,0.0),2.2)*uK); }';
+  function orb(bub, { active = () => true } = {}) {
+    const h = { level() { }, drop() { } };
+    if (!bub || !glSupported()) return h;
+    bub.querySelectorAll('canvas.ui-orb').forEach(c => c.remove());
+    const c = document.createElement('canvas'); c.className = 'ui-orb'; c.setAttribute('aria-hidden', 'true'); bub.insertBefore(c, bub.querySelector('.cue'));
+    let s = null, dead = false, lv = .45, wm = 0;
+    h.level = (v, w = 0) => { lv = v; wm = w; s?.kick() };
+    h.drop = () => { dead = true; s?.dispose(); c.remove(); bub.classList.remove('ui-gl') };
+    gl(c, s => {
+      const T = s.THREE; let tm = 0;
+      s.camera = new T.PerspectiveCamera(30, 1, .1, 20); s.camera.position.z = 4.15;
+      const V3 = () => ({ value: new T.Vector3() }), u = { uT: { value: 0 }, uAmp: { value: .045 }, uA: V3(), uB: V3(), uRim: V3(), uWA: V3(), uWB: V3(), uW: { value: 0 } }, g = { uC: V3(), uK: { value: .2 } };
+      const ball = new T.Mesh(new T.SphereGeometry(1, 96, 96), new T.ShaderMaterial({ uniforms: u, vertexShader: ORBV, fragmentShader: ORBF }));
+      const glow = new T.Mesh(new T.PlaneGeometry(4.4, 4.4), new T.ShaderMaterial({ uniforms: g, transparent: true, depthWrite: false, vertexShader: GLOWV, fragmentShader: GLOWF }));
+      glow.position.z = -1.5; s.scene.add(glow, ball);
+      s.theme = () => { const bg = s.rgb('--background'), dk = glDark(s), acc = s.rgb('--accent'), inf = s.rgb('--info'), wn = s.rgb('--warning');
+        u.uA.value.fromArray(glMix(acc, bg, dk ? .62 : .8)); u.uB.value.fromArray(glMix(inf, bg, dk ? .7 : .55)); u.uRim.value.fromArray(glMix(acc, bg, dk ? .15 : .35));
+        u.uWA.value.fromArray(glMix(wn, bg, dk ? .62 : .8)); u.uWB.value.fromArray(glMix(wn, bg, dk ? .72 : .6));
+        g.uC.value.fromArray(glMix(inf, bg, dk ? .4 : .2)); glow.material.blending = dk ? T.AdditiveBlending : T.NormalBlending; glow.material.needsUpdate = true };
+      s.running = () => { try { return !!active() } catch (e) { return false } };
+      s.update = dt => { if (!s.still) tm += dt; u.uT.value = tm; u.uW.value = wm; ball.scale.setScalar(lv); glow.scale.setScalar(.6 + lv * .5); g.uK.value = .16 + .3 * Math.max(0, (lv - .45) / .55) };
+    }).then(x => { if (!x) return c.remove(); if (dead || !c.isConnected) { x.dispose(); return c.remove() } s = x; bub.classList.add('ui-gl'); s.update(0); s.draw(); s.kick() });
+    return h;
+  }
+
+  /* UI.bloom(from) — light rises from what was just achieved, drifts up and fades in about two seconds: from each element
+     in from (TODAY's rings), from across one element (a card, a button), or from the Today card when from is empty.
+     Over a sheet when one is open (a sheet is above the page). Never under Reduce Motion or without WebGL: the moment
+     keeps its toast, words and ticks there. TODAY when the last ring closes; in the apps, a real step done: an urge
+     beaten, a workout saved, a lesson complete, the day's food on target, the pre-market checklist ready, a session saved. */
+  function bloom(from) {
+    if (glCalm() || !glSupported() || document.hidden) return;
+    const els = (from == null ? [document.querySelector('.ui-hero')] : [].concat(from)).filter(e => e && e.getBoundingClientRect);
+    const on = r => r.width && r.bottom > 0 && r.top < innerHeight;
+    let rs = els.map(e => e.getBoundingClientRect()).filter(on);
+    if (rs.length === 1 && rs[0].width > 120) { const r = rs[0], y = r.top + Math.min(r.height, 140) / 2; rs = [.1, .3, .5, .7, .9].map(f => ({ left: r.left + r.width * f - 12, top: y - 12, width: 24, height: 24 })) }
+    if (!rs.length) rs = [.25, .5, .75].map(f => ({ left: innerWidth * f - 12, top: innerHeight * .35, width: 24, height: 24 }));
+    const host = document.querySelector('dialog[open]') || [...document.querySelectorAll('.modal:not(.hidden),.po:not(.hidden)')].pop() || document.body;
+    const c = document.createElement('canvas'); c.className = 'ui-bloom'; c.setAttribute('aria-hidden', 'true'); host.append(c);
+    let h = null; const end = () => { h?.dispose(); h = null; c.remove() }; setTimeout(end, 6000);
+    const o = c.getBoundingClientRect();   // a sheet that's moving or transformed holds the canvas: count from where it really is
+    gl(c, s => {
+      const T = s.THREE, N = 300, m = new T.Matrix4(), q = new T.Quaternion(), v = new T.Vector3(), k = new T.Vector3(), col = new T.Color(), zero = new T.Matrix4().makeScale(0, 0, 0);
+      const dots = new T.InstancedMesh(new T.SphereGeometry(1, 12, 8), new T.MeshBasicMaterial({ transparent: true }), N);
+      dots.instanceMatrix.setUsage(T.DynamicDrawUsage); dots.frustumCulled = false; s.scene.add(dots);
+      s.camera = new T.OrthographicCamera(0, 1, 0, -1, -10, 10);
+      s.resize = (w, hh) => { s.camera.right = w; s.camera.bottom = -hh; s.camera.updateProjectionMatrix() };
+      const cols = ['--success', '--accent', '--info', '--success', '--accent-text'].map(n => s.rgb(n)), P = [];
+      for (let i = 0; i < N; i++) { const r = rs[i % rs.length], a = Math.random() * Math.PI * 2, sp = 70 + Math.random() * 320, rad = Math.min(r.width, 44) * .4;
+        P.push({ x: r.left - o.left + r.width / 2 + Math.cos(a) * rad, y: r.top - o.top + r.height / 2 + Math.sin(a) * rad, vx: Math.cos(a) * sp, vy: Math.sin(a) * sp - 120, age: 0, life: 1.1 + Math.random() * 1.3, z: 1.6 + Math.random() * 3.4 });
+        dots.setMatrixAt(i, zero); dots.setColorAt(i, col.setRGB(...cols[i % cols.length], T.SRGBColorSpace)) }
+      s.theme = () => { dots.material.blending = glDark(s) ? T.AdditiveBlending : T.NormalBlending; dots.material.needsUpdate = true };
+      let alive = true; s.running = () => alive;
+      s.update = dt => { let any = false; const d = Math.exp(-2.4 * dt);
+        P.forEach((p, i) => { p.age += dt; const f = p.age / p.life;
+          if (f >= 1) return dots.setMatrixAt(i, zero);
+          any = true; p.vx *= d; p.vy = p.vy * d - 70 * dt; p.x += p.vx * dt; p.y += p.vy * dt; const z = p.z * Math.pow(1 - f, 1.4) * Math.min(1, f / .08);
+          dots.setMatrixAt(i, m.compose(v.set(p.x, -p.y, 0), q, k.set(z, z, z))) });
+        dots.instanceMatrix.needsUpdate = true; if (!any) { alive = false; setTimeout(end, 0) } };
+    }).then(s => { if (!s || !c.isConnected) { s?.dispose(); return c.remove() } h = s; s.kick() });
+  }
+
+  /* UI.backdrop({host, tint, active}) — the living backdrop: three palette colours (tint, as tokens) drifting slowly
+     behind the top of the page and fading into it, so the clear glass header has colour to show. It scrolls away
+     with the page. Drawn at half resolution, 24 times a second, and only while the top is on screen, the page (and in
+     TODAY its tab) is showing, no sheet is open, and active() says so; a still frame under Reduce Motion. Call it once
+     (TODAY again after each redraw: its page is rewritten, and the same canvas goes back at the top). Returns a handle
+     with kick(), to wake it when active() changes. */
+  const AURF = `uniform float uT; uniform vec2 uR; uniform vec3 uC1; uniform vec3 uC2; uniform vec3 uC3; uniform vec3 uBg; varying vec2 vUv;
+float hs(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
+float ns(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 w=f*f*(3.0-2.0*f);
+  return mix(mix(hs(i),hs(i+vec2(1.0,0.0)),w.x),mix(hs(i+vec2(0.0,1.0)),hs(i+vec2(1.0,1.0)),w.x),w.y); }
+float fbm(vec2 p){ float v=0.0, a=.5; for(int i=0;i<4;i++){ v+=a*ns(p); p*=2.03; a*=.5; } return v; }
+void main(){ vec2 p=vec2(vUv.x*uR.x/uR.y,vUv.y)*1.7; float t=uT*.05;
+  vec2 q=vec2(fbm(p+vec2(0.0,t)),fbm(p+vec2(5.2,1.3)-t));
+  vec2 r=vec2(fbm(p+3.0*q+vec2(1.7,9.2)+t*1.3),fbm(p+3.0*q+vec2(8.3,2.8)-t));
+  float f=fbm(p+2.4*r); vec3 c=mix(uC1,uC2,smoothstep(.25,.8,f)); c=mix(c,uC3,smoothstep(.5,.95,r.x));
+  gl_FragColor=vec4(mix(uBg,c,smoothstep(0.0,.85,vUv.y)),1.0); }`;
+  let bd = null;
+  function backdrop({ host = document.body, tint = ['--accent', '--info', '--success'], active = () => true } = {}) {
+    if (!glSupported()) return { kick() { } };
+    if (bd) { bd.active = active; if (!bd.failed) { if (host.firstChild !== bd.c) host.prepend(bd.c); host.classList.add('ui-bd-host') } glKick(); return bd.h }
+    const c = document.createElement('canvas'); c.className = 'ui-bd'; c.setAttribute('aria-hidden', 'true'); host.prepend(c); host.classList.add('ui-bd-host');
+    bd = { c, active, failed: false, h: { kick: glKick } };
+    gl(c, s => {
+      const T = s.THREE; let tm = 20;
+      s.camera = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
+      const V3 = () => ({ value: new T.Vector3() }), u = { uT: { value: tm }, uR: { value: new T.Vector2(1, 1) }, uC1: V3(), uC2: V3(), uC3: V3(), uBg: V3() };
+      s.scene.add(new T.Mesh(new T.PlaneGeometry(2, 2), new T.ShaderMaterial({ uniforms: u, depthTest: false, fragmentShader: AURF,
+        vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.0,1.0); }' })));
+      s.theme = () => { const bg = s.rgb('--background'), dk = glDark(s), [a, b, d] = tint.map(n => s.rgb(n));
+        u.uC1.value.fromArray(glMix(a, bg, dk ? .35 : .6)); u.uC2.value.fromArray(glMix(b, bg, dk ? .55 : .42)); u.uC3.value.fromArray(glMix(d, bg, dk ? .6 : .6)); u.uBg.value.fromArray(bg) };
+      s.resize = (w, h) => u.uR.value.set(w, h);
+      s.running = () => { if (s.still || document.hidden || !glShown() || glSheet()) return false; try { return !!bd.active() } catch (e) { return false } };
+      s.update = dt => { tm += dt; u.uT.value = tm };
+    }, { ratio: .5, fps: 24 }).then(s => { if (s) { s.draw(); s.kick(); setInterval(glKick, 1000) } else { bd.failed = true; c.remove(); document.querySelectorAll('.ui-bd-host').forEach(e => e.classList.remove('ui-bd-host')) } });
+    return bd.h;
+  }
 
   /* ---------- updates: a new version takes over on the first reopen ----------
      Each app's service worker installs a new version as soon as the browser sees it and takes over the open page
@@ -1070,5 +1205,5 @@
     });
   }
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, runBar, theme, appearance, gl, version: '1.12.0' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, runBar, theme, appearance, gl, orb, bloom, backdrop, version: '1.12.0' };
 })();
