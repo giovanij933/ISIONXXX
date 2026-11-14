@@ -218,9 +218,11 @@ holds a colour of its own, so the palette changes in one file and every app foll
   attribute (`fill="…"`) can't hold a token.
 - **Glass** is for what floats over the page: the app header, TODAY's tab bar, menus, sheets and dialogs, toasts.
   On a phone (640 pt and narrower) the header has no bar: like iOS 26's own apps, its pieces float as separate glass
-  pills (the app's name, the main button, ⋮, the sync dot; TODAY's name, date and sync dot), on the heavier `--float`
-  tint so they read over anything, and the page softens and fades as it slides under them (`.ui-edge`, which `ui.js`
-  adds to every app and TODAY draws with its page). Wider screens keep the one rounded bar.
+  pills (the app's name, the main button, ⋮, the sync dot; TODAY's name, date and sync dot). They, and TODAY's tab
+  bar, are clear glass (`--glass-clear`: a 24% light or 30% dark tint over a 10 px blur), so what scrolls beneath shows
+  through, as iOS 26's floating controls do; Increase Contrast makes them nearly opaque, Reduce Transparency solid. The
+  page fades only a little as it slides under them (`.ui-edge`, which `ui.js` adds to every app and TODAY draws with its
+  page): enough to settle the pills, not so much that they sit on a solid band. Wider screens keep the one rounded bar.
   It is modelled on the menus iOS draws itself: the page shows through, blurred (`--glass-filter`, 26 px) with its
   colours kept, under a light or dark tint (`--glass`; `--float` is the heavier tint for a sheet full of text), with
   a light across it (`--glass-sheen`) and a bright rim (`--glass-rim`, carried by the shadows). Cards stay flat.
