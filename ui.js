@@ -1138,7 +1138,8 @@ void main(){ vec3 n=normalize(vN); float fr=pow(1.0-max(dot(n,normalize(vV)),0.0
 
   /* UI.backdrop({host, tint, active}) — the living backdrop: three palette colours (tint, as tokens) drifting slowly
      behind the top of the page and fading into it, so the clear glass header has colour to show. It scrolls away
-     with the page. Drawn at half resolution, 24 times a second, and only while the top is on screen, the page (and in
+     with the page. It starts as the page's own colour at the very top, the colour of iOS's solid status bar above it,
+     and builds up over the first 50 px, so the bar flows into it rather than meeting it at a line. Drawn at half resolution, 24 times a second, and only while the top is on screen, the page (and in
      TODAY its tab) is showing, no sheet is open, and active() says so; a still frame under Reduce Motion. Call it once
      (TODAY again after each redraw: its page is rewritten, and the same canvas goes back at the top). Returns a handle
      with kick(), to wake it when active() changes. */
@@ -1151,7 +1152,7 @@ void main(){ vec2 p=vec2(vUv.x*uR.x/uR.y,vUv.y)*1.7; float t=uT*.05;
   vec2 q=vec2(fbm(p+vec2(0.0,t)),fbm(p+vec2(5.2,1.3)-t));
   vec2 r=vec2(fbm(p+3.0*q+vec2(1.7,9.2)+t*1.3),fbm(p+3.0*q+vec2(8.3,2.8)-t));
   float f=fbm(p+2.4*r); vec3 c=mix(uC1,uC2,smoothstep(.25,.8,f)); c=mix(c,uC3,smoothstep(.5,.95,r.x));
-  gl_FragColor=vec4(mix(uBg,c,smoothstep(0.0,.85,vUv.y)),1.0); }`;
+  gl_FragColor=vec4(mix(uBg,c,smoothstep(0.0,.85,vUv.y)*smoothstep(1.0,.86,vUv.y)),1.0); }`;
   let bd = null;
   function backdrop({ host = document.body, tint = ['--accent', '--info', '--success'], active = () => true } = {}) {
     if (!glSupported()) return { kick() { } };
