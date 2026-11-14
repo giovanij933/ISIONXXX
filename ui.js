@@ -12,6 +12,7 @@
    plus UI.toast(message) for announcements, and UI.confirm / UI.ask / UI.undo in place of the browser's confirm() and
    prompt(). See ui.html for every component, its props and its states.
    UI.appearance() is the Settings row for Auto / Light / Dark; UI.theme() reads the choice, UI.theme(v) sets it.
+   UI.gl(canvas, setup) draws a 3D moment with Three.js where the device can, and gives null where it can't.
 */
 (() => {
   'use strict';
@@ -971,6 +972,72 @@
     runEl.onclick = () => { const f = o.open; runBar(null); try { f && f() } catch (e) { console.warn('UI.runBar', e) } };
   }
 
+  /* ---------- 3D moments: Three.js, loaded only when one is on screen ----------
+     UI.gl(canvas, setup, {ratio, fps}) gives a promise of a scene handle, or of null when there's no WebGL (an old phone,
+     the release check's browser), the app has no three.module.min.js beside ui.js, or anything fails: the caller keeps
+     its 2D version then, so a moment is always an extra (ARCHITECTURE.md, 2m). Three.js (r160, MIT) is imported from the
+     folder ui.js came from, once per page, the first time a moment needs it; the app's service worker keeps it offline.
+     setup(s) builds the scene with s.THREE into s.scene, sets s.camera and, as it needs:
+       s.running() → keep drawing?   s.update(dt, t)   s.resize(w, h)   s.theme() (colours: s.rgb('--accent') → [r, g, b])
+     One loop draws every handle, only while its canvas is on screen and the page is visible, and no faster than fps when
+     that's given (ratio caps the pixel ratio: a soft backdrop can draw at half resolution). s.still is true under Reduce
+     Motion: the moment draws a still frame and moves only when the person asks for it. s.draw() draws once, s.kick()
+     wakes the loop after running() changes, s.dispose() frees the GPU (call it when the canvas leaves the page). */
+  const glFrom = (document.currentScript && document.currentScript.src) || location.href;
+  let glOK = null, glLib = null, glRaf = 0, glPrev = 0;
+  const glAll = new Set();
+  function glSupported() {
+    if (glOK == null) try { const c = document.createElement('canvas'), x = c.getContext('webgl2') || c.getContext('webgl'); glOK = !!x; x?.getExtension('WEBGL_lose_context')?.loseContext() } catch (e) { glOK = false }
+    return glOK;
+  }
+  // a palette token as sRGB numbers 0–1, the way the shaders take colours (ui.css writes them as #rrggbb or rgb())
+  function glRgb(name, el = document.documentElement) {
+    const v = getComputedStyle(el).getPropertyValue(name).trim();
+    let m = v.match(/^#([0-9a-f]{3}|[0-9a-f]{6})$/i);
+    if (m) { const h = m[1].length === 3 ? [...m[1]].map(c => c + c).join('') : m[1], n = parseInt(h, 16); return [(n >> 16 & 255) / 255, (n >> 8 & 255) / 255, (n & 255) / 255] }
+    m = v.match(/rgba?\(([^)]*)\)/i);
+    if (m) { const p = m[1].split(/[\s,/]+/).map(parseFloat); return [p[0] / 255, p[1] / 255, p[2] / 255].map(x => x || 0) }
+    return [0, 0, 0];
+  }
+  function glFrame(now) {
+    glRaf = 0; const dt = Math.min(.05, (now - glPrev) / 1000 || .016); glPrev = now; let more = false;
+    for (const s of glAll) {
+      if (!s.on || document.hidden) continue;
+      let go = false; try { go = s.running() } catch (e) { }
+      if (!go) continue;
+      more = true;
+      if (s.fps && now - s.last < 1000 / s.fps - 3) continue;
+      const step = s.fps ? Math.min(.1, (now - (s.last || now)) / 1000) : dt; s.last = now;
+      try { s.update(step, now / 1000); s.draw() } catch (e) { console.warn('UI.gl', e); s.dispose() }
+    }
+    if (more) glRaf = requestAnimationFrame(glFrame);
+  }
+  const glKick = () => { if (!glRaf && glAll.size) { glPrev = performance.now(); glRaf = requestAnimationFrame(glFrame) } };
+  const glTheme = () => glAll.forEach(s => { try { s.theme(); s.draw() } catch (e) { } });
+  document.addEventListener('visibilitychange', glKick);
+  matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', glTheme);
+  new MutationObserver(glTheme).observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+  function gl(canvas, setup, { ratio = 2, fps = 0 } = {}) {
+    if (!canvas || typeof setup !== 'function' || !glSupported()) return Promise.resolve(null);
+    glLib ??= import(new URL('three.module.min.js', glFrom).href);
+    return glLib.then(THREE => {
+      if (!canvas.isConnected) return null;
+      let r; try { r = new THREE.WebGLRenderer({ canvas, antialias: true, alpha: true, powerPreference: 'low-power' }) } catch (e) { return null }
+      r.setPixelRatio(Math.min(window.devicePixelRatio || 1, ratio)); r.setClearColor(0, 0);
+      const s = { THREE, r, canvas, scene: new THREE.Scene(), camera: null, still: matchMedia('(prefers-reduced-motion: reduce)').matches, fps, last: 0, on: false,
+        running: () => false, update() { }, resize() { }, theme() { }, rgb: n => glRgb(n, canvas), kick: glKick };
+      s.draw = () => { if (s.camera) r.render(s.scene, s.camera) };
+      const ro = new ResizeObserver(() => { const w = canvas.clientWidth, h = canvas.clientHeight; if (!w || !h) return; r.setSize(w, h, false); try { s.resize(w, h); s.draw() } catch (e) { } });
+      const io = new IntersectionObserver(e => { s.on = e[e.length - 1].isIntersecting; glKick() });
+      s.dispose = () => { if (!glAll.delete(s)) return; ro.disconnect(); io.disconnect(); try { r.dispose(); r.forceContextLoss() } catch (e) { } };
+      glAll.add(s);
+      try { setup(s); s.theme() } catch (e) { console.warn('UI.gl', e); s.dispose(); return null }
+      ro.observe(canvas); io.observe(canvas);
+      return s;
+    }).catch(() => { glLib = null; return null });
+  }
+  gl.ok = glSupported; gl.rgb = glRgb;
+
   /* ---------- updates: a new version takes over on the first reopen ----------
      Each app's service worker installs a new version as soon as the browser sees it and takes over the open page
      (skipWaiting, clients.claim), but the page keeps running the version it loaded, so an update used to take two
@@ -1003,5 +1070,5 @@
     });
   }
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, runBar, theme, appearance, version: '1.11.0' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, runBar, theme, appearance, gl, version: '1.12.0' };
 })();

@@ -144,6 +144,12 @@ t('runBar: a clock that throws shows nothing, not an error',()=>{UI.runBar({labe
   t('appearance: the browser bar colour (theme-color) follows the choice and comes back on Auto',()=>{const m=document.createElement('meta');m.name='theme-color';m.media='(prefers-color-scheme: dark)';document.head.append(m);
     UI.theme('dark');const a=m.media;UI.theme('light');const b=m.media;UI.theme('auto');const c=m.media;m.remove();return a==='all'&&b==='not all'&&c==='(prefers-color-scheme: dark)'});
   UI.theme('auto');if(was==null)localStorage.removeItem('isx.theme');else localStorage.setItem('isx.theme',was);stage.innerHTML=''}
+{const was=localStorage.getItem('isx.theme');
+  t('gl: a palette token comes out as the sRGB numbers a shader takes, light and dark',()=>{UI.theme('light');const a=UI.gl.rgb('--accent');UI.theme('dark');const b=UI.gl.rgb('--background');UI.theme('auto');
+    const near=(x,y)=>x.length===3&&x.every((v,i)=>Math.abs(v-y[i])<.002);return near(a,[0,113/255,227/255])&&near(b,[0,0,0])&&near(UI.gl.rgb('--no-such-token'),[0,0,0])});
+  t('gl: no canvas (or no WebGL) gives a promise of nothing, never an error, and says whether WebGL is there',()=>{const p=UI.gl(null,()=>{}),q=UI.gl(document.createElement('canvas'));
+    return p instanceof Promise&&q instanceof Promise&&typeof UI.gl.ok()==='boolean'&&UI.gl.ok()===UI.gl.ok()});
+  if(was==null)localStorage.removeItem('isx.theme');else localStorage.setItem('isx.theme',was)}
 window.UI_TEST={pass,fail};
 </script>
 </body>
