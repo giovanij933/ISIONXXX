@@ -11,6 +11,7 @@
    Components: card, meter, week, status, segmented, rating, choiceList, stepper, button, emptyState, skeleton,
    plus UI.toast(message) for announcements, and UI.confirm / UI.ask / UI.undo in place of the browser's confirm() and
    prompt(). See ui.html for every component, its props and its states.
+   UI.appearance() is the Settings row for Auto / Light / Dark; UI.theme() reads the choice, UI.theme(v) sets it.
 */
 (() => {
   'use strict';
@@ -908,6 +909,48 @@
   document.readyState === 'complete' ? launchSoon(800) : addEventListener('load', () => launchSoon(800));
   matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => launchSoon(100));
 
+  /* ---------- appearance: Auto (the device's), Light or Dark ----------
+     One choice for TODAY and every app on this device: they share an origin, so one localStorage key (isx.theme:
+     'auto', 'light' or 'dark'; Auto is saved too, not removed, because db.js holds a removed key back from the other
+     pages for a second). It puts data-theme on <html>, which ui.css reads; each page's head does the
+     same before the first paint, so a page never flashes the device's appearance first. A change in one app (in
+     TODAY's frames too) reaches the others through the storage event. The browser's bar colour (theme-color) follows.
+     UI.appearance() is the row for a Settings sheet (.ui-set): it works on its own, with no UI.mount. */
+  const THEME = 'isx.theme', THEMES = [['auto', 'Auto'], ['light', 'Light'], ['dark', 'Dark']];
+  const themeGet = () => { try { const t = localStorage.getItem(THEME); return t === 'light' || t === 'dark' ? t : 'auto' } catch (e) { return 'auto' } };
+  function themeApply(t = themeGet()) {
+    const r = document.documentElement;
+    if (t === 'auto') delete r.dataset.theme; else r.dataset.theme = t;
+    document.querySelectorAll('meta[name=theme-color]').forEach(m => {
+      if (m.dataset.uiMedia == null) m.dataset.uiMedia = m.getAttribute('media') || '';
+      const own = m.dataset.uiMedia; if (!own) return;
+      m.setAttribute('media', t === 'auto' ? own : own.includes(t) ? 'all' : 'not all');
+    });
+    document.querySelectorAll('[data-ui-theme]').forEach(b => { const on = b.dataset.uiTheme === t; b.setAttribute('aria-checked', on); b.tabIndex = on ? 0 : -1 });
+  }
+  function theme(v) {
+    if (v === undefined) return themeGet();
+    if (v !== 'light' && v !== 'dark') v = 'auto';
+    try { localStorage.setItem(THEME, v) } catch (e) { }
+    themeApply(v); launchSoon(100);
+    return v;
+  }
+  const appearance = () => {
+    const t = themeGet();
+    return `<div class="ui-theme"><span><b>Appearance</b><small>Auto follows the device. For TODAY and every app.</small></span><div class="ui-seg" role="radiogroup" aria-label="Appearance">${
+      THEMES.map(([v, l]) => `<button type="button" role="radio" data-ui-theme="${v}" aria-checked="${v === t}" tabindex="${v === t ? 0 : -1}">${l}</button>`).join('')}</div></div>`;
+  };
+  themeApply();
+  addEventListener('storage', e => { if (e.key === THEME || e.key === null) { themeApply(); launchSoon(100) } });
+  document.addEventListener('click', e => { const b = e.target.closest?.('[data-ui-theme]'); if (b) theme(b.dataset.uiTheme) }, true);
+  document.addEventListener('keydown', e => {
+    const b = e.target.closest?.('[data-ui-theme]'), d = b && { ArrowRight: 1, ArrowDown: 1, ArrowLeft: -1, ArrowUp: -1, Home: -9, End: 9 }[e.key];
+    if (!d) return;
+    e.preventDefault();
+    const all = [...b.parentElement.querySelectorAll('[data-ui-theme]')], i = Math.max(0, Math.min(all.length - 1, d === 9 ? 9 : d === -9 ? 0 : (all.indexOf(b) + d + all.length) % all.length));
+    theme(all[i].dataset.uiTheme); all[i].focus();
+  }, true);
+
   /* ---------- the session bar: a running session, put away ----------
      UI.runBar({label, text, open}) shows a bar at the bottom: a pulsing dot, the label (the session), text() (its clock,
      read every second) and an arrow up. A tap brings the session back: the bar goes and open() runs. UI.runBar(null)
@@ -960,5 +1003,5 @@
     });
   }
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, runBar, version: '1.10.0' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, runBar, theme, appearance, version: '1.11.0' };
 })();

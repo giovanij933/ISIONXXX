@@ -132,6 +132,18 @@ t('runBar: one bar with the label and the clock, escaped, labelled for a screen 
 t('runBar: a tap takes the bar away and brings the session back; null removes it',()=>{let back=0;UI.runBar({label:'x',text:()=>'',open:()=>back++});document.querySelector('.ui-run').click();
   const gone=!document.querySelector('.ui-run')&&!document.documentElement.classList.contains('ui-has-run');UI.runBar({label:'y',open:()=>{}});UI.runBar(null);return back===1&&gone&&!document.querySelector('.ui-run')});
 t('runBar: a clock that throws shows nothing, not an error',()=>{UI.runBar({label:'z',text:()=>{throw new Error('x')},open:()=>{}});const ok=document.querySelector('.ui-run span').textContent==='';UI.runBar(null);return ok});
+// appearance (Settings: Auto, Light, Dark): data-theme on <html>, saved for every app on this device
+{const bg=()=>getComputedStyle(document.documentElement).getPropertyValue('--background').trim().toUpperCase(),was=localStorage.getItem('isx.theme');
+  t('appearance: Dark puts data-theme on <html>, saves it, and the palette turns dark',()=>{UI.theme('dark');return document.documentElement.dataset.theme==='dark'&&localStorage.getItem('isx.theme')==='dark'&&bg()==='#000000'&&UI.theme()==='dark'});
+  t('appearance: Light is light on any device; Auto (and anything else) takes data-theme off and is saved as "auto"',()=>{UI.theme('light');const l=document.documentElement.dataset.theme==='light'&&bg()==='#FFFFFF';
+    UI.theme('nonsense');return l&&!('theme' in document.documentElement.dataset)&&localStorage.getItem('isx.theme')==='auto'&&UI.theme()==='auto'});
+  t('appearance: the Settings row shows the choice; a tap and the arrow keys change it, with no UI.mount',()=>{UI.theme('auto');const s=html(UI.appearance()),c=()=>s.querySelector('[aria-checked=true]')?.dataset.uiTheme;
+    const a=c();s.querySelector('[data-ui-theme=light]').click();const b=c()+UI.theme();s.querySelector('[data-ui-theme=light]').focus();key(document.activeElement,'ArrowRight');
+    const d=c()+UI.theme()+document.activeElement.dataset.uiTheme;key(document.activeElement,'Home');
+    return s.querySelector('[role=radiogroup][aria-label=Appearance]')&&s.querySelectorAll('[role=radio]').length===3&&a==='auto'&&b==='lightlight'&&d==='darkdarkdark'&&UI.theme()==='auto'});
+  t('appearance: the browser bar colour (theme-color) follows the choice and comes back on Auto',()=>{const m=document.createElement('meta');m.name='theme-color';m.media='(prefers-color-scheme: dark)';document.head.append(m);
+    UI.theme('dark');const a=m.media;UI.theme('light');const b=m.media;UI.theme('auto');const c=m.media;m.remove();return a==='all'&&b==='not all'&&c==='(prefers-color-scheme: dark)'});
+  UI.theme('auto');if(was==null)localStorage.removeItem('isx.theme');else localStorage.setItem('isx.theme',was);stage.innerHTML=''}
 window.UI_TEST={pass,fail};
 </script>
 </body>
