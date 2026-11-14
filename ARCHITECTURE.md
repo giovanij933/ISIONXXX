@@ -244,7 +244,7 @@ Segoe UI on Windows, Roboto on Android. Nothing is downloaded, so the first pain
 apps need no font files offline. Code (LEARN's editor and code samples, any `code` or `pre`) uses the system
 monospace (`--ui-mono`). The terminal details that suited the old monospace (the `>` before headings, the blinking
 cursor after the app's name, `//` as a separator) are gone: a heading is just its words, and a separator is ` · `.
-Small uppercase labels keep a little tracking (about .05em); text has almost none.
+Nothing is set in capitals (2l), and text has no added tracking.
 
 **2e. The launch screen is the app's first frame.**
 An iPhone opens a home-screen web app on a launch image, and without one it shows a white screen: a flash in dark
@@ -320,6 +320,31 @@ nothing changed stays the same) and RETURN, which goes back into it, on the bar 
 key (`isx.<app>.run`) among the plan's sources and replans as the run is saved, so the row follows. A row can also name
 its button (`btn`, a few plain words): NUTRITION's "Log it" logs the suggested meal in one tap (`eatnext`), with Undo
 there. `personal.test.js` checks a session's row.
+
+**2l. Liquid Glass: Apple's iOS 26 conventions, where the web can follow them.**
+Apple's guidance (developer.apple.com, "Adopting Liquid Glass" and the HIG's Materials) asks for glass only on the
+layer that floats over the content, flat content, and controls shaped like the hardware. The apps already had the first
+two (2c's glass on the header pills, tab bar, menus, sheets and toasts; flat cards). This adds the rest:
+- **No capitals.** Headers are title-style and buttons and labels sentence case ("Save check-in", "Today's plan", the
+  tab bar's "Mind"): Apple's section headers "no longer render entirely in capital letters". No rule sets
+  `text-transform: uppercase` (the release check fails one), and no label is typed in capitals. What stays in capitals
+  is what is written that way: acronyms (JSON, CSV, SQL, RPE, NSDR), contract codes (NQZ6), SQL and SAS keywords in
+  LEARN's lessons, an account name the person typed, and the app's name in its own header, the wordmark beside the
+  mark. Internal keys stay as they are and are shown in words: TRAINING's days (PUSH → "Push day"), the breath cues
+  (INHALE → "Inhale"), REWIRE's app names (MIND → "Mind"). Card headers are 15 px semibold, a sheet's title 17 px.
+- **Capsules.** A button that is a line of text, every `.ui-btn` and every main button (`.pri`, `.go`) is a capsule.
+  The main action keeps the accent fill; the others take a soft grey fill (`--fill`, `--fill-2` on hover) with the
+  text colour instead of an outline, so colour stays for what matters (Apple: "be judicious with your use of color in
+  controls"). Buttons holding more than text (stat tiles, rings, calendar days, list rows) keep their own shapes.
+- **Segmented pickers** (`UI.segmented`, the 1–5 ratings, Appearance) are a grey track with a raised thumb
+  (`--thumb`), not an accent fill.
+- **Sheets float.** On a phone a sheet is inset 8 px from the screen's sides and bottom, its corners (38 px) following
+  the screen's, as iOS 26's half sheets are; a full-screen sheet (`.ss`) stays edge to edge. Desktop dialogs are 28 px.
+  Settings rows sit in one inset group (`.ui-set`), as in iOS's own Settings.
+- **Rounder corners, concentric:** a card 22 px, what sits in it 14, fields 12.
+- **What the web can't do:** the lensing that bends light at the glass's edge needs a filter Safari doesn't run on
+  `backdrop-filter`, so the glass stays blur, sheen and rim (2c). The tab bar hides on scroll rather than shrinking to
+  the current tab (iOS 26's behaviour), by choice.
 
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL

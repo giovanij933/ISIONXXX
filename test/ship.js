@@ -129,6 +129,9 @@ const settle=async(p,ms)=>{await p.waitForLoadState('load').catch(()=>{});await 
       const h=fs.readFileSync(path.join(DIR,f),'utf8'),head=h.slice(0,h.indexOf('</head>'));
       if(!/localStorage\.getItem\('isx\.theme'\)[^<]*dataset\.theme/.test(head))I('high','appearance',`${f}: the head doesn't set Settings › Appearance before the first paint`)}
     if(app!=='ISIONXXX'&&!html.includes('UI.appearance()'))I('medium','appearance','Settings has no Appearance row (UI.appearance())');
+    // 2c. no forced capitals (ARCHITECTURE.md, 2l: Apple's headers are title-style, never all caps)
+    {const css=(html.match(/<style[^>]*>[\s\S]*?<\/style>/g)||[]).join('\n')+(app==='ISIONXXX'&&fs.existsSync(path.join(DIR,'ui.css'))?fs.readFileSync(path.join(DIR,'ui.css'),'utf8'):'');
+      const n=(css.match(/text-transform:\s*uppercase/g)||[]).length;if(n)I('medium','type',`${n} rule${n>1?'s':''} set text in capitals (text-transform: uppercase)`)}
     const man=(html.match(/<link[^>]+rel=["']manifest["'][^>]*href=["']([^"']+)/)||html.match(/<link[^>]+href=["']([^"']+)["'][^>]*rel=["']manifest/)||[])[1];
     if(!man)I('high','pwa','no <link rel="manifest">');else if(!fs.existsSync(file(man)))I('high','pwa',`manifest ${man} missing`);else{let M;try{M=JSON.parse(fs.readFileSync(file(man),'utf8'))}catch(e){I('high','pwa','manifest is not valid JSON')}
       if(M){['name','short_name','start_url','display','icons'].forEach(k=>{if(!M[k])I('medium','pwa',`manifest has no ${k}`)});
