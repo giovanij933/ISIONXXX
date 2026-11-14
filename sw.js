@@ -1,6 +1,6 @@
 // The shell only: each app inside it keeps its own service worker and cache.
 // Bump the version string whenever you change index.html so clients pick up the new shell.
-const CACHE = 'isx-shell-v99';
+const CACHE = 'isx-shell-v100';
 const SHELL = ['./', './index.html', './db.js', './sync.js', './ui.js', './ui.css', './manifest.webmanifest', './icon-st.svg', './apple-touch-icon-st.png', './icon-st-192.png', './icon-st-512.png',
   './personal/', './personal/style.css', './personal/site.js', './personal/affirmation/'];
 

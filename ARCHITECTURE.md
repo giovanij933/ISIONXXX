@@ -338,9 +338,10 @@ two (2c's glass on the header pills, tab bar, menus, sheets and toasts; flat car
   controls"). Buttons holding more than text (stat tiles, rings, calendar days, list rows) keep their own shapes.
 - **Segmented pickers** (`UI.segmented`, the 1–5 ratings, Appearance) are a grey track with a raised thumb
   (`--thumb`), not an accent fill.
-- **Sheets float.** On a phone a sheet is inset 8 px from the screen's sides and bottom, its corners (38 px) following
-  the screen's, as iOS 26's half sheets are; a full-screen sheet (`.ss`) stays edge to edge. Desktop dialogs are 28 px.
-  Settings rows sit in one inset group (`.ui-set`), as in iOS's own Settings.
+- **Sheets stay edge to edge** on a phone, rounded at the top only. iOS 26 insets its half sheets from the screen's
+  edges with rounder corners; that was tried here and the flush sheet was preferred, so it stays. Desktop dialogs are
+  28 px. Settings rows sit on the sheet itself, divided by lines: an inset group (iOS's own Settings) was tried, and
+  its second grey on the sheet's own read as two shades.
 - **Rounder corners, concentric:** a card 22 px, what sits in it 14, fields 12.
 - **What the web can't do:** the lensing that bends light at the glass's edge needs a filter Safari doesn't run on
   `backdrop-filter`, so the glass stays blur, sheen and rim (2c). The tab bar hides on scroll rather than shrinking to
