@@ -31,10 +31,13 @@
   --border-soft:#E8E8ED;--track:#E3E3E8;--raised:#FFFFFF;
   --fill:rgba(118,118,128,.12);--fill-2:rgba(118,118,128,.2);--thumb:#FFFFFF;--hover:rgba(0,0,0,.05);--press:brightness(.94);
   /* glass: what floats over the page (the header, the tab bar, menus, sheets, toasts) looks like the menus the
-     system draws itself. The page shows through, blurred, with its colours kept, under a light or dark tint
-     (--glass; --float is the heavier tint for a sheet full of text). --glass-sheen is the light across it,
+     system draws itself. The page shows through, blurred, with its colours kept, under a light or dark tint.
+     Everything that floats is clear glass: --glass-clear (over --glass-clear-filter) for the pills, the tab bar, menus,
+     toasts and the session bar; --glass-sheet, a little more tint and a wider, less saturated blur, for sheets, dialogs
+     and popovers full of small text, so what's behind shows as a wash and never as a band of colour under a line.
+     --glass and --float are the older, heavier tints, kept for reference. --glass-sheen is the light across it,
      --glass-edge its bright rim, and the shadows carry the rim's highlights with them. */
-  --glass:rgba(255,255,255,.58);--float:rgba(255,255,255,.8);--glass-clear:rgba(255,255,255,.24);--glass-clear-filter:blur(10px) saturate(180%);--float-solid:#FFFFFF;--scrim:rgba(0,0,0,.32);
+  --glass:rgba(255,255,255,.58);--float:rgba(255,255,255,.8);--glass-clear:rgba(255,255,255,.24);--glass-clear-filter:blur(10px) saturate(180%);--glass-sheet:rgba(255,255,255,.4);--glass-sheet-filter:blur(24px) saturate(130%);--float-solid:#FFFFFF;--scrim:rgba(0,0,0,.32);
   --glass-filter:blur(26px) saturate(185%);--glass-edge:rgba(255,255,255,.8);
   --glass-sheen:linear-gradient(135deg,rgba(255,255,255,.6),rgba(255,255,255,0) 34%,rgba(255,255,255,0) 70%,rgba(255,255,255,.35));
   --glass-rim:inset 1px 1px 0 rgba(255,255,255,.95),inset -1px -1px 0 rgba(255,255,255,.55),inset 0 0 14px rgba(255,255,255,.45),0 0 0 1px rgba(0,0,0,.06);
@@ -58,7 +61,7 @@
   --info-text:#64D2FF;--info-soft:rgba(100,210,255,.16);
   --border-soft:#2C2C2E;--track:#3A3A3C;--raised:#2C2C2E;
   --fill:rgba(118,118,128,.24);--fill-2:rgba(118,118,128,.34);--thumb:#636366;--hover:rgba(255,255,255,.08);--press:brightness(1.3);
-  --glass:rgba(38,40,45,.56);--float:rgba(30,31,34,.8);--glass-clear:rgba(28,28,30,.3);--float-solid:#1D1D1F;--scrim:rgba(0,0,0,.55);
+  --glass:rgba(38,40,45,.56);--float:rgba(30,31,34,.8);--glass-clear:rgba(28,28,30,.3);--glass-sheet:rgba(28,28,30,.45);--float-solid:#1D1D1F;--scrim:rgba(0,0,0,.55);
   --glass-edge:rgba(255,255,255,.14);
   --glass-sheen:linear-gradient(135deg,rgba(255,255,255,.13),rgba(255,255,255,0) 32%,rgba(255,255,255,0) 72%,rgba(255,255,255,.07));
   --glass-rim:inset 1px 1px 0 rgba(255,255,255,.22),inset -1px -1px 0 rgba(255,255,255,.1),inset 0 0 14px rgba(255,255,255,.07),0 0 0 1px rgba(0,0,0,.45);
@@ -75,16 +78,16 @@
   --info-text:#64D2FF;--info-soft:rgba(100,210,255,.16);
   --border-soft:#2C2C2E;--track:#3A3A3C;--raised:#2C2C2E;
   --fill:rgba(118,118,128,.24);--fill-2:rgba(118,118,128,.34);--thumb:#636366;--hover:rgba(255,255,255,.08);--press:brightness(1.3);
-  --glass:rgba(38,40,45,.56);--float:rgba(30,31,34,.8);--glass-clear:rgba(28,28,30,.3);--float-solid:#1D1D1F;--scrim:rgba(0,0,0,.55);
+  --glass:rgba(38,40,45,.56);--float:rgba(30,31,34,.8);--glass-clear:rgba(28,28,30,.3);--glass-sheet:rgba(28,28,30,.45);--float-solid:#1D1D1F;--scrim:rgba(0,0,0,.55);
   --glass-edge:rgba(255,255,255,.14);
   --glass-sheen:linear-gradient(135deg,rgba(255,255,255,.13),rgba(255,255,255,0) 32%,rgba(255,255,255,0) 72%,rgba(255,255,255,.07));
   --glass-rim:inset 1px 1px 0 rgba(255,255,255,.22),inset -1px -1px 0 rgba(255,255,255,.1),inset 0 0 14px rgba(255,255,255,.07),0 0 0 1px rgba(0,0,0,.45);
   --shadow-pop:var(--glass-rim),0 18px 44px -12px rgba(0,0,0,.7);--shadow-bar:var(--glass-rim),0 12px 30px -16px rgba(0,0,0,.8);
   --shadow-float:var(--glass-rim),0 30px 80px -20px rgba(0,0,0,.85);
 }
-@media (prefers-contrast:more){:root{--glass-clear:rgba(255,255,255,.88);--fill:rgba(118,118,128,.2);--fill-2:rgba(118,118,128,.3);--border:#86868B;--border-soft:#D2D2D7;--text-secondary:#424245;--text-muted:#6E6E73;--glass:rgba(255,255,255,.9);--float:rgba(255,255,255,.95);--glass-edge:rgba(0,0,0,.25)}}
-@media (prefers-contrast:more) and (prefers-color-scheme:dark){:root:not([data-theme=light]){--glass-clear:rgba(28,28,30,.9);--fill:rgba(118,118,128,.34);--fill-2:rgba(118,118,128,.44);--border:#86868B;--border-soft:#424245;--text-secondary:#D2D2D7;--text-muted:#A1A1A6;--glass:rgba(28,28,30,.9);--float:rgba(28,28,30,.95);--glass-edge:rgba(255,255,255,.35)}}
-@media (prefers-contrast:more){:root[data-theme=dark]{--glass-clear:rgba(28,28,30,.9);--fill:rgba(118,118,128,.34);--fill-2:rgba(118,118,128,.44);--border:#86868B;--border-soft:#424245;--text-secondary:#D2D2D7;--text-muted:#A1A1A6;--glass:rgba(28,28,30,.9);--float:rgba(28,28,30,.95);--glass-edge:rgba(255,255,255,.35)}}
+@media (prefers-contrast:more){:root{--glass-clear:rgba(255,255,255,.88);--glass-sheet:rgba(255,255,255,.92);--fill:rgba(118,118,128,.2);--fill-2:rgba(118,118,128,.3);--border:#86868B;--border-soft:#D2D2D7;--text-secondary:#424245;--text-muted:#6E6E73;--glass:rgba(255,255,255,.9);--float:rgba(255,255,255,.95);--glass-edge:rgba(0,0,0,.25)}}
+@media (prefers-contrast:more) and (prefers-color-scheme:dark){:root:not([data-theme=light]){--glass-clear:rgba(28,28,30,.9);--glass-sheet:rgba(28,28,30,.94);--fill:rgba(118,118,128,.34);--fill-2:rgba(118,118,128,.44);--border:#86868B;--border-soft:#424245;--text-secondary:#D2D2D7;--text-muted:#A1A1A6;--glass:rgba(28,28,30,.9);--float:rgba(28,28,30,.95);--glass-edge:rgba(255,255,255,.35)}}
+@media (prefers-contrast:more){:root[data-theme=dark]{--glass-clear:rgba(28,28,30,.9);--glass-sheet:rgba(28,28,30,.94);--fill:rgba(118,118,128,.34);--fill-2:rgba(118,118,128,.44);--border:#86868B;--border-soft:#424245;--text-secondary:#D2D2D7;--text-muted:#A1A1A6;--glass:rgba(28,28,30,.9);--float:rgba(28,28,30,.95);--glass-edge:rgba(255,255,255,.35)}}
 /* type: the device's own font (SF Pro on an iPhone or a Mac), nothing to download; code stays monospace */
 code,pre,kbd,samp{font-family:var(--ui-mono)}
 .ui-sr{position:absolute!important;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
@@ -182,7 +185,7 @@ code,pre,kbd,samp{font-family:var(--ui-mono)}
    with auto margins, not a transform: a pressed button's scale (:active) would replace it and move the bar under the finger */
 .ui-run{position:fixed;left:0;right:0;margin:0 auto;bottom:calc(var(--isx-tabs,24px) + 12px + env(safe-area-inset-bottom));z-index:40;display:flex;align-items:center;gap:10px;
   width:max-content;max-width:calc(100vw - 32px);min-height:48px;box-sizing:border-box;padding:0 16px 0 14px;border-radius:999px;border:1px solid var(--glass-edge,var(--border));
-  background:var(--glass-sheen,none),var(--float,var(--ui-panel));-webkit-backdrop-filter:var(--glass-filter,none);backdrop-filter:var(--glass-filter,none);box-shadow:var(--shadow-float,none);
+  background:var(--glass-sheen,none),var(--glass-clear,var(--ui-panel));-webkit-backdrop-filter:var(--glass-clear-filter,none);backdrop-filter:var(--glass-clear-filter,none);box-shadow:var(--shadow-float,none);
   color:var(--text-primary);font:13px var(--ui-f);letter-spacing:0;text-transform:none;cursor:pointer;-webkit-tap-highlight-color:transparent;animation:ui-run-in .3s var(--ui-ease) both}
 .ui-run i{flex:none;width:9px;height:9px;border-radius:50%;background:var(--accent);animation:ui-pulse 2s ease-in-out infinite}
 .ui-run b{font-weight:600;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}.ui-run span{flex:none;color:var(--text-secondary);font-variant-numeric:tabular-nums}
@@ -454,12 +457,12 @@ html body :is(button,.btn){transition:transform .35s var(--g-spring),background-
 html body :is(button,.btn):not(nav *):active:not(:disabled){transform:scale(.965)}
 html body :is(button.pri,.btn.go,.ui-btn.ui-primary){box-shadow:none}
 /* floating layers: glass (the tokens are at the top of this file) */
-html body :is(dialog,.modal>.box,#isx-sd,.ui-lf-pop){border-radius:28px;background:var(--glass-sheen),var(--float);-webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);
+html body :is(dialog,.modal>.box,#isx-sd,.ui-lf-pop){border-radius:28px;background:var(--glass-sheen),var(--glass-sheet);-webkit-backdrop-filter:var(--glass-sheet-filter);backdrop-filter:var(--glass-sheet-filter);
   border-color:var(--glass-edge);box-shadow:var(--shadow-float)}
 html body .ui-lf-pop{border-radius:20px;box-shadow:var(--shadow-pop)}
 html body dialog::backdrop{background:var(--scrim);-webkit-backdrop-filter:blur(8px) saturate(120%);backdrop-filter:blur(8px) saturate(120%)}
 html body .modal{background:var(--scrim);-webkit-backdrop-filter:blur(8px) saturate(120%);backdrop-filter:blur(8px) saturate(120%)}
-html body :is(.ui-toast,.toast,#toast,#isx-full){border-radius:18px;background:var(--glass-sheen),var(--glass);-webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);border-color:var(--glass-edge);box-shadow:var(--shadow-pop)}
+html body :is(.ui-toast,.toast,#toast,#isx-full){border-radius:18px;background:var(--glass-sheen),var(--glass-clear);-webkit-backdrop-filter:var(--glass-clear-filter);backdrop-filter:var(--glass-clear-filter);border-color:var(--glass-edge);box-shadow:var(--shadow-pop)}
 /* phones: dialogs rise as a sheet from the bottom, with a grabber */
 @media (max-width:640px){
   html body dialog[open]:not(#isx-sd){margin:auto 0 0;width:100%;max-width:100%;max-height:calc(100dvh - 24px);border-radius:22px 22px 0 0;border-width:1px 0 0;padding-top:26px;
@@ -482,7 +485,7 @@ html.g-boot body :is(.g,.grid,section)>:is(.card,.ui-card,.ui-hero):nth-child(3)
 html.g-boot body :is(.g,.grid,section)>:is(.card,.ui-card,.ui-hero):nth-child(4){animation-delay:.12s}
 @keyframes g-in{from{opacity:0;transform:translateY(10px) scale(.985)}}
 /* accessibility: solid surfaces when asked for less transparency; no movement when asked for less motion */
-@media (prefers-reduced-transparency:reduce){html body :is(dialog,.modal>.box,#isx-sd,.ui-lf-pop,.ui-toast,.toast,#toast,#isx-full){background:var(--float-solid);-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media (prefers-reduced-transparency:reduce){html body :is(dialog,.modal>.box,#isx-sd,.ui-lf-pop,.ui-toast,.toast,#toast,#isx-full,.ui-sel-pop,.ui-run){background:var(--float-solid);-webkit-backdrop-filter:none;backdrop-filter:none}}
 @media (prefers-reduced-motion:reduce){html body :is(.card,.ui-card,.ui-hero,dialog,.modal>.box){animation:none!important}html body :is(button,.btn):active{transform:none}}
 @supports not ((backdrop-filter:blur(1px)) or (-webkit-backdrop-filter:blur(1px))){html body :is(dialog,.modal>.box,#isx-sd,.ui-lf-pop,.ui-toast,.toast,#toast,#isx-full){background:var(--float-solid)}}
 
@@ -568,9 +571,9 @@ html{touch-action:manipulation}
 /* ---------- app header: a rounded frosted bar pinned to the top, the rarely used buttons behind ··· ---------- */
 html body header.top:not(.th){position:sticky;top:calc(env(safe-area-inset-top) + 8px);z-index:7;padding:10px 14px;margin-top:-6px;gap:12px;border-bottom-color:transparent}
 /* the glass sits on a rounded layer behind the header, so it floats like the tab bar */
-html body header.top:not(.th)::before{content:'';position:absolute;z-index:-1;inset:0;border-radius:22px;background:var(--glass-sheen),var(--glass);
+html body header.top:not(.th)::before{content:'';position:absolute;z-index:-1;inset:0;border-radius:22px;background:var(--glass-sheen),var(--glass-clear);
   border:1px solid var(--glass-edge);box-shadow:var(--shadow-bar);
-  -webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter)}
+  -webkit-backdrop-filter:var(--glass-clear-filter);backdrop-filter:var(--glass-clear-filter)}
 html body header.top:not(.th) .brand{line-height:22px}
 .ui-more{position:relative;flex:none;display:flex;align-self:stretch}
 html body .ui-more-btn{min-width:44px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
@@ -580,7 +583,7 @@ html body .ui-more-btn{min-width:44px;display:inline-flex;align-items:center;jus
 .ui-more-v{width:6px;height:18px;background-size:6px 6px;background-repeat:repeat-y}
 html body .ui-more-btn[aria-expanded=true]{background:var(--hover)}
 .ui-more-pop{position:absolute;right:0;top:calc(100% + 8px);z-index:30;min-width:200px;padding:8px;display:flex;flex-direction:column;gap:2px;
-  background:var(--glass-sheen),var(--glass);-webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);
+  background:var(--glass-sheen),var(--glass-clear);-webkit-backdrop-filter:var(--glass-clear-filter);backdrop-filter:var(--glass-clear-filter);
   border:1px solid var(--glass-edge);border-radius:28px;box-shadow:var(--shadow-pop);animation:ui-more-in .16s var(--ui-ease,ease-out)}
 .ui-more-pop[hidden]{display:none}
 html body .ui-more-pop>button{all:unset;box-sizing:border-box;display:block;width:100%;padding:12px 14px;border-radius:20px;cursor:pointer;
@@ -640,7 +643,7 @@ html body .brand>.ui-brand-a:active{opacity:.7}
 /* ---------- dropdown lists on desktop: the same glass panel as the ··· menu (ui.js builds it in place of the browser's list) ---------- */
 .ui-sel-pop{position:fixed;inset:auto;margin:0;z-index:70;box-sizing:border-box;max-width:min(420px,calc(100vw - 16px));overflow:auto;overscroll-behavior:contain;
   padding:8px;display:flex;flex-direction:column;gap:2px;color:var(--ui-tx);
-  background:var(--glass-sheen),var(--glass);-webkit-backdrop-filter:var(--glass-filter);backdrop-filter:var(--glass-filter);
+  background:var(--glass-sheen),var(--glass-clear);-webkit-backdrop-filter:var(--glass-clear-filter);backdrop-filter:var(--glass-clear-filter);
   border:1px solid var(--glass-edge);border-radius:28px;box-shadow:var(--shadow-pop);animation:ui-more-in .16s var(--ui-ease,ease-out)}
 html body .ui-sel-pop .ui-sel-opt{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:10px;width:100%;padding:11px 14px;border-radius:20px;cursor:pointer;
   font:13px var(--ui-f);color:var(--ui-tx);white-space:nowrap;-webkit-tap-highlight-color:transparent}

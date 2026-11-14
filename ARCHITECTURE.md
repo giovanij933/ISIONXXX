@@ -223,6 +223,9 @@ holds a colour of its own, so the palette changes in one file and every app foll
   through, as iOS 26's floating controls do; Increase Contrast makes them nearly opaque, Reduce Transparency solid. The
   page fades only a little as it slides under them (`.ui-edge`, which `ui.js` adds to every app and TODAY draws with its
   page): enough to settle the pills, not so much that they sit on a solid band. Wider screens keep the one rounded bar.
+  All of it is clear glass: `--glass-clear` for the pills, the tab bar, menus, dropdowns, toasts and the session bar;
+  `--glass-sheet` (40% light, 45% dark, a 24 px blur at lower saturation) for sheets, dialogs and popovers full of small
+  text, so a bright button behind one shows as a soft wash, not a band of colour under a line of grey text.
   It is modelled on the menus iOS draws itself: the page shows through, blurred (`--glass-filter`, 26 px) with its
   colours kept, under a light or dark tint (`--glass`; `--float` is the heavier tint for a sheet full of text), with
   a light across it (`--glass-sheen`) and a bright rim (`--glass-rim`, carried by the shadows). Cards stay flat.
