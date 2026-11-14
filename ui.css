@@ -528,17 +528,17 @@ html body .card:not(:has(:is(.lg,.lr)>em:not(:empty))) :is(.lg,.lr)>em{display:n
   html body .tw tr:has(button) td{padding-top:5px;padding-bottom:5px}
 }
 /* A table wider than its card (every log, on a phone) fades out at the right edge while there is more to scroll to,
-   instead of stopping mid-word with nothing to say it goes on. The fade is a strip pinned to the edge of the scrolling
-   box; how far the box is scrolled drives its opacity (a scroll-driven animation, run by the compositor). Without
-   that feature, or when the table fits, the strip stays invisible */
-/* (the page's own tables only: a dialog's background is a different colour, and the strip is the card's) */
-html body :is(#app,#top) .tw:has(>table:only-child){display:grid;grid-template-columns:minmax(100%,max-content)}
-html body :is(#app,#top) .tw:has(>table:only-child)>table{grid-area:1/1}
-html body :is(#app,#top) .tw:has(>table:only-child)::after{content:'';grid-area:1/1;justify-self:end;position:sticky;right:0;width:44px;z-index:1;pointer-events:none;opacity:0;
-  background:linear-gradient(90deg,transparent,var(--surface) 85%)}
+   instead of stopping mid-word with nothing to say it goes on. The fade is a mask on the scrolling box itself, so it
+   stays on the box's edge however far the table scrolls; how far it is scrolled drives the fade's width (a
+   scroll-driven animation of --tw-fade: 44 px, gone over the last stretch). Without that feature, or when the table
+   fits (no scroll, so the animation does nothing), there is no fade.
+   (It was a strip pinned with position: sticky inside a grid. iOS Safari 26, which runs scroll-driven animations, sized
+   that grid to the card instead of the table, so the strip sat mid-table, over the Side column and the row lines.) */
+@property --tw-fade{syntax:'<length>';inherits:false;initial-value:0px}
 @supports (animation-timeline:scroll()){
-  html body :is(#app,#top) .tw:has(>table:only-child)::after{animation:ui-tw-more linear both;animation-timeline:scroll(nearest inline)}
-  @keyframes ui-tw-more{0%,88%{opacity:1}100%{opacity:0}}
+  html body :is(#app,#top) .tw:has(>table:only-child){-webkit-mask-image:linear-gradient(to left,transparent,#000 var(--tw-fade));mask-image:linear-gradient(to left,transparent,#000 var(--tw-fade));
+    animation:ui-tw-more linear both;animation-timeline:scroll(self inline)}
+  @keyframes ui-tw-more{0%,88%{--tw-fade:44px}100%{--tw-fade:0px}}
 }
 
 /* phones: labels, tags, badges, section heads and chart axis labels at 11 px, Apple's minimum for legible text (they
