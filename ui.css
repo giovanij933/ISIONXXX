@@ -310,8 +310,8 @@ svg.ui-draw{will-change:transform}
 }
 
 /* settings dialog rows: label and hint on the left, the control on the right */
-.ui-set{margin:6px 0 4px;min-width:min(440px,calc(100vw - 72px));background:var(--fill);border-radius:var(--g-r,22px);padding:0 16px}
-.ui-set>div{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:13px 0;border-top:1px solid var(--ui-line)}
+.ui-set{margin:6px 0 4px;min-width:min(440px,calc(100vw - 72px))}
+.ui-set>div{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 0;border-top:1px solid var(--ui-line)}
 .ui-set>div:first-child{border-top:0}
 .ui-set b{display:block;font-weight:500;font-size:13px;color:var(--ui-tx);letter-spacing:.02em}
 .ui-set small{display:block;margin-top:2px;font-size:11px;color:var(--ui-dim);line-height:1.4}

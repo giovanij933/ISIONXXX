@@ -340,7 +340,8 @@ two (2c's glass on the header pills, tab bar, menus, sheets and toasts; flat car
   (`--thumb`), not an accent fill.
 - **Sheets stay edge to edge** on a phone, rounded at the top only. iOS 26 insets its half sheets from the screen's
   edges with rounder corners; that was tried here and the flush sheet was preferred, so it stays. Desktop dialogs are
-  28 px. Settings rows sit in one inset group (`.ui-set`), as in iOS's own Settings.
+  28 px. Settings rows sit on the sheet itself, divided by lines: an inset group (iOS's own Settings) was tried, and
+  its second grey on the sheet's own read as two shades.
 - **Rounder corners, concentric:** a card 22 px, what sits in it 14, fields 12.
 - **What the web can't do:** the lensing that bends light at the glass's edge needs a filter Safari doesn't run on
   `backdrop-filter`, so the glass stays blur, sheen and rim (2c). The tab bar hides on scroll rather than shrinking to
