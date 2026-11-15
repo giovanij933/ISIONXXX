@@ -384,7 +384,9 @@ The rules:
 - **Battery.** One loop draws every moment, only while its canvas is on screen and the page visible. The orb and the
   wave draw only during a session (not while paused), the bloom for about two seconds, and the backdrop only while
   its page is the one showing (in TODAY, its tab), its top is in view and no sheet is open, at half resolution and 24
-  frames a second (a check once a second wakes it when that changes). A moment's GPU context is freed when it leaves.
+  frames a second (a check once a second wakes it when that changes). It also rests after 20 seconds without a touch,
+  scroll or key, holding its frame, and moves again on the next one or when its page or tab comes back on screen, so a
+  page left open to read costs nothing. A moment's GPU context is freed when it leaves.
 - **Reduce Motion.** The backdrop is a still frame and the bloom doesn't play. The orb and the wave keep doing their job
   (they are the breath pacer, like the bubble) with their surfaces held still.
 - **Colours** come from the palette at run time (`s.rgb('--accent')`), so they follow Appearance and dark mode, and
