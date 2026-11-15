@@ -873,6 +873,58 @@
     try { const p = JSON.parse(localStorage.getItem('isx.plan.' + app)); return p && p.v === 1 ? Object.assign(p, { fresh: p.sig === planSig(p.src || []) }) : null } catch (e) { return null }
   }
   addEventListener('message', e => { if (e.origin === location.origin && e.data && e.data.isx === 'replan') planNow() });
+
+  /* UI.planArt(svg) — a plan row's picture (ARCHITECTURE.md, 2h), on TODAY's plan and in Up next: the app's SVG, kept to plain shapes in the plan-art classes before it goes
+     in the page. Only these elements and attributes pass, classes must be pa-*, and anything with a link or a script is
+     dropped; a picture that doesn't parse shows nothing. Kept per picture, so a redraw gives the same HTML (UI.paint). */
+  const ART_EL=new Set(['svg','g','polygon','path','circle','rect','line']),ART_AT=new Set(['viewBox','x','y','width','height','points','d','cx','cy','r','rx','x1','x2','y1','y2','fill','opacity','stroke-width','stroke-dasharray','stroke-dashoffset']),ARTS=new Map();
+  function planArt(src){
+    if(typeof src!=='string'||src.length>40000)return '';if(ARTS.has(src))return ARTS.get(src);let out='';
+    try{const r=new DOMParser().parseFromString(src,'image/svg+xml').documentElement;
+      const clean=e=>{const t=e.localName;if(!ART_EL.has(t))return '';
+        const at=[...e.attributes].map(a=>{const n=a.localName,v=a.value;
+          if(n==='class'){const c=v.split(/\s+/).filter(x=>/^pa-[a-z]{1,2}$/.test(x));return c.length?`class="${c.join(' ')}"`:''}
+          if(!ART_AT.has(n)||!/^[\w\s.,#%()-]*$/.test(v)||/url|script/i.test(v)||n==='fill'&&v!=='none')return '';return `${n}="${v}"`}).filter(Boolean).join(' ');
+        return `<${t}${at?' '+at:''}>${[...e.children].map(clean).join('')}</${t}>`};
+      if(r.localName==='svg'&&!r.getElementsByTagName('parsererror').length){out=clean(r);if(!/<(polygon|path|circle|rect|line)/.test(out))out=''}}catch(e){out=''}
+    ARTS.set(src,out);return out;
+
+  }
+
+  /* ---------- up next: the session Start would begin, under Today in every app ----------
+     UI.upNext({app, extra}) → the card's HTML. Every app puts it right after its Today hero, so it sits in the same
+     place in all six (ARCHITECTURE.md, 2n). It's the row TODAY's plan shows for the app, built fresh from the app's
+     UI.planner builder (the saved plan before the app has registered one): the plan's picture (UI.planArt),
+     title and detail, and a button that sends the plan's act the way TODAY does ({isx:'do'}), so it starts exactly
+     what TODAY's row would. A row can carry here: {act, btn}, what its button does inside the app instead, where TODAY's
+     act only leads to it (REWIRE's "plan" opens the danger-hour row; in the app the button logs the swap). A session
+     under way shows Return; one done today says so and keeps its button. extra is the app's own HTML under the row
+     (NUTRITION's Why this?, REWIRE's habits); id, the card's id (TODAY's act can point at it). Nothing planned → ''. */
+  const nxRow = (items, h) => { const win = x => typeof x.h0 === 'number' && typeof x.h1 === 'number', inW = x => x.h0 <= x.h1 ? h >= x.h0 && h < x.h1 : h >= x.h0 || h < x.h1;
+    return items.find(x => x && win(x) && inW(x)) || items.find(x => x && !win(x)) };
+  function upNext({ app, extra = '', id = '' } = {}) {
+    // the builder's rows when the app has registered it, else the saved plan (a page's first paint comes before that);
+    // either way the picture goes through planArt, so both give the same HTML and the first redraw changes nothing
+    let items = null;
+    if (planReg && (!app || planReg.app === app)) try { items = (planReg.build() || []).filter(Boolean) } catch (e) { items = null }
+    if (!items && app) { const p = planOf(app); items = p && Array.isArray(p.items) ? p.items : null }
+    const x = items && nxRow(items, new Date().getHours());
+    const at = id ? ` id="${esc(id)}"` : '';
+    // a labelled region, so a screen reader can jump to it like the hero (one per page, so a fixed id)
+    const head = tag => `<div class="ui-nx-h"><p class="ui-nx-t" id="ui-nx-t">Up next</p>${tag}</div>`;
+    if (!x || !x.title) return extra ? `<section class="card ui-nx"${at} aria-labelledby="ui-nx-t">${head('')}${extra}</section>` : '';
+    const run = x.run && typeof x.run === 'object' ? x.run : null, done = !run && !!x.done, here = !run && x.here && typeof x.here === 'object' ? x.here : {};
+    // TODAY's own words get a +, as on TODAY (Log it → + Log it); here's are the app's, used as they are
+    const ok = b => typeof b === 'string' && /^[\w ,.'·+▶-]{1,18}$/.test(b), a = here.act || x.act;
+    // a row done today whose act only shows today's entries (TRAINING's workout) says View, as TODAY's says Open
+    const label = run ? 'Return' : ok(here.btn) ? here.btn : done && a === 'today' ? 'View' : ok(x.btn) ? '+ ' + x.btn : '▶ Start', act = typeof a === 'string' && /^\w+$/.test(a) ? a : '';
+    const svg = planArt(x.art), pic = svg ? `<span class="ui-nx-art" aria-hidden="true">${svg}</span>` : '';
+    const tag = run ? `<span class="ui-nx-s ui-nx-run">● ${run.paused ? 'Paused' : 'Running'}</span>` : done ? '<span class="ui-nx-s ui-nx-ok">✓ Done today</span>' : '';
+    return `<section class="card ui-nx${done ? ' ui-nx-done' : ''}"${at} aria-labelledby="ui-nx-t">${head(tag)}
+      <div class="ui-nx-r">${pic}<div class="ui-nx-x"><b>${esc(x.title)}</b>${x.sub ? `<span>${esc(x.sub)}</span>` : ''}</div>${act
+        ? button({ label, variant: run ? 'primary' : 'secondary', attrs: { 'data-ui-nx': act, 'aria-label': `${label.replace(/^\W+/, '')}: ${x.title}` } }) : ''}</div>${extra}</section>`;
+  }
+  document.addEventListener('click', e => { const b = e.target.closest && e.target.closest('[data-ui-nx]'); if (b) window.postMessage({ isx: 'do', act: b.dataset.uiNx }, location.origin) });
   addEventListener('isx-sync', replan);
   document.addEventListener('visibilitychange', () => { if (!document.hidden) replan() });
 
@@ -1065,8 +1117,8 @@ float sn(vec3 v){ const vec2 C=vec2(1.0/6.0,1.0/3.0); const vec4 D=vec4(0.0,0.5,
   vec4 nm=tis(vec4(dot(p0,p0),dot(p1,p1),dot(p2,p2),dot(p3,p3))); p0*=nm.x; p1*=nm.y; p2*=nm.z; p3*=nm.w;
   vec4 m=max(0.6-vec4(dot(x0,x0),dot(x1,x1),dot(x2,x2),dot(x3,x3)),0.0); m=m*m;
   return 42.0*dot(m*m,vec4(dot(p0,x0),dot(p1,x1),dot(p2,x2),dot(p3,x3))); }
-void main(){ vec3 p=position; float n=sn(p*1.05+vec3(0.0,uT*.2,uT*.13)); float n2=sn(p*2.2-vec3(uT*.25));
-  p+=normal*uAmp*(n*.85+n2*.15); vZ=n; vec4 mv=modelViewMatrix*vec4(p,1.0);
+void main(){ vec3 p=position; float n=sn(p*.8+vec3(0.0,uT*.16,uT*.1)); float n2=sn(p*1.8-vec3(uT*.2));
+  p+=normal*uAmp*(n*.92+n2*.08); vZ=n; vec4 mv=modelViewMatrix*vec4(p,1.0);
   vN=normalize(normalMatrix*normal); vV=normalize(-mv.xyz); gl_Position=projectionMatrix*mv; }`;
   const ORBF = `uniform vec3 uA; uniform vec3 uB; uniform vec3 uRim; uniform vec3 uWA; uniform vec3 uWB; uniform float uW; varying vec3 vN; varying vec3 vV; varying float vZ;
 void main(){ vec3 n=normalize(vN); float fr=pow(1.0-max(dot(n,normalize(vV)),0.0),2.2); float k=clamp(.5+.45*n.y+.35*vZ,0.0,1.0);
@@ -1085,9 +1137,9 @@ void main(){ vec3 n=normalize(vN); float fr=pow(1.0-max(dot(n,normalize(vV)),0.0
     gl(c, s => {
       const T = s.THREE; let tm = 0;
       s.camera = new T.PerspectiveCamera(30, 1, .1, 20); s.camera.position.z = 4.15;
-      const V3 = () => ({ value: new T.Vector3() }), u = { uT: { value: 0 }, uAmp: { value: .045 }, uA: V3(), uB: V3(), uRim: V3(), uWA: V3(), uWB: V3(), uW: { value: 0 } }, g = { uC: V3(), uK: { value: .2 } };
+      const V3 = () => ({ value: new T.Vector3() }), u = { uT: { value: 0 }, uAmp: { value: .016 }, uA: V3(), uB: V3(), uRim: V3(), uWA: V3(), uWB: V3(), uW: { value: 0 } }, g = { uC: V3(), uK: { value: .2 } };
       const ball = new T.Mesh(new T.SphereGeometry(1, 96, 96), new T.ShaderMaterial({ uniforms: u, vertexShader: ORBV, fragmentShader: ORBF }));
-      const glow = new T.Mesh(new T.PlaneGeometry(4.4, 4.4), new T.ShaderMaterial({ uniforms: g, transparent: true, depthWrite: false, vertexShader: GLOWV, fragmentShader: GLOWF }));
+      const glow = new T.Mesh(new T.PlaneGeometry(2.7, 2.7), new T.ShaderMaterial({ uniforms: g, transparent: true, depthWrite: false, vertexShader: GLOWV, fragmentShader: GLOWF }));
       glow.position.z = -1.5; s.scene.add(glow, ball);
       s.theme = () => { const bg = s.rgb('--background'), dk = glDark(s), acc = s.rgb('--accent'), inf = s.rgb('--info'), wn = s.rgb('--warning');
         u.uA.value.fromArray(glMix(acc, bg, dk ? .62 : .8)); u.uB.value.fromArray(glMix(inf, bg, dk ? .7 : .55)); u.uRim.value.fromArray(glMix(acc, bg, dk ? .15 : .35));
@@ -1219,5 +1271,5 @@ void main(){ vec2 p=vec2(vUv.x*uR.x/uR.y,vUv.y)*1.7; float t=uT*.05;
     });
   }
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, runBar, theme, appearance, gl, orb, bloom, backdrop, version: '1.13.0' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, runBar, theme, appearance, gl, orb, bloom, backdrop, upNext, planArt, version: '1.13.0' };
 })();
