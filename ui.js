@@ -897,7 +897,8 @@
      UI.planner builder (the saved plan before the app has registered one): the plan's picture (UI.planArt),
      title and detail, and a button that sends the plan's act the way TODAY does ({isx:'do'}), so it starts exactly
      what TODAY's row would. A row can carry here: {act, btn}, what its button does inside the app instead, where TODAY's
-     act only leads to it (REWIRE's "plan" opens the danger-hour row; in the app the button logs the swap). A session
+     act only leads to it (REWIRE's "plan" opens the danger-hour row; in the app the button logs the swap), or act ''
+     for no button at all (the swap once it's done: the habits under it carry their own). A session
      under way shows Return; one done today says so and keeps its button. extra is the app's own HTML under the row
      (NUTRITION's Why this?, REWIRE's habits); id, the card's id (TODAY's act can point at it). Nothing planned → ''. */
   const nxRow = (items, h) => { const win = x => typeof x.h0 === 'number' && typeof x.h1 === 'number', inW = x => x.h0 <= x.h1 ? h >= x.h0 && h < x.h1 : h >= x.h0 || h < x.h1;
@@ -915,7 +916,8 @@
     if (!x || !x.title) return extra ? `<section class="card ui-nx"${at} aria-labelledby="ui-nx-t">${head('')}${extra}</section>` : '';
     const run = x.run && typeof x.run === 'object' ? x.run : null, done = !run && !!x.done, here = !run && x.here && typeof x.here === 'object' ? x.here : {};
     // TODAY's own words get a +, as on TODAY (Log it → + Log it); here's are the app's, used as they are
-    const ok = b => typeof b === 'string' && /^[\w ,.'·+▶-]{1,18}$/.test(b), a = here.act || x.act;
+    // here.act '' says the row has nothing to do in the app (REWIRE's danger-hour swap once it's done): no button
+    const ok = b => typeof b === 'string' && /^[\w ,.'·+▶-]{1,18}$/.test(b), a = 'act' in here ? here.act : x.act;
     // a row done today whose act only shows today's entries (TRAINING's workout) says View, as TODAY's says Open
     const label = run ? 'Return' : ok(here.btn) ? here.btn : done && a === 'today' ? 'View' : ok(x.btn) ? '+ ' + x.btn : '▶ Start', act = typeof a === 'string' && /^\w+$/.test(a) ? a : '';
     const svg = planArt(x.art), pic = svg ? `<span class="ui-nx-art" aria-hidden="true">${svg}</span>` : '';

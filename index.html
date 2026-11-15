@@ -108,6 +108,22 @@ nav button:focus-visible{outline:1px solid var(--accent);outline-offset:-4px}
 .ins .in1{margin:8px 0 0;font-size:13px;line-height:1.5;padding-left:14px;position:relative}.ins .in1::before{content:'';position:absolute;left:0;top:.6em;width:6px;height:6px;background:var(--secondary)}
 .ins .in1 b{color:var(--text-primary);font-weight:600}.ins .in1 b.pos{color:var(--success-text)}.ins .in1 b.neg{color:var(--error-text)}
 .ins .ft{margin-top:10px;font-size:10.5px}
+/* your week (weekHTML): a row per app, a dot a day, its number and the change on last week */
+.ywk{background:var(--panel);border:1px solid var(--line);padding:14px 16px;margin-bottom:12px;animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}
+.yw-s{margin:6px 0 10px;font-size:13px}.yw-s b{font-weight:600}
+.yw-g{display:grid;gap:2px}
+.yw-h,.yw-r{display:grid;grid-template-columns:68px repeat(7,14px) minmax(0,1fr);align-items:center;column-gap:5px}
+.yw-h i{font-style:normal;font-size:10px;color:var(--text-muted);text-align:center}.yw-h i.now{color:var(--accent-text);font-weight:600}
+button.yw-r{width:100%;min-height:40px;padding:6px 0;background:none;border:0;border-top:1px solid var(--line);border-radius:0;color:inherit;font:inherit;text-align:left;cursor:pointer;-webkit-tap-highlight-color:transparent}
+button.yw-r:active{opacity:.6}button.yw-r:focus-visible{outline:2px solid var(--accent);outline-offset:2px;border-radius:8px}
+.yw-l{font-size:13px;font-weight:600}
+.yd{justify-self:center;width:11px;height:11px;border-radius:50%}
+.yd.on{background:var(--accent)}.yd.pos{background:var(--success)}.yd.neg{background:var(--error)}.yd.half{background:color-mix(in srgb,var(--accent) 35%,var(--track))}
+.yd.off{box-shadow:inset 0 0 0 1.5px var(--track)}
+.yw-v{justify-self:end;text-align:right;font-size:13px;font-weight:600;font-variant-numeric:tabular-nums;display:flex;flex-direction:column;align-items:flex-end;gap:1px;min-width:0;white-space:nowrap}
+.yw-v b{font-weight:600}.yw-v b.pos{color:var(--success-text)}.yw-v b.neg{color:var(--error-text)}.yw-v small{font-size:11px;font-weight:400;color:var(--text-muted)}.yw-v small b{font-weight:500}
+.yw-n{margin:10px 0 0;font-size:13px}.yw-n b{font-weight:600}
+.ywk .ft{margin-top:10px;font-size:10.5px}
 .ins button.in1{display:block;width:100%;box-sizing:border-box;text-align:left;background:none;border:0;color:inherit;font-family:inherit;padding:0 20px 0 14px;cursor:pointer;-webkit-tap-highlight-color:transparent}
 .ins button.in1:active{opacity:.6}.ins button.in1:focus-visible{outline:2px solid var(--accent);outline-offset:3px;border-radius:6px}
 .ins .in-go{position:absolute;right:2px;top:50%;transform:translateY(-50%);font-size:18px;line-height:1;color:var(--text-muted)}
@@ -201,11 +217,11 @@ dialog.dd{max-height:min(86vh,760px);overflow:auto;overscroll-behavior:contain}
   #today .hero>.nx-none{border:1px solid var(--line);color:var(--success-text);font-size:12px}
 }
 @keyframes tIn{from{opacity:0;transform:translateY(8px)}}
-#today.drawn .ci,#today.drawn .ins,#today.drawn .pl{animation:none}
+#today.drawn .ci,#today.drawn .ins,#today.drawn .pl,#today.drawn .ywk{animation:none}
 .tch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
 .st{font-size:10px;letter-spacing:.06em;color:var(--dim);border:1px solid var(--line2);padding:2px 6px}
 /* the plan and Insights cards wear the same glass as every other card, and their count badges are pills */
-html body :is(.ins,.pl){border-radius:var(--g-r);background:var(--g-card);border-color:var(--g-line);box-shadow:var(--g-hi),var(--g-drop)}
+html body :is(.ins,.pl,.ywk){border-radius:var(--g-r);background:var(--g-card);border-color:var(--g-line);box-shadow:var(--g-hi),var(--g-drop)}
 html body .ins.sto{border-color:var(--border)}html body .ins.sto.bad{border-color:var(--red)}
 html body .st{border-radius:999px;padding:3px 10px;border-color:var(--g-line2)}
 .st.ok{color:var(--success-text);border-color:var(--success-line)}.st.bad{color:var(--error-text);border-color:var(--error-line)}
@@ -689,6 +705,58 @@ function insSheet(i,from){
   document.body.appendChild(d);d.showModal();d.querySelector('.ui-btn').focus({preventScroll:true});d.scrollTop=0;
 }
 const insLine=(x,i)=>x.d?`<button type="button" class="in1" data-ins="${i}" aria-haspopup="dialog">${x.t}<span class="in-go" aria-hidden="true">›</span></button>`:`<p class="in1">${x.t}</p>`;
+/* ---------- your week: the weekend's look back over all six apps ----------
+   Saturday and Sunday, under today's plan. A row per app with a dot for each day since Monday, decided the way that
+   day's ring is (tMind(t) and the rest, so the dots and the rings always agree; JOURNAL's are its green and red trading
+   days), the week's one number, and how it compares with the same days of last week. Then how many rings closed and
+   the best day, and the biggest change. A row opens its app; JOURNAL's opens its weekly review. */
+function weekHTML(){
+  const now=new Date(),wd=(now.getDay()+6)%7;if(wd<5)return '';
+  const day=i=>{const d=new Date(now);d.setHours(12,0,0,0);d.setDate(d.getDate()-wd+i);return ymd(d)},D7=Array.from({length:7},(_,i)=>day(i)),n=wd+1;
+  const span=(a,b)=>{const out=[];for(let i=a;i<b;i++)out.push(day(i));return out},THIS=span(0,n),LAST=span(-7,-7+n),inK=K=>k=>K.includes(k);
+  const sum=(K,f)=>K.reduce((a,k)=>a+(f(k)||0),0),pct=(a,b)=>b?Math.round((a/b-1)*100):null,hm=m=>m>=60?`${Math.floor(m/60)} h ${Math.round(m%60)} min`:`${Math.round(m)} min`;
+  const rows=[];let rc=0,rt=0;const best=THIS.map(()=>[0,0]);
+  // a row: its dots (one per day, from the day's ring), its number, and the change on the same days last week
+  // the five rings are MIND, TRAINING, NUTRITION, LEARN and REWIRE (a slip is a ring not closed; a rest day doesn't count);
+  // JOURNAL's dots are its green and red days, not a ring
+  const add=(id,label,ringOf,num,ext,chg,say)=>{const cells=D7.map((k,i)=>{if(i>wd)return '';const r=ringOf(k);
+      const c=r===true?'on':r==='pos'?'pos':r==='neg'?'neg':r==='half'?'half':r===false?'off':'';
+      if(id!=='journal'&&(c==='on'||c==='off'||c==='neg'||c==='half'&&id==='rewire')){rt++;best[i][1]++;if(c==='on'){rc++;best[i][0]++}}return c});
+    if(!num)return;rows.push({id,label,cells,num,ext,chg,say})};
+  const ch=v=>v==null?null:{v,t:`${v>0?'↑':v<0?'↓':''} ${Math.abs(v)}%`};
+  // MIND: minutes; TRAINING: workouts; NUTRITION: protein a day; LEARN: study minutes; REWIRE: urges beaten, slips; JOURNAL: net
+  const mL=arr(read('isx.mind.v1')?.log),mm=K=>mL.filter(e=>inK(K)(dayAt(e.at))).reduce((a,e)=>a+(+e.mins||0),0);
+  if(mL.length){const a=mm(THIS),b=mm(LAST),dd=new Set(mL.filter(e=>inK(THIS)(dayAt(e.at))).map(e=>dayAt(e.at))).size;
+    add('mind','Mind',k=>tMind(k)?.done??null,hm(a),plural(dd,'day'),ch(pct(a,b)),`${hm(a)} over ${plural(dd,'day')}`)}
+  const tL=arr(read('isx.training.v1')?.log).filter(e=>e.type!=='S'),tw=K=>new Set(tL.filter(e=>inK(K)(dayAt(e.at))).map(e=>dayAt(e.at))).size;
+  if(tL.length){const a=tw(THIS),b=tw(LAST);add('training','Train',k=>{const x=tTrain(k);return x?.done===true?true:x?.rest?'half':x?.done??null},plural(a,'workout'),'',ch(pct(a,b)),`${plural(a,'workout')}`)}
+  const nd=read('nj.daily.v1'),days=nd?.days||{},pT=nd?.protein||0,pr=K=>{const L=K.filter(k=>days[k]);return L.length?sum(L,k=>days[k].p)/L.length:null};
+  if(arr(read('nj.meals.v1')).length){const a=pr(THIS),b=pr(LAST);add('nutrition','Nutrition',k=>tFuel(k)?.done??null,a!=null?`${fi(a)} g protein`:'Meals logged',a!=null?'a day':'',a!=null&&b?ch(pct(a,b)):null,a!=null?`${fi(a)} g protein a day${pT?`, target ${fi(pT)} g`:''}`:'meals logged')}
+  const xS=arr(read('xl.sessions.v1')),xm=K=>xS.filter(x=>inK(K)(dayAt(Date.parse(x.time)))).reduce((a,x)=>a+(+x.min||0),0);
+  if(xS.length){const a=xm(THIS),b=xm(LAST),P=read('xl.progress.v1')||{},ls=Object.values(P).filter(p=>p&&p.done&&THIS.includes(p.date)).length;
+    add('learn','Learn',k=>tExtract(k)?.done??null,hm(a),ls?plural(ls,'lesson'):'',ch(pct(a,b)),`${hm(a)} of study${ls?`, ${plural(ls,'lesson')} done`:''}`)}
+  const rw=read('isx.rewire.v1'),rL=arr(rw?.log),rb=K=>rL.filter(e=>e.t==='resist'&&inK(K)(dayAt(e.at))).length,rs=K=>rL.filter(e=>e.t==='slip'&&inK(K)(dayAt(e.at))).length;
+  if(arr(rw?.bad).length||arr(rw?.good).length){const a=rb(THIS),sl=rs(THIS);
+    add('rewire','Rewire',k=>{const x=tRewire(k);return !x?null:x.slip?'neg':x.done?true:'half'},sl?plural(sl,'slip'):'No slips',`${a} beaten`,null,`${sl?plural(sl,'slip'):'no slips'}, ${plural(a,'urge')} beaten`)}
+  const js=read('isx.journal.v1'),jT=arr(js?.trades);
+  if(jT.length){const roll=js.roll??18,td=ms=>{const d=new Date(ms);if(roll&&d.getHours()>=roll)d.setDate(d.getDate()+1);return ymd(d)};
+    const net=x=>(x.exit-x.entry)*(x.side==='Short'?-1:1)*x.qty*x.mult-(+x.fee||0)-(+x.comm||0),J={};jT.forEach(x=>{const k=td(x.close);J[k]=(J[k]||0)+net(x)});
+    const a=sum(THIS,k=>J[k]),b=sum(LAST,k=>J[k]),dn=THIS.filter(k=>J[k]!=null);
+    if(dn.length)add('journal','Journal',k=>J[k]==null?null:J[k]>0?'pos':J[k]<0?'neg':'half',`<b class="${a>0?'pos':a<0?'neg':''}">${money(a)}</b>`,plural(dn.length,'day'),b?{v:a-b,t:`${a-b>=0?'↑':'↓'} ${money(Math.abs(a-b)).replace(/^\+/,'')}`}:null,`${money(a)} over ${plural(dn.length,'trading day')}`)}
+  if(!rows.length)return '';
+  // the best day: the most rings closed (ties go to the later day)
+  let bi=-1;best.forEach(([c,t],i)=>{if(t&&(bi<0||c/t>=best[bi][0]/best[bi][1]))bi=i});
+  const wn=i=>new Date(day(i)+'T12:00:00').toLocaleDateString('en-US',{weekday:'long'}),lab=k=>new Date(k+'T12:00:00').toLocaleDateString('en-US',{month:'short',day:'numeric'});
+  const big=rows.filter(r=>r.chg&&typeof r.chg.v==='number'&&r.id!=='journal').sort((a,b)=>Math.abs(b.chg.v)-Math.abs(a.chg.v))[0];
+  const L=['M','T','W','T','F','S','S'];
+  return `<section class="ywk" aria-labelledby="ywk-h"><div class="tch"><h2 class="h" id="ywk-h">Your week</h2><span class="st">${lab(D7[0])} – ${D7[0].slice(5,7)===D7[6].slice(5,7)?+D7[6].slice(8):lab(D7[6])}</span></div>
+    ${rt?`<p class="yw-s"><b>${rc} of ${rt}</b> rings closed${bi>=0&&best[bi][0]?` · best day <b>${wn(bi)}</b> (${best[bi][0]} of ${best[bi][1]})`:''}</p>`:''}
+    <div class="yw-g"><div class="yw-h" aria-hidden="true"><span></span>${L.map((x,i)=>`<i${i===wd?' class="now"':''}>${x}</i>`).join('')}<span></span></div>
+    ${rows.map(r=>`<button type="button" class="yw-r" data-go="${r.id}"${r.id==='journal'?' data-act="week"':''} aria-label="${r.label}: ${esc(r.say.replace(/<[^>]+>/g,''))}${r.chg?`, ${r.chg.v>0?'up':r.chg.v<0?'down':'level'} ${r.chg.t.replace(/[↑↓] /,'')} on the same days last week`:''}. ${r.id==='journal'?'Open the weekly review':'Open '+r.label}">
+      <span class="yw-l">${r.label}</span>${r.cells.map(c=>`<i class="yd ${c}" aria-hidden="true"></i>`).join('')}<span class="yw-v"><span>${r.num}</span>${r.ext||r.chg?`<small>${r.ext}${r.ext&&r.chg?' · ':''}${r.chg?`<b class="${r.chg.v>0?'pos':r.chg.v<0?'neg':''}">${r.chg.t}</b>`:''}</small>`:''}</span></button>`).join('')}</div>
+    ${big&&Math.abs(big.chg.v)>=10?`<p class="yw-n">Biggest change: <b>${big.label}</b>, ${big.chg.v>0?'up':'down'} ${Math.abs(big.chg.v)}% on the same days last week.</p>`:''}
+    <div class="sub ft">A dot is a ring closed that day; a light one, a rest day or a clean day with habits left. Changes compare Monday to ${wn(wd)} with the same days last week.</div></section>`;
+}
 // all apps share one storage quota (sync.js keeps count); speak up well before a save can fail
 function stoHTML(){
   const s=window.ISXSync?.storage?.();if(!s||s.ratio<.8)return'';
@@ -840,7 +908,7 @@ function drawToday(){
   const ci=ciHTML();
   const html=`<div class="ui-edge" aria-hidden="true"></div><div class="in"><header class="th top"><h1 class="brand"><a class="ui-brand-a" href="personal/" title="ISIONXXX homepage"><span class="ui-brand-mark" role="img" aria-label="ISIONXXX"></span>TODAY</a></h1><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>
     ${stoHTML()}${ci}${heroHTML(wins,next,t)}${planHTML(t,C,next)}
-    ${insHTML()}</div>`;
+    ${weekHTML()}${insHTML()}</div>`;
   // only touch the page when something changed
   if(html!==lastToday){
     lastToday=html;el.innerHTML=html;BD=window.UI?.backdrop?.({under:el,active:()=>todayOn()});

@@ -43,9 +43,20 @@ const settle=async(p,ms)=>{await p.waitForLoadState('load').catch(()=>{});await 
   // the shared files must be byte-identical in every app (ARCHITECTURE.md: a copy that drifts is a bug)
   {const R={app:'shared files',issues:[],notes:[]};all.push(R);const have=Object.keys(APPS).filter(a=>fs.existsSync(path.join(SITE,a)));
     if(have.length<Object.keys(APPS).length)R.notes.push('not in the site: '+Object.keys(APPS).filter(a=>!have.includes(a)).join(', '));
-    for(const f of SHARED){const by={};for(const a of have){const p=path.join(SITE,a,f);const k=fs.existsSync(p)?require('crypto').createHash('md5').update(fs.readFileSync(p)).digest('hex').slice(0,8):'missing';(by[k]=by[k]||[]).push(a)}
-      const v=Object.entries(by).sort((x,y)=>y[1].length-x[1].length);
-      if(v.length>1)R.issues.push({sev:'high',area:'drift',msg:`${f} differs: ${v.map(([k,a])=>`${a.join(', ')} (${k})`).join(' vs ')}`})}
+    // each shared file's copies, grouped by content: [file, [[hash, apps], ...]] for the files that differ
+    const hash=p=>fs.existsSync(p)?require('crypto').createHash('md5').update(fs.readFileSync(p)).digest('hex').slice(0,8):'missing';
+    const differ=()=>SHARED.map(f=>{const by={};for(const a of have)(by[hash(path.join(SITE,a,f))]??=[]).push(a);return [f,Object.entries(by).sort((x,y)=>y[1].length-x[1].length)]}).filter(([,v])=>v.length>1);
+    let d=differ();
+    // on main, a change to the shared files lands as seven merges a minute or so apart, and the run of an early merge
+    // finds the apps not merged yet still on the old copy. So there the other apps' main is fetched again every 2
+    // minutes, up to 3 times, before it counts: a copy that still differs after that is real (a repo left out)
+    if(d.length&&process.env.BRANCH==='main'){const wait=+(process.env.DRIFT_WAIT||120),tries=+(process.env.DRIFT_TRIES||3);
+      for(let i=1;i<=tries&&d.length;i++){console.log(`shared files differ on main: fetching the other apps' main again in ${wait} s (${i} of ${tries})`);
+        await new Promise(r=>setTimeout(r,wait*1000));
+        for(const a of have){const dir=path.join(SITE,a);if(fs.lstatSync(dir).isSymbolicLink()||!fs.existsSync(path.join(dir,'.git')))continue;
+          try{require('child_process').execSync(`git -C "${dir}" fetch -q origin main && git -C "${dir}" reset -q --hard FETCH_HEAD`,{stdio:'ignore'})}catch(e){console.log(`could not fetch ${a}: ${e.message.split('\n')[0]}`)}}
+        d=differ();if(!d.length)R.notes.push(`they matched once the other apps' merges landed (${i*wait} s)`)}}
+    for(const [f,v] of d)R.issues.push({sev:'high',area:'drift',msg:`${f} differs: ${v.map(([k,a])=>`${a.join(', ')} (${k})`).join(' vs ')}`});
     // Settings › Appearance › Dark is the device's dark, copied: the two blocks in ui.css (and their Increase
     // Contrast forms) must hold the same colours (ARCHITECTURE.md, 2c)
     if(have.length){const css=fs.readFileSync(path.join(SITE,have[0],'ui.css'),'utf8'),get=re=>(css.match(re)||[])[1]?.trim();

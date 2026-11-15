@@ -44,7 +44,7 @@ t('card: no nested interactive controls',()=>{html(UI.card({id:'m',title:'MIND',
 t('upNext: nothing planned gives nothing; a saved plan shows escaped, its picture kept to plain shapes',()=>{localStorage.removeItem('isx.plan.t1');const a=UI.upNext({app:'t1'});
   localStorage.setItem('isx.plan.t1',JSON.stringify({v:1,app:'t1',sig:'',src:[],at:0,items:[{title:'<b>x</b>',sub:'s',act:'go',art:'<svg viewBox="0 0 2 2"><circle r="1" class="pa-p" onload="bad()"/><script>bad()<\/script></svg>'}]}));const s=html(UI.upNext({app:'t1'}));localStorage.removeItem('isx.plan.t1');
   const pic=s.querySelector('.ui-nx-art');return a===''&&s.querySelector('.ui-nx-x b').textContent==='<b>x</b>'&&pic.querySelector('circle.pa-p')&&!pic.querySelector('script,[onload]')&&s.querySelector('[data-ui-nx]').dataset.uiNx==='go'});
-t('upNext: the row for this hour, here over TODAY\'s act, Return while running, View for a day done, TODAY\'s words with a +',()=>{
+t('upNext: the row for this hour, here over TODAY\'s act (or no button), Return while running, View for a day done, TODAY\'s words with a +',()=>{
   const h=new Date().getHours(),mk=items=>{UI.planner('t2',[],()=>items);return html(UI.upNext({app:'t2',id:'plan'}))},b=s=>s.querySelector('[data-ui-nx]');
   let s=mk([{title:'Later',act:'a',h0:(h+2)%24,h1:(h+3)%24},{title:'Now',act:'b',h0:h,h1:(h+1)%24}]);const r1=s.querySelector('.ui-nx-x b').textContent==='Now'&&b(s).dataset.uiNx==='b'&&s.querySelector('#plan');
   s=mk([{title:'P',act:'plan',here:{act:'swap',btn:'+ Done'}}]);const r2=b(s).dataset.uiNx==='swap'&&b(s).textContent==='+ Done';
@@ -52,7 +52,8 @@ t('upNext: the row for this hour, here over TODAY\'s act, Return while running, 
   s=mk([{title:'D',act:'today',done:true}]);const r4=b(s).textContent==='View'&&s.querySelector('.ui-nx-done')&&/Done today/.test(s.textContent);
   s=mk([{title:'L',act:'eat',btn:'Log it'}]);const r5=b(s).textContent==='+ Log it';
   s=mk([{title:'Bad',act:'x y'}]);const r6=!b(s);
-  localStorage.removeItem('isx.plan.t2');return r1&&r2&&r3&&r4&&r5&&r6});
+  s=mk([{title:'Swap',act:'swap',done:true,here:{act:''}}]);const r7=!b(s)&&/Done today/.test(s.textContent);
+  localStorage.removeItem('isx.plan.t2');return r1&&r2&&r3&&r4&&r5&&r6&&r7});
 t('card: open button and action carry ids',()=>{html(UI.card({id:'m',title:'MIND',actions:[{label:'Go',act:'go'}]}));return stage.querySelector('[data-open=m]')&&stage.querySelector('[data-go=m][data-act=go]')});
 t('card: article labelled by its heading',()=>{html(UI.card({id:'m',title:'MIND'}));const a=stage.querySelector('article');return document.getElementById(a.getAttribute('aria-labelledby')).textContent==='MIND'});
 
