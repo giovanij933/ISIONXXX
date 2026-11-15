@@ -41,6 +41,12 @@ t('week: no days renders nothing',()=>UI.week({days:[]})==='');
 
 // card
 t('card: no nested interactive controls',()=>{html(UI.card({id:'m',title:'MIND',actions:[{label:'Go',act:'go'}]}));return ![...stage.querySelectorAll('button')].some(b=>b.parentElement.closest('button'))});
+t('weekReview: opens the week asked for, steps back, a day row calls onDay and closes; sections only when they have something',()=>{let got=null;
+  UI.weekReview({weeks:['2026-11-02','2026-11-10'],ws:'2026-11-09',build:ws=>({week:`W ${ws}`,days:[{k:ws,n:'x',v:'1',bar:.5,cls:'pos'}],good:['g'],questions:['q']}),onDay:k=>got=k});
+  const d=document.querySelector('dialog.ui-wr[open]'),t=()=>d.querySelector('.ui-wr-t').textContent;
+  const ok1=d&&/Nov 9 – 15, 2026/.test(t())&&d.querySelectorAll('.ui-wr-s').length===4&&d.querySelector('.ui-wr-db i.pos');
+  d.querySelector('[data-wr-go]').click();const ok2=/Nov 2 – 8/.test(t());
+  d.querySelector('[data-wr-day]').click();return ok1&&ok2&&got==='2026-11-02'&&!d.open});
 t('upNext: nothing planned gives nothing; a saved plan shows escaped, its picture kept to plain shapes',()=>{localStorage.removeItem('isx.plan.t1');const a=UI.upNext({app:'t1'});
   localStorage.setItem('isx.plan.t1',JSON.stringify({v:1,app:'t1',sig:'',src:[],at:0,items:[{title:'<b>x</b>',sub:'s',act:'go',art:'<svg viewBox="0 0 2 2"><circle r="1" class="pa-p" onload="bad()"/><script>bad()<\/script></svg>'}]}));const s=html(UI.upNext({app:'t1'}));localStorage.removeItem('isx.plan.t1');
   const pic=s.querySelector('.ui-nx-art');return a===''&&s.querySelector('.ui-nx-x b').textContent==='<b>x</b>'&&pic.querySelector('circle.pa-p')&&!pic.querySelector('script,[onload]')&&s.querySelector('[data-ui-nx]').dataset.uiNx==='go'});
