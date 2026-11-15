@@ -899,7 +899,7 @@
      what TODAY's row would. A row can carry here: {act, btn}, what its button does inside the app instead, where TODAY's
      act only leads to it (REWIRE's "plan" opens the danger-hour row; in the app the button logs the swap), or act ''
      for no button at all (the swap once it's done: the habits under it carry their own). A session
-     under way shows Return; one done today says so and keeps its button. extra is the app's own HTML under the row
+     under way shows Return; one done today says so, with no button. extra is the app's own HTML under the row
      (NUTRITION's Why this?, REWIRE's habits); id, the card's id (TODAY's act can point at it). Nothing planned → ''. */
   const nxRow = (items, h) => { const win = x => typeof x.h0 === 'number' && typeof x.h1 === 'number', inW = x => x.h0 <= x.h1 ? h >= x.h0 && h < x.h1 : h >= x.h0 || h < x.h1;
     return items.find(x => x && win(x) && inW(x)) || items.find(x => x && !win(x)) };
@@ -918,8 +918,8 @@
     // TODAY's own words get a +, as on TODAY (Log it → + Log it); here's are the app's, used as they are
     // here.act '' says the row has nothing to do in the app (REWIRE's danger-hour swap once it's done): no button
     const ok = b => typeof b === 'string' && /^[\w ,.'·+▶-]{1,18}$/.test(b), a = 'act' in here ? here.act : x.act;
-    // a row done today whose act only shows today's entries (TRAINING's workout) says View, as TODAY's says Open
-    const label = run ? 'Return' : ok(here.btn) ? here.btn : done && a === 'today' ? 'View' : ok(x.btn) ? '+ ' + x.btn : '▶ Start', act = typeof a === 'string' && /^\w+$/.test(a) ? a : '';
+    // a row that's done today has nothing left to start: it says so, without a button
+    const label = run ? 'Return' : ok(here.btn) ? here.btn : ok(x.btn) ? '+ ' + x.btn : '▶ Start', act = !done && typeof a === 'string' && /^\w+$/.test(a) ? a : '';
     const svg = planArt(x.art), pic = svg ? `<span class="ui-nx-art" aria-hidden="true">${svg}</span>` : '';
     const tag = run ? `<span class="ui-nx-s ui-nx-run">● ${run.paused ? 'Paused' : 'Running'}</span>` : done ? '<span class="ui-nx-s ui-nx-ok">✓ Done today</span>' : '';
     return `<section class="card ui-nx${done ? ' ui-nx-done' : ''}"${at} aria-labelledby="ui-nx-t">${head(tag)}
