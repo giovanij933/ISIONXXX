@@ -37,7 +37,10 @@ Each app's files are also read, without a browser:
   and keeps the seven apps the same. White and black are allowed (medium). See ARCHITECTURE.md, decision 2c.
 
 Two checks run once per run:
-- **Shared files.** `ui.js`, `ui.css`, `sync.js` and `db.js` must be byte-identical in all seven apps.
+- **Shared files.** `ui.js`, `ui.css`, `sync.js` and `db.js` must be byte-identical in all seven apps. On `main` a
+  shared change lands as seven merges a minute or so apart, so an early merge's run finds the others still on the old
+  copy. There the check fetches the other apps' `main` again every 2 minutes, up to 3 times, before it fails
+  (`DRIFT_WAIT`, `DRIFT_TRIES`). A copy that still differs after that is a real miss.
 - **ui.js unit tests.** The shell's run executes `test/ui.test.html`.
 
 ## The iPhone lane

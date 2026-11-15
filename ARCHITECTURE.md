@@ -420,6 +420,13 @@ you open:
 The cards in each slot are the app's own: a trading calendar and a meal calendar can't be one card. What's shared is
 the order, and Up next, which is one component.
 
+**2o. Your week, at the weekend.** On Saturday and Sunday TODAY adds a card under today's plan: a row per app with a dot
+for each day since Monday, its week's number and the change on the same days of last week, how many rings closed and
+the best day. A dot is decided by the same function as that day's ring (`tMind(t)` and the rest, run for each day), so
+the card and the rings can't disagree; a light dot is a TRAINING rest day or a REWIRE day without a slip but with good
+habits left (its ring needs them all). JOURNAL's dots are its green and red trading days, and its row opens JOURNAL's
+weekly review. A week is compared over the days it has so far, so a Saturday isn't held against last week's seven.
+
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL
 would tie every app's offline start-up and update timing to the shell's deploy. That would also break the
