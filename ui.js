@@ -1241,6 +1241,76 @@ void main(){ vec2 p=vec2(vUv.x*uR.x/uR.y,vUv.y)*1.7; float t=uT*.05;
     return bd.h;
   }
 
+
+  /* ---------- weekly review: one week of an app, read as a sheet (ARCHITECTURE.md 2p) ----------
+     UI.weekReview({weeks, ws, build, onDay, label}) opens it, the same in every app (JOURNAL's has its own, in the same
+     order). weeks: the Mondays ('YYYY-MM-DD') that have anything; ws: the one to open (else this week's, or the last).
+     build(ws) gives { week, context: html, days: [{k, n, v, bar, cls}], good, look: [html], more: [[heading, html]],
+     questions: [text] }: the week in a sentence or two, against recent weeks, a row a day (what happened, the day's
+     number, a bar 0–1, pos or neg), what went well, what to look at, the app's own patterns and questions for next
+     week. < > between weeks, Copy, Done. A day row calls onDay(k) when given (the app shows that day). */
+  const wrDay = d => `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  const wrAdd = (k, n) => { const d = new Date(k + 'T12:00:00'); d.setDate(d.getDate() + n); return wrDay(d) };
+  const wrMon = k => { const d = new Date(k + 'T12:00:00'); d.setDate(d.getDate() - (d.getDay() + 6) % 7); return wrDay(d) };
+  let wrDlg = null, wrCfg = null;
+  function wrText() {
+    const d = wrDlg; if (!d) return '';
+    return [d.querySelector('.ui-wr-t').textContent, ...[...d.querySelectorAll('.ui-wr-s')].map(x => [x.querySelector('h4').textContent.toUpperCase(),
+      ...[...x.querySelectorAll(':scope>p,:scope>ul>li,:scope>ol>li,.ui-wr-d')].map(e => (e.matches('li') ? '- ' : '') + e.textContent.replace(/\s+/g, ' ').trim())].join('\n'))].join('\n\n');
+  }
+  function wrDraw(ws) {
+    const { weeks, build, onDay } = wrCfg, i = weeks.indexOf(ws), R = build(ws) || {}, today = wrDay(new Date());
+    const a = new Date(ws + 'T12:00:00'), b = new Date(wrAdd(ws, 6) + 'T12:00:00'), md = x => x.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+    const lab = `${md(a)} – ${a.getMonth() === b.getMonth() ? b.getDate() : md(b)}, ${b.getFullYear()}`;
+    const sec = (h, body) => body ? `<section class="ui-wr-s"><h4>${esc(h)}</h4>${body}</section>` : '';
+    const list = (a, tag = 'ul') => a && a.length ? `<${tag}>${a.map(x => `<li>${x}</li>`).join('')}</${tag}>` : '';
+    const days = (R.days || []).filter(x => x.k <= today).map(x => {
+      const dn = new Date(x.k + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'short', month: 'short', day: 'numeric' }), bar = Math.max(0, Math.min(1, +x.bar || 0));
+      const inner = `<span class="ui-wr-dn">${dn}</span><span class="ui-wr-dt">${x.n || '<i>Nothing logged</i>'}</span><span class="ui-wr-db">${bar ? `<i class="${esc(x.cls || '')}" style="width:${(bar * 100).toFixed(1)}%"></i>` : ''}</span><b class="${esc(x.cls || '')}">${x.v || ''}</b>`;
+      return onDay ? `<button type="button" class="ui-wr-d" data-wr-day="${esc(x.k)}" aria-label="${esc(dn)}: ${esc(String(x.n || 'nothing logged').replace(/<[^>]+>/g, ''))}${x.v ? ', ' + esc(String(x.v).replace(/<[^>]+>/g, '')) : ''}. Show this day">${inner}</button>` : `<div class="ui-wr-d">${inner}</div>`;
+    }).join('');
+    wrDlg.innerHTML = `<div class="ui-wr-h"><h3 class="ui-wr-t" tabindex="-1">Weekly review · ${lab}</h3>
+      <button type="button" class="ui-btn ui-secondary" data-wr-go="${weeks[i - 1] || ''}" ${i > 0 ? '' : 'disabled'} aria-label="Previous week"><span>‹</span></button><button type="button" class="ui-btn ui-secondary" data-wr-go="${weeks[i + 1] || ''}" ${i < weeks.length - 1 ? '' : 'disabled'} aria-label="Next week"><span>›</span></button></div>
+      <div class="ui-wr-b">${sec('The week', R.week ? `<p>${R.week}</p>` : '<p>Nothing logged this week.</p>')}${sec('In context', R.context ? `<p>${R.context}</p>` : '')}
+      ${sec('Day by day', days ? `<div class="ui-wr-dl">${days}</div>${onDay ? '<p class="ui-wr-hint">Tap a day to see it in the app.</p>' : ''}` : '')}
+      ${sec('What went well', list(R.good))}${sec('What to look at', list(R.look))}${(R.more || []).map(([h, b]) => sec(h, b)).join('')}${sec('Questions to answer', list(R.questions, 'ol'))}</div>
+      <div class="ui-wr-a"><button type="button" class="ui-btn ui-secondary" data-wr="copy"><span>Copy</span></button><button type="button" class="ui-btn ui-primary" data-wr="done"><span>Done</span></button></div>`;
+    wrDlg.scrollTop = 0; wrDlg.dataset.ws = ws;
+  }
+  function weekReview({ weeks = [], ws, build, onDay, onDone } = {}) {
+    weeks = [...new Set(weeks.filter(w => /^\d{4}-\d\d-\d\d$/.test(w)).map(wrMon))].sort();
+    if (!weeks.length || typeof build !== 'function') { toast('Nothing to review yet'); return }
+    const cur = wrMon(wrDay(new Date()));
+    ws = weeks.includes(ws) ? ws : weeks.includes(cur) ? cur : weeks.filter(w => w <= cur).at(-1) || weeks.at(-1);
+    wrCfg = { weeks, build, onDay, onDone };
+    if (!wrDlg) {
+      wrDlg = document.createElement('dialog'); wrDlg.className = 'ui-wr'; wrDlg.setAttribute('aria-labelledby', 'ui-wr-t');
+      wrDlg.addEventListener('click', e => {
+        const g = e.target.closest('[data-wr-go]'); if (g && g.dataset.wrGo) return wrDraw(g.dataset.wrGo);
+        const a = e.target.closest('[data-wr]');
+        if (a && a.dataset.wr === 'done') { const w = wrDlg.dataset.ws; wrDlg.close(); try { wrCfg.onDone?.(w) } catch (x) { } return }
+        if (a && a.dataset.wr === 'copy') { const t = wrText(); (navigator.clipboard?.writeText(t) || Promise.reject()).then(() => toast('Review copied'), () => toast('Copy failed: select the text instead')); return }
+        const d = e.target.closest('[data-wr-day]'); if (d) { wrDlg.close(); try { wrCfg.onDay?.(d.dataset.wrDay) } catch (x) { } return }
+        if (e.target === wrDlg) { const r = wrDlg.getBoundingClientRect(); if (e.clientY < r.top || e.clientY > r.bottom || e.clientX < r.left || e.clientX > r.right) wrDlg.close() }
+      });
+      document.body.appendChild(wrDlg);
+    }
+    wrDraw(ws); if (!wrDlg.open) wrDlg.showModal();
+    wrDlg.querySelector('.ui-wr-t').id = 'ui-wr-t'; wrDlg.querySelector('[data-wr="done"]').focus({ preventScroll: true });
+  }
+  weekReview.mon = wrMon; weekReview.add = wrAdd; weekReview.day = wrDay;
+  // the words every review uses, so the seven read alike: "3 sessions", "1,240", "2h 05m", an average, "Tuesday",
+  // "Monday, Tuesday and Friday", "+0.8"
+  const wrN = new Intl.NumberFormat('en-US', { maximumFractionDigits: 0 });
+  weekReview.t = {
+    pl: (n, w) => `${n} ${w}${n === 1 ? '' : 's'}`, n0: v => wrN.format(Math.round(v || 0)),
+    hm: m => { m = Math.round(m || 0); return m >= 60 ? `${Math.floor(m / 60)}h ${String(m % 60).padStart(2, '0')}m` : `${m} min` },
+    avg: a => a.length ? a.reduce((x, y) => x + y, 0) / a.length : null,
+    wd: k => new Date(k + 'T12:00:00').toLocaleDateString('en-US', { weekday: 'long' }),
+    and: a => a.length < 2 ? a.join('') : a.slice(0, -1).join(', ') + ' and ' + a.at(-1),
+    sg: (v, d = 1) => { const a = Math.abs(v).toFixed(d); return (+a === 0 ? '' : v < 0 ? '−' : '+') + a }
+  };
+
   /* ---------- updates: a new version takes over on the first reopen ----------
      Each app's service worker installs a new version as soon as the browser sees it and takes over the open page
      (skipWaiting, clients.claim), but the page keeps running the version it loaded, so an update used to take two
@@ -1273,5 +1343,5 @@ void main(){ vec2 p=vec2(vUv.x*uR.x/uR.y,vUv.y)*1.7; float t=uT*.05;
     });
   }
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, runBar, theme, appearance, gl, orb, bloom, backdrop, upNext, planArt, version: '1.13.0' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, runBar, theme, appearance, gl, orb, bloom, backdrop, upNext, planArt, weekReview, version: '1.14.0' };
 })();

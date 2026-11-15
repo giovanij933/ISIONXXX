@@ -709,7 +709,7 @@ const insLine=(x,i)=>x.d?`<button type="button" class="in1" data-ins="${i}" aria
    Saturday and Sunday, under today's plan. A row per app with a dot for each day since Monday, decided the way that
    day's ring is (tMind(t) and the rest, so the dots and the rings always agree; JOURNAL's are its green and red trading
    days), the week's one number, and how it compares with the same days of last week. Then how many rings closed and
-   the best day, and the biggest change. A row opens its app; JOURNAL's opens its weekly review. */
+   the best day, and the biggest change. A row opens that app's weekly review. */
 function weekHTML(){
   const now=new Date(),wd=(now.getDay()+6)%7;if(wd<5)return '';
   const day=i=>{const d=new Date(now);d.setHours(12,0,0,0);d.setDate(d.getDate()-wd+i);return ymd(d)},D7=Array.from({length:7},(_,i)=>day(i)),n=wd+1;
@@ -752,7 +752,7 @@ function weekHTML(){
   return `<section class="ywk" aria-labelledby="ywk-h"><div class="tch"><h2 class="h" id="ywk-h">Your week</h2><span class="st">${lab(D7[0])} – ${D7[0].slice(5,7)===D7[6].slice(5,7)?+D7[6].slice(8):lab(D7[6])}</span></div>
     ${rt?`<p class="yw-s"><b>${rc} of ${rt}</b> rings closed${bi>=0&&best[bi][0]?` · best day <b>${wn(bi)}</b> (${best[bi][0]} of ${best[bi][1]})`:''}</p>`:''}
     <div class="yw-g"><div class="yw-h" aria-hidden="true"><span></span>${L.map((x,i)=>`<i${i===wd?' class="now"':''}>${x}</i>`).join('')}<span></span></div>
-    ${rows.map(r=>`<button type="button" class="yw-r" data-go="${r.id}"${r.id==='journal'?' data-act="week"':''} aria-label="${r.label}: ${esc(r.say.replace(/<[^>]+>/g,''))}${r.chg?`, ${r.chg.v>0?'up':r.chg.v<0?'down':'level'} ${r.chg.t.replace(/[↑↓] /,'')} on the same days last week`:''}. ${r.id==='journal'?'Open the weekly review':'Open '+r.label}">
+    ${rows.map(r=>`<button type="button" class="yw-r" data-go="${r.id}" data-act="week" aria-label="${r.label}: ${esc(r.say.replace(/<[^>]+>/g,''))}${r.chg?`, ${r.chg.v>0?'up':r.chg.v<0?'down':'level'} ${r.chg.t.replace(/[↑↓] /,'')} on the same days last week`:''}. Open ${r.label}'s weekly review">
       <span class="yw-l">${r.label}</span>${r.cells.map(c=>`<i class="yd ${c}" aria-hidden="true"></i>`).join('')}<span class="yw-v"><span>${r.num}</span>${r.ext||r.chg?`<small>${r.ext}${r.ext&&r.chg?' · ':''}${r.chg?`<b class="${r.chg.v>0?'pos':r.chg.v<0?'neg':''}">${r.chg.t}</b>`:''}</small>`:''}</span></button>`).join('')}</div>
     ${big&&Math.abs(big.chg.v)>=10?`<p class="yw-n">Biggest change: <b>${big.label}</b>, ${big.chg.v>0?'up':'down'} ${Math.abs(big.chg.v)}% on the same days last week.</p>`:''}
     <div class="sub ft">A dot is a ring closed that day; a light one, a rest day or a clean day with habits left. Changes compare Monday to ${wn(wd)} with the same days last week.</div></section>`;

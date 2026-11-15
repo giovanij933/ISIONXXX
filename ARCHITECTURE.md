@@ -427,6 +427,17 @@ the card and the rings can't disagree; a light dot is a TRAINING rest day or a R
 habits left (its ring needs them all). JOURNAL's dots are its green and red trading days, and its row opens JOURNAL's
 weekly review. A week is compared over the days it has so far, so a Saturday isn't held against last week's seven.
 
+**2p. A weekly review in every app.** `UI.weekReview` is one sheet, in the order JOURNAL's weekly review set: the week,
+in context (against the last 8 weeks), day by day (a row a day with its bar; a tap shows that day in the app), what went
+well, what to look at, the app's own patterns, and questions for next week, with ‹ › between weeks, Copy and Done.
+Each app gives it only its numbers: MIND minutes against the weekly goal, mood shift, practices and time of day;
+TRAINING workouts against the goal, volume, new bests (an estimated 1RM above the best before the week) and the
+split; NUTRITION calories and protein against the targets, days on target, fish meals and what was eaten most; REWIRE
+clean days, slips, urges beaten, triggers and the busiest hour; LEARN study against the daily goal, lessons, first-try
+accuracy and tracks. JOURNAL keeps its own, richer one (rules, max loss, morning and afternoon), and its Done marks the
+week reviewed for its weekend plan. Every app opens its review from a Week button under its calendar and from act
+`week`, which is what each row of TODAY's Your week sends.
+
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL
 would tie every app's offline start-up and update timing to the shell's deploy. That would also break the
