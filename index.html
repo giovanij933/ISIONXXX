@@ -137,15 +137,7 @@ dialog.dd{max-height:min(86vh,760px);overflow:auto;overscroll-behavior:contain}
 .pl-t{font-weight:600;font-size:13px;overflow-wrap:anywhere}.pl-s{color:var(--dim);font-size:12px;overflow-wrap:anywhere}
 .pl-r.done .pl-t,.pl-r.old .pl-t,.pl-r.none .pl-t{color:var(--dim);font-weight:500}
 /* a plan row's picture (ARCHITECTURE.md, 2h): the app draws it in the plan-art classes, this colours them */
-.pl-art{flex:none;width:52px;height:44px;display:flex;align-items:center;justify-content:center}.pl-art svg{display:block;width:52px;height:44px;overflow:visible}
 .pl-r.done .pl-art,.pl-r.old .pl-art{opacity:.65}
-.pl-art polygon{fill:color-mix(in srgb,var(--text-muted) 22%,var(--track))}
-.pl-art .pa-p{fill:var(--accent)}.pl-art .pa-s{fill:color-mix(in srgb,var(--accent) 40%,var(--track))}.pl-art .pa-n{fill:var(--track)}.pl-art .pa-c{fill:color-mix(in srgb,var(--text-muted) 26%,var(--track))}
-.pl-art .pa-x{fill:var(--track);opacity:.55}.pl-art .pa-a{fill:color-mix(in srgb,var(--accent) 16%,transparent)}.pl-art .pa-i{fill:var(--info)}.pl-art .pa-g{fill:var(--secondary)}
-.pl-art .pa-e{fill:var(--error)}.pl-art .pa-w{fill:var(--success)}
-.pl-art .pa-sp{stroke:var(--accent)}.pl-art .pa-si{stroke:var(--info)}.pl-art .pa-sg{stroke:var(--secondary)}.pl-art .pa-st{stroke:var(--track)}.pl-art .pa-se{stroke:var(--error)}
-.pl-art .pa-sw{stroke:var(--success)}.pl-art .pa-sk{stroke:var(--text-primary)}.pl-art .pa-sm{stroke:var(--text-secondary)}.pl-art .pa-sb{stroke:var(--border)}
-.pl-art [class*="pa-s"]{stroke-linecap:round;stroke-linejoin:round}
 .pl-r .ui-btn{flex:none;min-width:96px}.pl-r .ui-btn.ui-secondary{color:var(--text-primary)}
 /* morning check-in */
 .ci{background:var(--panel);border:1px solid var(--border-soft);padding:14px 16px 16px;margin-bottom:12px;animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}
@@ -746,21 +738,8 @@ function planLoad(){
   const id=askQ.shift();askT=id?setTimeout(planLoad,700):0;
   if(id&&!document.getElementById('f-'+id)){preload(id);const f=document.getElementById('f-'+id);if(f)redrawOnLoad(f)}
 }
-// a plan row's picture (ARCHITECTURE.md, 2h): the app's SVG, kept to plain shapes in the plan-art classes before it goes
-// in the page. Only these elements and attributes pass, classes must be pa-*, and anything with a link or a script is
-// dropped; a picture that doesn't parse shows nothing. Kept per picture, so a redraw gives the same HTML (UI.paint).
-const ART_EL=new Set(['svg','g','polygon','path','circle','rect','line']),ART_AT=new Set(['viewBox','x','y','width','height','points','d','cx','cy','r','rx','x1','x2','y1','y2','fill','opacity','stroke-width','stroke-dasharray','stroke-dashoffset']),ARTS=new Map();
-function planArt(src){
-  if(typeof src!=='string'||src.length>40000)return '';if(ARTS.has(src))return ARTS.get(src);let out='';
-  try{const r=new DOMParser().parseFromString(src,'image/svg+xml').documentElement;
-    const clean=e=>{const t=e.localName;if(!ART_EL.has(t))return '';
-      const at=[...e.attributes].map(a=>{const n=a.localName,v=a.value;
-        if(n==='class'){const c=v.split(/\s+/).filter(x=>/^pa-[a-z]{1,2}$/.test(x));return c.length?`class="${c.join(' ')}"`:''}
-        if(!ART_AT.has(n)||!/^[\w\s.,#%()-]*$/.test(v)||/url|script/i.test(v)||n==='fill'&&v!=='none')return '';return `${n}="${v}"`}).filter(Boolean).join(' ');
-      return `<${t}${at?' '+at:''}>${[...e.children].map(clean).join('')}</${t}>`};
-    if(r.localName==='svg'&&!r.getElementsByTagName('parsererror').length){out=clean(r);if(!/<(polygon|path|circle|rect|line)/.test(out))out=''}}catch(e){out=''}
-  ARTS.set(src,out);return out;
-}
+// a plan row's picture, kept to plain shapes (UI.planArt in ui.js, ARCHITECTURE.md 2h)
+const planArt=src=>UI.planArt(src);
 // a session under way: its clock on TODAY's plan, from what the app shares (run: t0, the start; mins, a set length to
 // count down; paused). Filled in every second here, not in the HTML, so a redraw with nothing changed stays the same
 const clk=ms=>{const s=Math.max(0,Math.round(ms/1000)),h=Math.floor(s/3600),m=Math.floor(s%3600/60);return (h?h+':'+String(m).padStart(2,'0'):m)+':'+String(s%60).padStart(2,'0')};

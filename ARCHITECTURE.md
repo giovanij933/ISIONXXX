@@ -348,6 +348,9 @@ two (2c's glass on the header pills, tab bar, menus, sheets and toasts; flat car
   edges with rounder corners; that was tried here and the flush sheet was preferred, so it stays. Desktop dialogs are
   28 px. Settings rows sit on the sheet itself, divided by lines: an inset group (iOS's own Settings) was tried, and
   its second grey on the sheet's own read as two shades.
+- **A session isn't a sheet.** MIND's, TRAINING's and REWIRE's sessions (`dialog.ss`) fill the screen on the page's own
+  colour, not glass: through glass the page behind showed as a grey haze, and the pinned Pause and Finish sat on a band
+  of the page colour above it. Content, not a layer over it, so flat (Apple's own rule).
 - **Rounder corners, concentric:** a card 22 px, what sits in it 14, fields 12.
 - **What the web can't do:** the lensing that bends light at the glass's edge needs a filter Safari doesn't run on
   `backdrop-filter`, so the glass stays blur, sheen and rim (2c). The tab bar hides on scroll rather than shrinking to
@@ -392,6 +395,28 @@ The rules:
 - **Colours** come from the palette at run time (`s.rgb('--accent')`), so they follow Appearance and dark mode, and
   the release check's no-colour-of-its-own rule (2a) holds. The orb is pale in light and deep in dark so the cue on it
   reads; the wave's far water fades out into the sheet behind it.
+
+**2n. One layout in every app.** Each app's page runs in the same order, so a card is where you expect it whichever app
+you open:
+
+1. **Today**, the shared hero: four numbers (today, week, month, year), the one big button and today's entries.
+2. **Up next** (`UI.upNext`): the session the app's Start would begin. It's the row TODAY's plan shows for that app,
+   built from the same `UI.planner` builder, so the two always agree, and its button sends the same act TODAY does.
+   A row can carry `here: {act, btn}` for what the button does inside the app where TODAY's act only leads to the
+   row (REWIRE's danger-hour plan logs the swap). An app adds its own lines under the row: NUTRITION's Cook and Why
+   this?, REWIRE's habits.
+3. The filters.
+4. Four numbers with gauges.
+5. The calendar, and beside it what explains it (JOURNAL's Evaluation, MIND's Insights, TRAINING's split, NUTRITION's
+   coverage, REWIRE's triggers, LEARN's skill report).
+6. The main trend and a second chart.
+7. Three breakdowns.
+8. More, only where an app has it: JOURNAL's time and instrument cards, MIND's practice table, NUTRITION's week planner
+   and body weight, LEARN's tracks.
+9. The log.
+
+The cards in each slot are the app's own: a trading calendar and a meal calendar can't be one card. What's shared is
+the order, and Up next, which is one component.
 
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL
