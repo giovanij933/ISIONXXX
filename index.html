@@ -532,8 +532,73 @@ const pd=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
    Compares days after 7+ h of sleep with shorter nights (and high- vs low-energy days). Each comparison needs at
    least 4 days on both sides and a real gap before it's shown; they're patterns in your own data, not proof. */
 const INS_MIN=14;
+/* the apps against each other, from their own logs (no check-in needed, so a year of sample data shows them too): over
+   the last 12 months, days with one thing against days without it, and only where both sides have enough days and the
+   gap is worth saying. A year, because most weeks have a meditation and a workout: the days without one are few, and
+   90 days held too few of them to say anything. Trading on days you meditate (and how many are green) or train; slips,
+   urges and how strong they are on days you meditate or train; how much a meditation lifts your mood on workout days;
+   lifting the day after you hit protein; and study on days you meditate. The card shows the four strongest. */
+const INS_DAYS=365;
+function crossInsights(){
+  const day=ms=>dayAt(ms),now=new Date(),today=ymd(now),from=ymd(new Date(now.getFullYear(),now.getMonth(),now.getDate()-INS_DAYS));
+  const inWin=d=>d>=from&&d<today,out=[],pc=v=>Math.round(v*100)+'%';
+  const mean=v=>v.length?v.reduce((a,x)=>a+x,0)/v.length:null;
+  // each app's days: meditated (and each session's mood lift), trained (and volume), traded (P&L), slipped, protein hit, studied
+  const ml=arr(read('isx.mind.v1')?.log),md={},lift={};
+  ml.forEach(e=>{const d=day(e.at);if(!inWin(d))return;md[d]=(md[d]||0)+(+e.mins||0);if(e.pre!=null&&e.post!=null)(lift[d]=lift[d]||[]).push(e.post-e.pre)});
+  const tr=arr(read('isx.training.v1')?.log),wd={},vol={};
+  tr.filter(e=>e.type!=='S').forEach(e=>{const d=day(e.at);if(!inWin(d))return;wd[d]=1;if(e.type==='W')vol[d]=(vol[d]||0)+(+e.sets||0)*(+e.reps||0)*(+e.load||0)});
+  const js=read('isx.journal.v1'),roll=js?.roll??18,tday=ms=>{const d=new Date(ms);if(roll&&d.getHours()>=roll)d.setDate(d.getDate()+1);return ymd(d)};
+  const pnl={};arr(js?.trades).forEach(x=>{const d=tday(x.close);if(!inWin(d))return;pnl[d]=(pnl[d]||0)+(x.exit-x.entry)*(x.side==='Short'?-1:1)*x.qty*x.mult-(+x.fee||0)-(+x.comm||0)});
+  const rw=read('isx.rewire.v1'),slip={};arr(rw?.log).filter(e=>e.t==='slip').forEach(e=>{slip[day(e.at)]=1});
+  const rwStart=Math.min(...arr(rw?.bad).map(b=>b.start||Infinity));
+  // protein per day from NUTRITION's meals with their nutrients (nj.mealnut.v1: [id, time, kind, name, kcal, p, c, f, fib])
+  const pT=+(read('nj.settings.v1')?.protein||read('nj.daily.v1')?.protein||0),pg={},prot={};
+  if(pT){arr(read('nj.mealnut.v1')?.meals).forEach(m=>{const d=day(Date.parse(m[1]));if(inWin(d))pg[d]=(pg[d]||0)+(+m[5]||0)});Object.keys(pg).forEach(d=>{prot[d]=pg[d]>=pT*.9})}
+  const urg={},ints={};arr(rw?.log).filter(e=>e.t==='resist'||e.t==='slip').forEach(e=>{const d=day(e.at);if(!inWin(d))return;urg[d]=(urg[d]||0)+1;if(e.int!=null)(ints[d]=ints[d]||[]).push(+e.int)});
+  const study={};arr(read('xl.sessions.v1')).forEach(x=>{const d=day(Date.parse(x.time));if(inWin(d))study[d]=(study[d]||0)+(+x.min||0)});
+  const days=[];for(let i=INS_DAYS;i>=1;i--)days.push(ymd(new Date(now.getFullYear(),now.getMonth(),now.getDate()-i)));
+  const split=(D,f)=>{const a=[],b=[];D.forEach(d=>(f(d)?a:b).push(d));return [a,b]};
+  const prevDay=d=>{const x=pd(d);x.setDate(x.getDate()-1);return ymd(x)};
+  // trading on days you meditate, and on days you train
+  const T=Object.keys(pnl);
+  [[md,'meditate'],[wd,'train']].forEach(([S,w])=>{if(!Object.keys(S).length)return;
+    const [a,b]=split(T,d=>S[d]);if(a.length<8||b.length<8)return;
+    const x=mean(a.map(d=>pnl[d])),y=mean(b.map(d=>pnl[d]));if(Math.abs(x-y)<25)return;
+    const ga=mean(a.map(d=>pnl[d]>0?1:0)),gb=mean(b.map(d=>pnl[d]>0?1:0)),$=v=>`<b class="${v>=0?'pos':'neg'}">${money(v)}</b>`;
+    out.push({s:.5+Math.min(.5,Math.abs(x-y)/1000),t:Math.abs(ga-gb)>=.05
+      ?`Trading days when you ${w} average ${$(x)}, and <b>${pc(ga)}</b> end green. Days you don’t: ${$(y)} and <b>${pc(gb)}</b> (${a.length} vs ${b.length} days).`
+      :`Trading days when you ${w} average ${$(x)} vs ${$(y)} on days you don’t (${a.length} vs ${b.length} days).`})});
+  // slips on days you train, and on days you meditate (since the first habit started)
+  if(isFinite(rwStart)){const R=days.filter(d=>pd(d).getTime()+864e5>rwStart);
+    [[wd,'train'],[md,'meditate']].forEach(([S,w])=>{if(!Object.keys(S).length)return;
+      const [a,b]=split(R,d=>S[d]);if(a.length<10||b.length<10)return;
+      const x=mean(a.map(d=>slip[d]?1:0)),y=mean(b.map(d=>slip[d]?1:0));if(Math.abs(x-y)<.08)return;
+      out.push({s:Math.abs(x-y)*2,t:`You slip on <b>${pc(x)}</b> of days you ${w} vs <b>${pc(y)}</b> of days you don’t.`})});
+    // how many urges, and how strong, on days you meditate or train
+    [[md,'meditate'],[wd,'train']].forEach(([S,w])=>{if(!Object.keys(S).length)return;
+      const [a,b]=split(R,d=>S[d]);if(a.length<10||b.length<10)return;
+      const x=mean(a.map(d=>urg[d]||0)),y=mean(b.map(d=>urg[d]||0));
+      if(y&&Math.abs(x-y)>=.3&&Math.abs(x/y-1)>=.2)out.push({s:Math.abs(x/y-1),t:`You log <b>${r1(x)}</b> urges a day on days you ${w} vs <b>${r1(y)}</b> on days you don’t.`});
+      const [ia,ib]=split(Object.keys(ints),d=>S[d]),fa=ia.flatMap(d=>ints[d]),fb=ib.flatMap(d=>ints[d]);
+      if(fa.length>=10&&fb.length>=10){const u=mean(fa),v=mean(fb);if(Math.abs(u-v)>=.5)out.push({s:Math.abs(u-v)/4,t:`Urges average <b>${r1(u)}</b> out of 10 on days you ${w} vs <b>${r1(v)}</b> on days you don’t.`})}})}
+  // how much a meditation lifts your mood, on workout days and rest days
+  if(Object.keys(wd).length){const L=Object.keys(lift),[a,b]=split(L,d=>wd[d]),fa=a.flatMap(d=>lift[d]),fb=b.flatMap(d=>lift[d]);
+    if(fa.length>=8&&fb.length>=8){const x=mean(fa),y=mean(fb);
+      if(Math.abs(x-y)>=.4)out.push({s:Math.abs(x-y)/2,t:`A meditation lifts your mood <b>${x>=0?'+':''}${r1(x)}</b> on workout days vs <b>${y>=0?'+':''}${r1(y)}</b> on rest days.`})}}
+  // lifting the day after you hit your protein target
+  if(pT){const W=Object.keys(vol).filter(d=>prot[prevDay(d)]!=null),[a,b]=split(W,d=>prot[prevDay(d)]);
+    if(a.length>=8&&b.length>=8){const x=mean(a.map(d=>vol[d])),y=mean(b.map(d=>vol[d]));
+      if(y&&Math.abs(x/y-1)>=.1)out.push({s:Math.abs(x/y-1),t:`Lifting volume is <b>${pc(Math.abs(x/y-1))} ${x>y?'higher':'lower'}</b> the day after you hit your protein target than the day after you miss it.`})}}
+  // study on days you meditate
+  if(Object.keys(md).length){const Sd=Object.keys(study),[a,b]=split(Sd,d=>md[d]);
+    if(a.length>=8&&b.length>=8){const x=mean(a.map(d=>study[d])),y=mean(b.map(d=>study[d]));
+      if(y&&Math.abs(x/y-1)>=.2)out.push({s:Math.abs(x/y-1)/2,t:`You study <b>${Math.round(x)} min</b> on days you meditate vs <b>${Math.round(y)} min</b> on days you don’t.`})}}
+  return out;
+}
 function insights(){
-  const C=ciLog();if(C.length<INS_MIN)return{n:C.length,list:null};
+  const C=ciLog(),X=crossInsights();
+  if(C.length<INS_MIN)return{n:C.length,list:X.length?X.sort((x,y)=>y.s-x.s).slice(0,4):null,cross:X.length};
   const day=ms=>dayAt(ms);
   const tr=arr(read('isx.training.v1')?.log),wd={},vol={};
   tr.filter(e=>e.type!=='S').forEach(e=>{const d=day(e.at);wd[d]=1;if(e.type==='W')vol[d]=(vol[d]||0)+(+e.sets||0)*(+e.reps||0)*(+e.load||0)});
@@ -571,7 +636,7 @@ function insights(){
     a=mean(good.filter(since),e=>slip[e.day]?1:0);b=mean(short.filter(since),e=>slip[e.day]?1:0);
     if(ok(a,b)&&Math.abs(a.v-b.v)>=.1)out.push({s:Math.abs(a.v-b.v)+.1,t:`You slip on <b>${pc(b.v)}</b> of days after short sleep vs <b>${pc(a.v)}</b> after 7+ h.`});
   }
-  return {n:C.length,days:past.length,list:out.sort((x,y)=>y.s-x.s).slice(0,3)};
+  return {n:C.length,days:past.length,list:[...out,...X].sort((x,y)=>y.s-x.s).slice(0,4),cross:X.length};
 }
 // all apps share one storage quota (sync.js keeps count); speak up well before a save can fail
 function stoHTML(){
@@ -584,11 +649,14 @@ function stoHTML(){
 }
 function insHTML(){
   const I=insights();
-  if(!I.n)return '';
+  if(!I.n&&!I.list)return '';
+  if(I.list&&I.n<INS_MIN)return `<section class="ins"><div class="tch"><h2 class="h">Insights</h2><span class="st">Last 12 months</span></div>
+    ${I.list.map(x=>`<p class="in1">${x.t}</p>`).join('')}
+    <div class="sub ft">Patterns in your own data, not proof.${I.n?` Check in ${INS_MIN-I.n} more morning${INS_MIN-I.n===1?'':'s'} to see how your sleep and energy fit in.`:' Check in each morning to see how your sleep and energy fit in.'}</div></section>`;
   if(!I.list)return `<section class="ins"><div class="tch"><h2 class="h">Insights</h2><span class="st">${I.n} / ${INS_MIN}</span></div>
     <div class="sub">Check in ${INS_MIN-I.n} more morning${INS_MIN-I.n===1?'':'s'} and this shows how your sleep and energy line up with your training, meditation, trading and habits.</div>
     ${UI.meter({label:'Check-ins',value:I.n,max:INS_MIN})}</section>`;
-  return `<section class="ins"><div class="tch"><h2 class="h">Insights</h2><span class="st">${I.days} days</span></div>
+  return `<section class="ins"><div class="tch"><h2 class="h">Insights</h2><span class="st">${I.cross?'Last 12 months':`${I.days} days`}</span></div>
     ${I.list.length?I.list.map(x=>`<p class="in1">${x.t}</p>`).join(''):'<p class="sub">No clear patterns yet. Keep checking in; they show up once there are enough days on both sides.</p>'}
     <div class="sub ft">Patterns in your own data, not proof. Short sleep = under 7 h.</div></section>`;
 }
