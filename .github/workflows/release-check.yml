@@ -1,5 +1,6 @@
 # Release check (test/README.md): all seven apps in Chromium, on an empty device and with sample data, offline
-# and with corrupted saved data, plus the shared files and the ui.js unit tests. Any high-severity issue fails the run.
+# and with corrupted saved data, plus the shared files and the ui.js unit tests; then each on an iPhone-sized screen in
+# WebKit, Safari's engine (test/webkit.test.js). Any high-severity issue fails the run.
 name: Release check
 on:
   pull_request:

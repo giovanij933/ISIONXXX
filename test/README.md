@@ -5,7 +5,7 @@ Automated checks for the seven ISIONXXX apps. They run on every pull request in 
 
 ## What it checks
 
-For each app, in Chromium at 390 px and 1440 px:
+For each app, in Chromium at 390 px and 1440 px (and on an iPhone-sized screen in WebKit, below):
 
 1. **Empty device, then sample data.** No page errors, no failed requests, no horizontal overflow, no near-empty
    page, and an axe accessibility pass.
@@ -39,6 +39,23 @@ Each app's files are also read, without a browser:
 Two checks run once per run:
 - **Shared files.** `ui.js`, `ui.css`, `sync.js` and `db.js` must be byte-identical in all seven apps.
 - **ui.js unit tests.** The shell's run executes `test/ui.test.html`.
+
+## The iPhone lane
+
+`webkit.test.js` opens each app and TODAY in WebKit, the engine inside Safari, on an iPhone 15's screen with a year
+of sample data, in light and dark. Two bugs only ever showed on iPhones (TODAY's cards not drawn under the 3D
+backdrop, and a seam under the status bar), and the Chromium checks above couldn't see them. It fails the run on:
+
+- **a script error;**
+- **a page wider than the screen;**
+- **a card laid out but not drawn.** Each card is photographed as it is, then again with the card hidden. If the
+  two pictures match, the card was never on screen;
+- **a card covered by something else** at its middle.
+
+Reduce Motion is on, so the backdrop is a still frame and two shots of the same thing match. WebKit on Linux is not
+iOS Safari, so a pass makes an iPhone-only bug less likely, not impossible. An app's run checks that app and TODAY;
+the shell's run checks all seven. `BROWSER=chromium CHROME=<path> node webkit.test.js` runs the same checks in
+Chromium, for working on the file where WebKit isn't installed.
 
 Every run also runs `db.test.js`, the tests for `db.js`, the layer that keeps every app's data in IndexedDB.
 They cover:

@@ -1143,7 +1143,9 @@ void main(){ vec3 n=normalize(vN); float fr=pow(1.0-max(dot(n,normalize(vV)),0.0
      pass under: it goes just before that box, behind it, and follows its scroll. Never a layer below the content inside
      a scrolling box: Safari on iPhone can leave that box's content undrawn (TODAY lost everything under its first card). It starts as the page's own colour at the very top, the colour of iOS's solid status bar above it,
      and builds up over the first 50 px, so the bar flows into it rather than meeting it at a line. Drawn at half resolution, 24 times a second, and only while the top is on screen, the page (and in
-     TODAY its tab) is showing, no sheet is open, and active() says so; a still frame under Reduce Motion. Call it once
+     TODAY its tab) is showing, no sheet is open, and active() says so; a still frame under Reduce Motion. It also rests
+     after 20 seconds without a touch, scroll or key (it holds its frame, so nothing jumps) and moves again on the next one,
+     or when its page or tab comes back on screen: a page you're only reading doesn't spend battery on it. Call it once
      (again is harmless: it only updates active). Returns a handle with kick(), to wake it when active() changes. */
   const AURF = `uniform float uT; uniform vec2 uR; uniform vec3 uC1; uniform vec3 uC2; uniform vec3 uC3; uniform vec3 uBg; varying vec2 vUv;
 float hs(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
@@ -1155,7 +1157,8 @@ void main(){ vec2 p=vec2(vUv.x*uR.x/uR.y,vUv.y)*1.7; float t=uT*.05;
   vec2 r=vec2(fbm(p+3.0*q+vec2(1.7,9.2)+t*1.3),fbm(p+3.0*q+vec2(8.3,2.8)-t));
   float f=fbm(p+2.4*r); vec3 c=mix(uC1,uC2,smoothstep(.25,.8,f)); c=mix(c,uC3,smoothstep(.5,.95,r.x));
   gl_FragColor=vec4(mix(uBg,c,smoothstep(0.0,.85,vUv.y)*smoothstep(1.0,.86,vUv.y)),1.0); }`;
-  let bd = null;
+  let bd = null, bdSeen = 0;
+  const BD_IDLE = 20000, bdWake = () => { bdSeen = performance.now(); if (bd) glKick() };
   function backdrop({ host = document.body, under = null, tint = ['--accent', '--info', '--success'], active = () => true } = {}) {
     if (!glSupported()) return { kick() { } };
     if (bd) { bd.active = active; glKick(); return bd.h }
@@ -1164,7 +1167,9 @@ void main(){ vec2 p=vec2(vUv.x*uR.x/uR.y,vUv.y)*1.7; float t=uT*.05;
     if (under) { c.classList.add('ui-bd-under'); under.before(c); under.classList.add('ui-bd-over');
       const follow = () => { c.style.transform = `translate3d(0,${-under.scrollTop}px,0)` }; under.addEventListener('scroll', follow, { passive: true }); follow() }
     else { host.prepend(c); host.classList.add('ui-bd-host') }
-    bd = { c, active, failed: false, h: { kick: glKick } };
+    bd = { c, active, failed: false, shown: false, h: { kick: glKick } };
+    bdWake(); ['pointerdown', 'keydown', 'wheel', 'scroll'].forEach(e => document.addEventListener(e, bdWake, { capture: true, passive: true }));
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) bdWake() });
     gl(c, s => {
       const T = s.THREE; let tm = 20;
       s.camera = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
@@ -1174,7 +1179,9 @@ void main(){ vec2 p=vec2(vUv.x*uR.x/uR.y,vUv.y)*1.7; float t=uT*.05;
       s.theme = () => { const bg = s.rgb('--background'), dk = glDark(s), [a, b, d] = tint.map(n => s.rgb(n));
         u.uC1.value.fromArray(glMix(a, bg, dk ? .35 : .6)); u.uC2.value.fromArray(glMix(b, bg, dk ? .55 : .42)); u.uC3.value.fromArray(glMix(d, bg, dk ? .6 : .6)); u.uBg.value.fromArray(bg) };
       s.resize = (w, h) => u.uR.value.set(w, h);
-      s.running = () => { if (s.still || document.hidden || !glShown() || glSheet()) return false; try { return !!bd.active() } catch (e) { return false } };
+      // a tab coming back on screen in TODAY counts as a wake: the frame saw no touch of its own while it was hidden
+      s.running = () => { const sh = glShown(); if (sh && !bd.shown) bdSeen = performance.now(); bd.shown = sh;
+        if (s.still || document.hidden || !sh || glSheet() || performance.now() - bdSeen > BD_IDLE) return false; try { return !!bd.active() } catch (e) { return false } };
       s.update = dt => { tm += dt; u.uT.value = tm };
     }, { ratio: .5, fps: 24 }).then(s => { if (s) { s.draw(); s.kick(); setInterval(glKick, 1000) } else { bd.failed = true; undo() } });
     return bd.h;
@@ -1212,5 +1219,5 @@ void main(){ vec2 p=vec2(vUv.x*uR.x/uR.y,vUv.y)*1.7; float t=uT*.05;
     });
   }
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, runBar, theme, appearance, gl, orb, bloom, backdrop, version: '1.12.0' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, runBar, theme, appearance, gl, orb, bloom, backdrop, version: '1.13.0' };
 })();
