@@ -368,11 +368,15 @@ two (2c's glass on the header pills, tab bar, menus, sheets, toasts, cards and f
 
 **2m. 3D moments: in every app, each an extra over the 2D page.**
 Three.js gives the apps moments of motion with a meaning. Shared, in ui.js:
-- **`UI.backdrop`, the living backdrop**, in all seven: three palette colours drifting behind the whole screen,
-  strongest at the top, so the clear glass (header, tab bar, cards, filters) has colour to show. It stays put while the
-  page scrolls over it. Each app has its own three (MIND blue and light blue,
-  TRAINING green and blue, NUTRITION green and orange, LEARN light blue and blue, JOURNAL blue and green, REWIRE orange
-  and blue, TODAY blue, light blue and green). On wider screens TODAY's header is the apps' rounded glass bar, so the
+- **`UI.backdrop`, the living backdrop**, in all seven: a toroidal field behind the whole screen, so the clear glass
+  (header, tab bar, cards, filters) has colour to show. 28 lines wound four times round a horn torus, coloured by where
+  they are round the ring in the palette's five colours (blue, light blue, green, orange, red; each app's own lead
+  them: MIND blue and light blue, TRAINING green and blue, NUTRITION green and orange, LEARN light blue and blue,
+  JOURNAL blue and green, REWIRE orange and blue, TODAY blue, light blue and green), light running along them and the
+  ring turning slowly; a faint haze of the same colours round the lines and a quiet wash under them. The far side and
+  the hole, where every line meets, are dimmer. Additive light on dark, plain colour on light. It stays put while the
+  page scrolls over it, fades out under the status bar and is weaker lower down, where the cards' text sits (measured:
+  text on the glass over it holds 5.3:1 or better). On wider screens TODAY's header is the apps' rounded glass bar, so the
   colour shows through it rather than stopping in a band under a solid strip.
 - **`UI.orb`, the breathing orb**: a breathing bubble as a soft, lit sphere, breathing with the same pacer. MIND's
   sessions, and TRAINING's rests (warm just after the set, cooling to calm as the rest runs out) and stretch holds.
