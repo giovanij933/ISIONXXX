@@ -26,7 +26,7 @@
   --accent-text:#0066CC;--on-accent:#FFFFFF;--accent-hover:#0077ED;--accent-soft:rgba(0,113,227,.08);--accent-line:rgba(0,113,227,.4);
   --success-text:#1F7735;--success-soft:rgba(52,199,89,.12);--success-line:rgba(52,199,89,.55);
   --error-text:#BD2C24;--error-soft:rgba(255,59,48,.09);--error-line:rgba(255,59,48,.45);--error-fill:#D70015;
-  --warning-text:#945C06;--glass-t2:#48484A;--glass-t3:#5C5C60;--glass-ok:#145A27;--glass-bad:#9A1F19;--glass-warn:#6E4404;--warning-soft:rgba(255,159,10,.12);--warning-line:rgba(255,159,10,.6);
+  --warning-text:#945C06;--warning-soft:rgba(255,159,10,.12);--warning-line:rgba(255,159,10,.6);
   --info-text:#32708C;--info-soft:rgba(90,200,250,.16);
   --border-soft:#E8E8ED;--track:#E3E3E8;--raised:#FFFFFF;
   --fill:rgba(118,118,128,.12);--fill-2:rgba(118,118,128,.2);--thumb:#FFFFFF;--hover:rgba(0,0,0,.05);--press:brightness(.94);
@@ -57,7 +57,7 @@
   --accent-text:#2997FF;--on-accent:#FFFFFF;--accent-hover:#0077ED;--accent-soft:rgba(41,151,255,.16);--accent-line:rgba(41,151,255,.5);
   --success-text:#30D158;--success-soft:rgba(48,209,88,.16);--success-line:rgba(48,209,88,.45);
   --error-text:#FF6961;--error-soft:rgba(255,69,58,.16);--error-line:rgba(255,69,58,.5);--error-fill:#D70015;
-  --warning-text:#FF9F0A;--glass-t2:#D2D2D7;--glass-t3:#C7C7CC;--glass-ok:#5DE184;--glass-bad:#FFADA7;--glass-warn:#FFB340;--warning-soft:rgba(255,159,10,.16);--warning-line:rgba(255,159,10,.5);
+  --warning-text:#FF9F0A;--warning-soft:rgba(255,159,10,.16);--warning-line:rgba(255,159,10,.5);
   --info-text:#64D2FF;--info-soft:rgba(100,210,255,.16);
   --border-soft:#2C2C2E;--track:#3A3A3C;--raised:#2C2C2E;
   --fill:rgba(118,118,128,.24);--fill-2:rgba(118,118,128,.34);--thumb:#636366;--hover:rgba(255,255,255,.08);--press:brightness(1.3);
@@ -74,7 +74,7 @@
   --accent-text:#2997FF;--on-accent:#FFFFFF;--accent-hover:#0077ED;--accent-soft:rgba(41,151,255,.16);--accent-line:rgba(41,151,255,.5);
   --success-text:#30D158;--success-soft:rgba(48,209,88,.16);--success-line:rgba(48,209,88,.45);
   --error-text:#FF6961;--error-soft:rgba(255,69,58,.16);--error-line:rgba(255,69,58,.5);--error-fill:#D70015;
-  --warning-text:#FF9F0A;--glass-t2:#D2D2D7;--glass-t3:#C7C7CC;--glass-ok:#5DE184;--glass-bad:#FFADA7;--glass-warn:#FFB340;--warning-soft:rgba(255,159,10,.16);--warning-line:rgba(255,159,10,.5);
+  --warning-text:#FF9F0A;--warning-soft:rgba(255,159,10,.16);--warning-line:rgba(255,159,10,.5);
   --info-text:#64D2FF;--info-soft:rgba(100,210,255,.16);
   --border-soft:#2C2C2E;--track:#3A3A3C;--raised:#2C2C2E;
   --fill:rgba(118,118,128,.24);--fill-2:rgba(118,118,128,.34);--thumb:#636366;--hover:rgba(255,255,255,.08);--press:brightness(1.3);
@@ -717,10 +717,8 @@ button.ui-wr-d:active{opacity:.6}
 :root{--g-card:var(--glass-sheen),var(--glass-clear);--g-blur:none;--g-hi:var(--glass-rim);--g-line:var(--glass-edge);--g-drop:0 12px 30px -16px rgba(0,0,0,.3);
   --g-in:var(--glass-sheen),var(--glass-clear);--g-in-hi:var(--glass-rim)}
 html body :is(.card,.ui-card){-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur)}
-/* text on the glass is a step stronger (--glass-t2 …, set with the palette above), so it keeps 4.5:1 or better on
-   the tint; the apps' own names for the second text colour (--dim, --mu) follow it */
-html body :is(.card,.ui-card,.ui-hero,.bar,#today .ci,#today .hero,#today .ins,#today .pl,#today .ywk){--text-secondary:var(--glass-t2);--text-muted:var(--glass-t3);
-  --success-text:var(--glass-ok);--error-text:var(--glass-bad);--warning-text:var(--glass-warn);--dim:var(--text-secondary);--mu:var(--text-secondary);--ui-dim:var(--text-secondary)}
+/* text on the glass is the palette's own: the plain page behind it keeps it well past 4.5:1 (it was a step lighter
+   while a moving backdrop showed through; the pale green that gave money didn't match the rings) */
 /* the Today card (UI.hero) is a card too: the same glass, its accent glow over it. The tiles and the day's list inside
    it are the pills' glass again */
 html body .ui-hero{background:radial-gradient(120% 90% at 0% 0%,var(--accent-soft),transparent 60%),var(--g-card);box-shadow:var(--g-hi),var(--g-drop);
@@ -733,6 +731,5 @@ html body .bar select:not([multiple]):not([size]){border-radius:999px;border-col
 html body .bar select:not([multiple]):not([size]):focus{border-color:var(--accent);
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%230071E3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"),var(--glass-sheen)}
 @media (prefers-reduced-transparency:reduce){:root{--g-card:var(--surface);--g-blur:none;--g-hi:0 0 transparent;--g-drop:0 0 transparent;--g-in:var(--raised);--g-in-hi:0 0 transparent}
-  html body .bar select:not([multiple]):not([size]){background-color:var(--raised);box-shadow:none}
-  html body :is(.card,.ui-card,.ui-hero,.bar,#today .ci,#today .hero,#today .ins,#today .pl,#today .ywk){--text-secondary:inherit;--text-muted:inherit;--success-text:inherit;--error-text:inherit;--warning-text:inherit}}
+  html body .bar select:not([multiple]):not([size]){background-color:var(--raised);box-shadow:none}}
 

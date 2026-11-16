@@ -236,9 +236,9 @@ holds a colour of its own, so the palette changes in one file and every app foll
   app matches it: on black, a dark card with a light across it and a bright edge; on the light page, a pale one.
   Nothing moves behind a card, so it has no blur of its own (`--g-blur: none`; a blurred layer per card would show
   nothing and cost a frame on a long page). The Today card's tiles and its day's list are the same glass inside it
-  (`--g-in`); other things inside a card (cells, rows, fields) keep their own solid colour. Text on the glass is a step
-  stronger (`--glass-t2`, `--glass-t3`, `--glass-ok`, `--glass-bad`, `--glass-warn`). Reduce Transparency keeps them
-  flat. (For a while the page had a living backdrop behind the cards, a colour wash and then a toroidal field: it was
+  (`--g-in`); other things inside a card (cells, rows, fields) keep their own solid colour. Text on the glass is the
+  palette's own (it was a step lighter while the backdrop showed through, and the pale green it gave money didn't
+  match the rings' green). Reduce Transparency keeps them flat. (For a while the page had a living backdrop behind the cards, a colour wash and then a toroidal field: it was
   taken out, and the plain page is the look.)
   Reduce Transparency makes the glass solid; Increase Contrast makes it more opaque with a stronger edge. Text on
   glass is not checked by the release check's contrast audit (what is behind it moves); the stronger text tokens above
