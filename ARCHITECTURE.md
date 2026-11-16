@@ -227,19 +227,19 @@ holds a colour of its own, so the palette changes in one file and every app foll
   All of it is clear glass: `--glass-clear` for the pills, the tab bar, menus, dropdowns, toasts and the session bar;
   `--glass-sheet` (80% light, 82% dark, a 24 px blur at lower saturation) for sheets, dialogs and popovers full of small
   text, so the page behind is a faint wash, not coloured smudges under the text. It was 40% and 45%: JOURNAL's daily
-  review, a page of reading, showed the calendar's green and red and the 3D backdrop's blue through it as blots. While a
-  sheet is open the backdrop also fades out (`html:has(dialog[open]) canvas.ui-bd`).
+  review, a page of reading, showed the calendar's green and red through it as blots.
   It is modelled on the menus iOS draws itself: the page shows through, blurred (`--glass-filter`, 26 px) with its
   colours kept, under a light or dark tint (`--glass`; `--float` is the heavier tint for a sheet full of text), with
   a light across it (`--glass-sheen`) and a bright rim (`--glass-rim`, carried by the shadows). Cards (TODAY's and
-  each app's Today card too) and the filters are the pills' clear glass exactly: the same tint, blur, sheen, rim and edge (`--g-card`, `--g-blur`,
-  `--g-hi`), the filters capsules like the pills. For them to show colour the living backdrop (2m) fills the screen
-  behind the page and stays put as it scrolls, settling to a third of its colour below the top. The Today card's tiles
-  and its day's list are the same glass inside it, unblurred (`--g-in`); other things inside a card (cells, rows,
-  fields) keep their own solid colour. Text on the glass is a step stronger (`--glass-t2`, `--glass-t3`,
-  `--glass-ok`, `--glass-bad`, `--glass-warn`), measured at 4.5:1 or better over the backdrop's brightest colour in
-  all seven, dark and light. The cost is a blurred layer per card on screen over a moving backdrop; the backdrop rests
-  after 20 seconds untouched. Reduce Transparency keeps them flat.
+  each app's Today card too) and the filters are the pills' glass: the same tint, sheen, rim and edge (`--g-card`,
+  `--g-hi`), the filters capsules like the pills, over the plain page. That is the personal homepage's look, and every
+  app matches it: on black, a dark card with a light across it and a bright edge; on the light page, a pale one.
+  Nothing moves behind a card, so it has no blur of its own (`--g-blur: none`; a blurred layer per card would show
+  nothing and cost a frame on a long page). The Today card's tiles and its day's list are the same glass inside it
+  (`--g-in`); other things inside a card (cells, rows, fields) keep their own solid colour. Text on the glass is a step
+  stronger (`--glass-t2`, `--glass-t3`, `--glass-ok`, `--glass-bad`, `--glass-warn`). Reduce Transparency keeps them
+  flat. (For a while the page had a living backdrop behind the cards, a colour wash and then a toroidal field: it was
+  taken out, and the plain page is the look.)
   Reduce Transparency makes the glass solid; Increase Contrast makes it more opaque with a stronger edge. Text on
   glass is not checked by the release check's contrast audit (what is behind it moves); the stronger text tokens above
   were measured against screenshots instead. Headless Chromium's default renderer draws a large blur wrongly near an
@@ -367,17 +367,8 @@ two (2c's glass on the header pills, tab bar, menus, sheets, toasts, cards and f
   the current tab (iOS 26's behaviour), by choice.
 
 **2m. 3D moments: in every app, each an extra over the 2D page.**
-Three.js gives the apps moments of motion with a meaning. Shared, in ui.js:
-- **`UI.backdrop`, the living backdrop**, in all seven: a toroidal field behind the whole screen, so the clear glass
-  (header, tab bar, cards, filters) has colour to show. 28 lines wound four times round a horn torus, coloured by where
-  they are round the ring in the palette's five colours (blue, light blue, green, orange, red; each app's own lead
-  them: MIND blue and light blue, TRAINING green and blue, NUTRITION green and orange, LEARN light blue and blue,
-  JOURNAL blue and green, REWIRE orange and blue, TODAY blue, light blue and green), light running along them and the
-  ring turning slowly; a faint haze of the same colours round the lines and a quiet wash under them. The far side and
-  the hole, where every line meets, are dimmer. Additive light on dark, plain colour on light. It stays put while the
-  page scrolls over it, fades out under the status bar and is weaker lower down, where the cards' text sits (measured:
-  text on the glass over it holds 5.3:1 or better). On wider screens TODAY's header is the apps' rounded glass bar, so the
-  colour shows through it rather than stopping in a band under a solid strip.
+Three.js gives the apps moments of motion with a meaning. Shared, in ui.js (there is no backdrop behind the page any
+more: the page is plain, 2c):
 - **`UI.orb`, the breathing orb**: a breathing bubble as a soft, lit sphere, breathing with the same pacer. MIND's
   sessions, and TRAINING's rests (warm just after the set, cooling to calm as the rest runs out) and stretch holds.
 - **`UI.bloom`, light rising** from what was just done, for about two seconds, at a real step and never at a result:
@@ -389,23 +380,18 @@ Three.js gives the apps moments of motion with a meaning. Shared, in ui.js:
 
 The rules:
 - **Always an extra.** `UI.gl(canvas, setup)` gives a scene or `null`: no WebGL, no Three.js beside the app, or any
-  failure, and the page simply stays as it was (the 2D bubble, no backdrop, the toast and the words). A moment is drawn
+  failure, and the page simply stays as it was (the 2D bubble, the toast and the words). A moment is drawn
   on top of what's already there and never replaces it in the markup, so nothing depends on it.
-- **Where the backdrop sits.** Behind the content, never as a layer below it inside a box that scrolls: Safari on
-  iPhone then drew only what overlapped the canvas and left the rest of TODAY's page empty under its first card. In an
-  app (the page scrolls itself) it is the body's first child under its content, the body see-through; on TODAY it
-  sits just before the scrolling page, behind it, and follows its scroll. TODAY's cards finish their fade on a timer
-  alone, so they show even when a page isn't painting frames yet.
+- **Never a layer below the content inside a box that scrolls.** Safari on iPhone then drew only what overlapped the
+  canvas and left the rest of TODAY's page empty under its first card (it happened to the old backdrop). TODAY's cards
+  finish their fade on a timer alone, so they show even when a page isn't painting frames yet.
 - **Cost.** Three.js is 671 KB (167 KB compressed), more than the four shared files together. Every app now carries
   `three.module.min.js` (an app's own copy, like the shared files, so each one still works alone) and precaches it;
   `UI.gl` imports it from beside ui.js the first time a moment needs it.
 - **Battery.** One loop draws every moment, only while its canvas is on screen and the page visible. The orb and the
-  wave draw only during a session (not while paused), the bloom for about two seconds, and the backdrop only while
-  its page is the one showing (in TODAY, its tab), its top is in view and no sheet is open, at half resolution and 24
-  frames a second (a check once a second wakes it when that changes). It also rests after 20 seconds without a touch,
-  scroll or key, holding its frame, and moves again on the next one or when its page or tab comes back on screen, so a
-  page left open to read costs nothing. A moment's GPU context is freed when it leaves.
-- **Reduce Motion.** The backdrop is a still frame and the bloom doesn't play. The orb and the wave keep doing their job
+  wave draw only during a session (not while paused) and the bloom for about two seconds, so a page left open to read
+  costs nothing. A moment's GPU context is freed when it leaves.
+- **Reduce Motion.** The bloom doesn't play. The orb and the wave keep doing their job
   (they are the breath pacer, like the bubble) with their surfaces held still.
 - **Colours** come from the palette at run time (`s.rgb('--accent')`), so they follow Appearance and dark mode, and
   the release check's no-colour-of-its-own rule (2a) holds. The orb is pale in light and deep in dark so the cue on it

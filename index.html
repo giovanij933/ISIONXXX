@@ -193,9 +193,6 @@ dialog.dd{max-height:min(86vh,760px);overflow:auto;overscroll-behavior:contain}
   #today .th::before{content:'';position:absolute;z-index:-1;inset:0;border-radius:22px;background:var(--glass-sheen),var(--glass-clear);border:1px solid var(--glass-edge);
     box-shadow:var(--shadow-bar);-webkit-backdrop-filter:var(--glass-clear-filter);backdrop-filter:var(--glass-clear-filter)}}
 @media(min-width:641px) and (prefers-reduced-transparency:reduce){#today .th::before{background:var(--float-solid);-webkit-backdrop-filter:none;backdrop-filter:none}}
-/* the backdrop (UI.backdrop, under TODAY's page): the page is see-through while it's there, and it's hidden behind the apps */
-#apps>#today.ui-bd-over{background:transparent}
-#apps>canvas.ui-bd:has(+ #today:not(.on)){visibility:hidden}
 @media(prefers-reduced-transparency:reduce){nav{background:var(--float-solid);-webkit-backdrop-filter:none;backdrop-filter:none}}
 .nx{all:unset;box-sizing:border-box;cursor:pointer;flex:1;text-align:center;padding:11px 8px;border:1px solid var(--line2);font-size:12px;color:var(--tx);-webkit-tap-highlight-color:transparent;transition:background-color .15s,border-color .15s,transform .12s}
 .nx:active{transform:scale(.97)}
@@ -356,7 +353,6 @@ function show(id,path){
     if(!f.dataset.ready&&!document.getElementById('ld-'+t.id)){const ld=document.createElement('div');ld.className='ld';ld.id='ld-'+t.id;ld.innerHTML=UI.skeleton({label:`Loading ${t.label}`,lines:4});apps.append(ld)}
   }
   document.querySelectorAll('#apps>.pane').forEach(x=>x.classList.toggle('on',x===f));
-  if(t.pane)BD?.kick();
   document.body.classList.toggle('app-on',!t.pane);   // an open app shows its own sync dot, so the shell's steps aside
   document.querySelectorAll('#apps>.ld').forEach(x=>x.hidden=x.id!=='ld-'+t.id);
   if(!modalOpen(f))setBar(false);   // switching tabs always brings the bar back
@@ -897,9 +893,7 @@ function celebrate(el,wins){
   UI.toast(all?'Perfect day: everything done ✓':`${fresh.map(c=>c.label).join(' + ')} done ✓`);
   if(all){el.querySelector('.hero')?.classList.add('burst');setTimeout(()=>UI.bloom([...el.querySelectorAll('.ring svg')]),650)}
 }
-/* the living backdrop and the day's bloom (UI.backdrop, UI.bloom; ARCHITECTURE.md 2m): the backdrop sits behind TODAY's
-   page (it scrolls itself), not inside it, and fills the screen; it moves only while TODAY is the tab on screen */
-let BD=null;
+/* the day's bloom (UI.bloom; ARCHITECTURE.md 2m) */
 let lastToday='';
 function drawToday(){
   const el=$('#today');if(!el)return;
@@ -914,7 +908,7 @@ function drawToday(){
     ${weekHTML()}${insHTML()}</div>`;
   // only touch the page when something changed
   if(html!==lastToday){
-    lastToday=html;el.innerHTML=html;BD=window.UI?.backdrop?.({under:el,active:()=>todayOn()});
+    lastToday=html;el.innerHTML=html;
     animateToday(el);celebrate(el,wins);UI.animate(el);firstDraw=false;
   }
   runTick();
