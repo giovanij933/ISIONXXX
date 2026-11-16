@@ -231,13 +231,17 @@ holds a colour of its own, so the palette changes in one file and every app foll
   sheet is open the backdrop also fades out (`html:has(dialog[open]) canvas.ui-bd`).
   It is modelled on the menus iOS draws itself: the page shows through, blurred (`--glass-filter`, 26 px) with its
   colours kept, under a light or dark tint (`--glass`; `--float` is the heavier tint for a sheet full of text), with
-  a light across it (`--glass-sheen`) and a bright rim (`--glass-rim`, carried by the shadows). Cards wear the same
-  sheen and rim over the surface colour, a little see-through (`--g-card`, `--g-hi`), so they read as the pills' glass,
-  but without the backdrop blur: twenty blurred cards make a long page judder on a phone, and over the flat page behind
-  most cards it would show nothing. Reduce Transparency keeps them flat.
+  a light across it (`--glass-sheen`) and a bright rim (`--glass-rim`, carried by the shadows). Cards (TODAY's too)
+  and the filters are the pills' clear glass exactly: the same tint, blur, sheen, rim and edge (`--g-card`, `--g-blur`,
+  `--g-hi`), the filters capsules like the pills. For them to show colour the living backdrop (2m) fills the screen
+  behind the page and stays put as it scrolls, settling to a third of its colour below the top. What sits inside a card
+  (cells, rows, fields) keeps its own solid colour. Text on the glass is a step stronger (`--glass-t2`, `--glass-t3`,
+  `--glass-ok`, `--glass-bad`, `--glass-warn`), measured at 4.5:1 or better over the backdrop's brightest colour in
+  all seven, dark and light. The cost is a blurred layer per card on screen over a moving backdrop; the backdrop rests
+  after 20 seconds untouched. Reduce Transparency keeps them flat.
   Reduce Transparency makes the glass solid; Increase Contrast makes it more opaque with a stronger edge. Text on
-  glass is not checked by the contrast audit (what is behind it changes as the page scrolls); the tint keeps it
-  readable over the apps' own colours. Headless Chromium's default renderer draws a large blur wrongly near an
+  glass is not checked by the release check's contrast audit (what is behind it moves); the stronger text tokens above
+  were measured against screenshots instead. Headless Chromium's default renderer draws a large blur wrongly near an
   element's edges (text there stays sharp and only dims): screenshots of the glass are taken with
   `--use-angle=swiftshader --enable-unsafe-swiftshader`, which renders it as a phone does.
 - **The mark** in every header is the icon's monogram drawn in `--primary` through its own shape (a CSS mask), so
@@ -335,7 +339,7 @@ there. `personal.test.js` checks a session's row.
 **2l. Liquid Glass: Apple's iOS 26 conventions, where the web can follow them.**
 Apple's guidance (developer.apple.com, "Adopting Liquid Glass" and the HIG's Materials) asks for glass only on the
 layer that floats over the content, flat content, and controls shaped like the hardware. The apps already had the first
-two (2c's glass on the header pills, tab bar, menus, sheets and toasts; cards in the same glass, unblurred). This adds the rest:
+two (2c's glass on the header pills, tab bar, menus, sheets, toasts, cards and filters). This adds the rest:
 - **No capitals.** Headers are title-style and buttons and labels sentence case ("Save check-in", "Today's plan", the
   tab bar's "Mind"): Apple's section headers "no longer render entirely in capital letters". No rule sets
   `text-transform: uppercase` (the release check fails one), and no label is typed in capitals. What stays in capitals
@@ -363,8 +367,9 @@ two (2c's glass on the header pills, tab bar, menus, sheets and toasts; cards in
 
 **2m. 3D moments: in every app, each an extra over the 2D page.**
 Three.js gives the apps moments of motion with a meaning. Shared, in ui.js:
-- **`UI.backdrop`, the living backdrop**, in all seven: three palette colours drifting behind the top of the page and
-  fading into it, so the clear glass header has colour to show. Each app has its own three (MIND blue and light blue,
+- **`UI.backdrop`, the living backdrop**, in all seven: three palette colours drifting behind the whole screen,
+  strongest at the top, so the clear glass (header, tab bar, cards, filters) has colour to show. It stays put while the
+  page scrolls over it. Each app has its own three (MIND blue and light blue,
   TRAINING green and blue, NUTRITION green and orange, LEARN light blue and blue, JOURNAL blue and green, REWIRE orange
   and blue, TODAY blue, light blue and green). On wider screens TODAY's header is the apps' rounded glass bar, so the
   colour shows through it rather than stopping in a band under a solid strip.

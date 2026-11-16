@@ -221,7 +221,10 @@ dialog.dd{max-height:min(86vh,760px);overflow:auto;overscroll-behavior:contain}
 .tch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
 .st{font-size:10px;letter-spacing:.06em;color:var(--dim);border:1px solid var(--line2);padding:2px 6px}
 /* the plan and Insights cards wear the same glass as every other card, and their count badges are pills */
-html body :is(.ins,.pl,.ywk){border-radius:var(--g-r);background:var(--g-card);border-color:var(--g-line);box-shadow:var(--g-hi),var(--g-drop)}
+html body :is(.ins,.pl,.ywk,.ci){border-radius:var(--g-r);background:var(--g-card);border-color:var(--g-line);box-shadow:var(--g-hi),var(--g-drop)}
+/* every TODAY card is the pills' clear glass, like the apps' (ui.css); the hero keeps its accent glow over the glass */
+html body #today :is(.ins,.pl,.ywk,.ci,.hero){-webkit-backdrop-filter:var(--g-blur,none);backdrop-filter:var(--g-blur,none)}
+html body #today .hero{background:radial-gradient(120% 90% at 0% 0%,var(--accent-soft),transparent 60%),var(--g-card);border-color:var(--g-line)}
 html body .ins.sto{border-color:var(--border)}html body .ins.sto.bad{border-color:var(--red)}
 html body .st{border-radius:999px;padding:3px 10px;border-color:var(--g-line2)}
 .st.ok{color:var(--success-text);border-color:var(--success-line)}.st.bad{color:var(--error-text);border-color:var(--error-line)}
@@ -895,7 +898,7 @@ function celebrate(el,wins){
   if(all){el.querySelector('.hero')?.classList.add('burst');setTimeout(()=>UI.bloom([...el.querySelectorAll('.ring svg')]),650)}
 }
 /* the living backdrop and the day's bloom (UI.backdrop, UI.bloom; ARCHITECTURE.md 2m): the backdrop sits behind TODAY's
-   page (it scrolls itself), not inside it, and follows its scroll; it moves only while TODAY is the tab on screen */
+   page (it scrolls itself), not inside it, and fills the screen; it moves only while TODAY is the tab on screen */
 let BD=null;
 let lastToday='';
 function drawToday(){
