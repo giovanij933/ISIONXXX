@@ -7,7 +7,7 @@
 //   - a card that's laid out but never drawn. Each card is shot as it is and again hidden: if the two pictures are the
 //     same, the card wasn't on screen (TODAY once lost every card under its backdrop this way, on iPhone only);
 //   - a card covered by something else at its middle.
-// Reduce Motion is on, so the 3D backdrop is a still frame and two shots of the same thing are the same picture.
+// Reduce Motion is on, so nothing on the page moves and two shots of the same thing are the same picture.
 // WebKit on Linux is not iOS Safari: a pass makes an iPhone-only bug less likely, not impossible.
 // BROWSER=chromium (with CHROME=<path>) runs the same checks in Chromium, to work on this file without WebKit.
 'use strict';

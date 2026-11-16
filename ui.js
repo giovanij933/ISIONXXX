@@ -13,7 +13,7 @@
    prompt(). See ui.html for every component, its props and its states.
    UI.appearance() is the Settings row for Auto / Light / Dark; UI.theme() reads the choice, UI.theme(v) sets it.
    UI.gl(canvas, setup) draws a 3D moment with Three.js where the device can, and gives null where it can't; on it,
-   UI.orb (the breathing orb), UI.bloom (light rising from what was just done) and UI.backdrop (behind the header).
+   UI.orb (the breathing orb), and UI.bloom (light rising from what was just done).
 */
 (() => {
   'use strict';
@@ -1035,7 +1035,7 @@
      setup(s) builds the scene with s.THREE into s.scene, sets s.camera and, as it needs:
        s.running() → keep drawing?   s.update(dt, t)   s.resize(w, h)   s.theme() (colours: s.rgb('--accent') → [r, g, b])
      One loop draws every handle, only while its canvas is on screen and the page is visible, and no faster than fps when
-     that's given (ratio caps the pixel ratio: a soft backdrop can draw at half resolution). s.still is true under Reduce
+     that's given (ratio caps the pixel ratio: something soft can draw at half resolution). s.still is true under Reduce
      Motion: the moment draws a still frame and moves only when the person asks for it. s.draw() draws once, s.kick()
      wakes the loop after running() changes, s.dispose() frees the GPU (call it when the canvas leaves the page). */
   const glFrom = (document.currentScript && document.currentScript.src) || location.href;
@@ -1094,9 +1094,6 @@
   gl.ok = glSupported; gl.rgb = glRgb;
   const glMix = (a, b, t) => a.map((v, i) => v + (b[i] - v) * t), glDark = s => { const b = s.rgb('--background'); return b[0] + b[1] + b[2] < 1.5 };
   const glCalm = () => matchMedia('(prefers-reduced-motion: reduce)').matches;
-  // inside TODAY an app is a frame, and only the frame of the tab on screen is shown (the others are hidden, not gone)
-  const glShown = () => { try { const f = window.frameElement; return !f || !f.classList.contains('pane') || f.classList.contains('on') } catch (e) { return true } };
-  const glSheet = () => !!document.querySelector('dialog[open],.modal:not(.hidden),.po:not(.hidden)');
 
   /* UI.orb(bub, {active}) — the breathing orb: a .bub breathing bubble (its .ball and .cue) gets a soft, lit sphere in
      the bubble's place, pale in light and deep in dark so the cue on it reads. Returns at once: h.level(scale, warm)
@@ -1189,105 +1186,6 @@ void main(){ vec3 n=normalize(vN); float fr=pow(1.0-max(dot(n,normalize(vV)),0.0
         dots.instanceMatrix.needsUpdate = true; if (!any) { alive = false; setTimeout(end, 0) } };
     }).then(s => { if (!s || !c.isConnected) { s?.dispose(); return c.remove() } h = s; s.kick() });
   }
-
-  /* UI.backdrop({host, under, tint, active}) — the living backdrop: a toroidal field in the palette's colours (tint, as
-     tokens, leads them) turning slowly behind the whole screen, so the clear glass (the header's pills, the tab bar,
-     every card and filter) has colour to show wherever it is. It fills the screen and stays put while the page scrolls over it, strongest at the
-     top and settling to about a third of its colour lower down, where the cards' text sits on it. On a page that scrolls itself (the apps), it's the first thing
-     in host (the body) and sits under the content (the body goes see-through; its colour comes from <html>). Under a box
-     that scrolls (TODAY's page), pass under: it goes just before that box, behind it. Never a layer below the content
-     inside a scrolling box: Safari on iPhone can leave that box's content undrawn (TODAY lost everything under its first
-     card). It starts as the page's own colour at the very top, the colour of iOS's solid status bar above it, and builds
-     up over the first 50 px, so the bar flows into it rather than meeting it at a line. Drawn at half resolution, 24 times a second, and only while the page (and in
-     TODAY its tab) is showing, no sheet is open, and active() says so; a still frame under Reduce Motion. It also rests
-     after 20 seconds without a touch, scroll or key (it holds its frame, so nothing jumps) and moves again on the next one,
-     or when its page or tab comes back on screen: a page you're only reading doesn't spend battery on it. Call it once
-     (again is harmless: it only updates active). Returns a handle with kick(), to wake it when active() changes. */
-  // the toroidal field: lines wound round a torus through its hole, coloured by where they are round the ring (the
-  // palette's blue, light blue, green, orange and red), light running along them, the far side dimmer; round them a soft
-  // haze of the same colours (big faint points along the lines) and under everything a quiet wash, so the glass has
-  // colour to show between the lines. All of it fades to the page's colour over the top 50 px (the status bar) and
-  // settles to about a third of its strength lower down, under the cards' text.
-  const TORV = `attribute float aU; attribute float aS; attribute vec3 aC; uniform float uT; uniform float uD; uniform float uDark; uniform float uPS;
-varying vec3 vC; varying float vA;
-void main(){ vec4 mv=modelViewMatrix*vec4(position,1.0); gl_Position=projectionMatrix*mv; gl_PointSize=uPS;
-  float run=pow(fract(aU*4.0-uT*.05+aS),12.0); vC=mix(aC,vec3(1.0),run*.5*uDark);
-  vA=(.32+.9*run)*mix(.3,1.0,smoothstep(-1.6,1.6,mv.z+uD))*mix(.3,1.0,smoothstep(.05,.6,length(position.xy))); }`;   // the hole, where they all meet, kept soft
-  const TORF = `uniform float uBH; uniform float uTop; uniform float uDark; uniform float uPt; varying vec3 vC; varying float vA;
-void main(){ float y=gl_FragCoord.y/uBH, k=vA*mix(.35,1.0,smoothstep(.3,1.0,y))*smoothstep(1.0,1.0-uTop,y);
-  if(uPt>.5){ vec2 q=gl_PointCoord-.5; k*=exp(-dot(q,q)*14.0)*.1; }
-  gl_FragColor=uDark>.5?vec4(vC*k*.85,1.0):vec4(vC,min(1.0,k*(uPt>.5?1.6:.9))); }`;
-  const TORG = `uniform vec2 uR; uniform vec2 uO; uniform float uK; uniform float uBH; uniform float uTop; uniform float uDark; uniform vec3 uBg;
-uniform vec3 uP0; uniform vec3 uP1; uniform vec3 uP2; varying vec2 vUv;
-void main(){ vec2 p=(vUv-uO)*vec2(uR.x/uR.y,1.0); float d=length(p)/uK;
-  vec3 c=mix(mix(uP0,uP1,smoothstep(.1,.9,vUv.x)),uP2,smoothstep(.6,0.0,vUv.y)*.6);
-  float g=.24+.4*exp(-d*d*.6), y=gl_FragCoord.y/uBH; g*=mix(.5,1.0,smoothstep(.3,1.0,y))*smoothstep(1.0,1.0-uTop,y);
-  gl_FragColor=vec4(mix(uBg,c,g*(uDark>.5?.5:.4)),1.0); }`;
-  let bd = null, bdSeen = 0;
-  const BD_IDLE = 20000, bdWake = () => { bdSeen = performance.now(); if (bd) glKick() };
-  function backdrop({ host = document.body, under = null, tint = ['--accent', '--info', '--success'], active = () => true } = {}) {
-    if (!glSupported()) return { kick() { } };
-    if (bd) { bd.active = active; glKick(); return bd.h }
-    const c = document.createElement('canvas'); c.className = 'ui-bd'; c.setAttribute('aria-hidden', 'true');
-    const box = under || host, undo = () => { c.remove(); box.classList.remove('ui-bd-host', 'ui-bd-over') };
-    if (under) { c.classList.add('ui-bd-under'); under.before(c); under.classList.add('ui-bd-over') }
-    else { host.prepend(c); host.classList.add('ui-bd-host') }
-    bd = { c, active, failed: false, shown: false, h: { kick: glKick } };
-    bdWake(); ['pointerdown', 'keydown', 'wheel', 'scroll'].forEach(e => document.addEventListener(e, bdWake, { capture: true, passive: true }));
-    document.addEventListener('visibilitychange', () => { if (!document.hidden) bdWake() });
-    gl(c, s => {
-      const T = s.THREE; let tm = 20;
-      const C = { R: 1, RS: [.96], LINES: [28], P: [4], TW: [1], TILT: -1, SC: 1.6, CY: .45 };   // a horn torus, 28 lines four times round it
-      const { R, RS, TILT } = C, D = 2 * (R + Math.max(...RS));
-      // the palette round the ring: the app's own colours first, then the rest of the five
-      const pal = [...new Set([...tint, '--accent', '--info', '--success', '--warning', '--error'])].slice(0, 5);
-      const SEG = 360, n = RS.reduce((t, r, k) => t + C.LINES[k] * SEG * 2, 0);
-      const pos = new Float32Array(n * 3), aU = new Float32Array(n), aS = new Float32Array(n), aC = new Float32Array(n * 3), phi = new Float32Array(n);
-      let q = 0;
-      RS.forEach((r, k) => { for (let j = 0, L = C.LINES[k]; j < L; j++) {
-        const f0 = 2 * Math.PI * j / L + k * .2, t0 = k * 1.1, seed = ((j * 7 + k * 3) % 11) / 11;
-        const at = u => { const f = f0 + 2 * Math.PI * C.TW[k] * u, t = t0 + 2 * Math.PI * C.P[k] * u; return [(R + r * Math.cos(t)) * Math.cos(f), (R + r * Math.cos(t)) * Math.sin(f), r * Math.sin(t), f] };
-        for (let i = 0; i < SEG; i++) for (const u of [i / SEG, (i + 1) / SEG]) { const [x, y, z, f] = at(u);
-          pos.set([x, y, z], q * 3); aU[q] = u; aS[q] = seed; phi[q] = ((f / (2 * Math.PI)) % 1 + 1) % 1; q++ } } });
-      const g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(pos, 3)); g.setAttribute('aU', new T.BufferAttribute(aU, 1));
-      g.setAttribute('aS', new T.BufferAttribute(aS, 1)); g.setAttribute('aC', new T.BufferAttribute(aC, 3));
-      const ul = { uT: { value: tm }, uD: { value: 8 }, uDark: { value: 1 }, uBH: { value: 1 }, uTop: { value: .05 }, uPS: { value: 1 }, uPt: { value: 0 } };
-      const lm = new T.ShaderMaterial({ uniforms: ul, vertexShader: TORV, fragmentShader: TORF, transparent: true, depthTest: false, depthWrite: false });
-      // the haze: every ninth point of the lines, drawn as a big faint disc
-      const hz = new T.BufferGeometry(), every = 9, hn = Math.floor(n / every), hp = new Float32Array(hn * 3), hu = new Float32Array(hn), hs = new Float32Array(hn), hc = new Float32Array(hn * 3);
-      const fillHaze = () => { for (let i = 0; i < hn; i++) { const o = i * every; hp.set(pos.subarray(o * 3, o * 3 + 3), i * 3); hu[i] = aU[o]; hs[i] = aS[o]; hc.set(aC.subarray(o * 3, o * 3 + 3), i * 3) } };
-      fillHaze(); hz.setAttribute('position', new T.BufferAttribute(hp, 3)); hz.setAttribute('aU', new T.BufferAttribute(hu, 1)); hz.setAttribute('aS', new T.BufferAttribute(hs, 1)); hz.setAttribute('aC', new T.BufferAttribute(hc, 3));
-      const uh = { ...ul, uPS: { value: 24 }, uPt: { value: 1 } }, hm = new T.ShaderMaterial({ uniforms: uh, vertexShader: TORV, fragmentShader: TORF, transparent: true, depthTest: false, depthWrite: false });
-      const field = new T.Group(), ring = new T.Group(); field.add(new T.Points(hz, hm), new T.LineSegments(g, lm)); ring.rotation.x = TILT; ring.add(field); s.scene.add(ring);
-      const V3 = () => new T.Vector3(), ug = { uR: { value: new T.Vector2(1, 1) }, uO: { value: new T.Vector2(.5, .7) }, uK: { value: .3 },
-        uBH: ul.uBH, uTop: ul.uTop, uDark: ul.uDark, uBg: { value: V3() }, uP0: { value: V3() }, uP1: { value: V3() }, uP2: { value: V3() } };
-      const glow = new T.Mesh(new T.PlaneGeometry(2, 2), new T.ShaderMaterial({ uniforms: ug, depthTest: false, depthWrite: false, fragmentShader: TORG,
-        vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.0,1.0); }' }));
-      glow.frustumCulled = false; glow.renderOrder = -1; s.scene.add(glow);
-      s.camera = new T.PerspectiveCamera(30, 1, .1, 60);
-      s.theme = () => { const bg = s.rgb('--background'), dk = glDark(s), cs = pal.map(n => s.rgb(n));
-        const at = x => { const f = x * cs.length, i = Math.floor(f) % cs.length, w = f - Math.floor(f), b = cs[(i + 1) % cs.length], e = w * w * (3 - 2 * w); return cs[i].map((v, m) => v + (b[m] - v) * e) };
-        for (let i = 0; i < n; i++) aC.set(at(phi[i]), i * 3); g.attributes.aC.needsUpdate = true; fillHaze(); hz.attributes.aC.needsUpdate = true;
-        ul.uDark.value = dk ? 1 : 0; uh.uDark.value = ul.uDark.value; for (const m of [lm, hm]) { m.blending = dk ? T.AdditiveBlending : T.NormalBlending; m.needsUpdate = true }
-        ug.uBg.value.fromArray(bg); ug.uP0.value.fromArray(cs[0]); ug.uP1.value.fromArray(cs[1]); ug.uP2.value.fromArray(cs[2 % cs.length]) };
-      // the ring's size and place: across the width on a phone, its centre a third of the way down; smaller and a little
-      // lower on a wide screen
-      s.resize = (w, h) => { const asp = w / h, tgt = asp < 1 ? w * (C.SC || 1.3) : Math.min(w * .62, h * 1.2), cy = asp < 1 ? (C.CY || .36) : .42;
-        const vh = D * h / tgt, d = vh / (2 * Math.tan(15 * Math.PI / 180));
-        s.camera.aspect = asp; s.camera.position.set(0, 0, d); s.camera.lookAt(0, 0, 0); s.camera.updateProjectionMatrix();
-        ring.position.y = (.5 - cy) * vh; ul.uD.value = d; uh.uD.value = d;
-        const bs = s.r.getDrawingBufferSize(new T.Vector2()); ul.uBH.value = bs.y; ul.uTop.value = Math.min(.5, 50 * s.r.getPixelRatio() / bs.y);
-        uh.uBH.value = bs.y; uh.uTop.value = ul.uTop.value; uh.uPS.value = Math.max(8, .09 * Math.min(w, h) * s.r.getPixelRatio());
-        ug.uR.value.set(w, h); ug.uO.value.set(.5, 1 - cy); ug.uK.value = (R / D) * tgt / h };
-      // a tab coming back on screen in TODAY counts as a wake: the frame saw no touch of its own while it was hidden
-      s.running = () => { const sh = glShown(); if (sh && !bd.shown) bdSeen = performance.now(); bd.shown = sh;
-        if (s.still || document.hidden || !sh || glSheet() || performance.now() - bdSeen > BD_IDLE) return false; try { return !!bd.active() } catch (e) { return false } };
-      s.update = dt => { tm += dt; ul.uT.value = tm; uh.uT.value = tm; field.rotation.z = tm * .035 };
-      field.rotation.z = tm * .035;
-    }, { ratio: .5, fps: 24 }).then(s => { if (s) { s.draw(); s.kick(); setInterval(glKick, 1000) } else { bd.failed = true; undo() } });
-    return bd.h;
-  }
-
 
   /* ---------- weekly review: one week of an app, read as a sheet (ARCHITECTURE.md 2p) ----------
      UI.weekReview({weeks, ws, build, onDay, label}) opens it, the same in every app (JOURNAL's has its own, in the same
@@ -1390,5 +1288,5 @@ void main(){ vec2 p=(vUv-uO)*vec2(uR.x/uR.y,1.0); float d=length(p)/uK;
     });
   }
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, runBar, theme, appearance, gl, orb, bloom, backdrop, upNext, planArt, weekReview, version: '1.14.0' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, runBar, theme, appearance, gl, orb, bloom, upNext, planArt, weekReview, version: '1.14.0' };
 })();
