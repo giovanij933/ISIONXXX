@@ -1190,9 +1190,9 @@ void main(){ vec3 n=normalize(vN); float fr=pow(1.0-max(dot(n,normalize(vV)),0.0
     }).then(s => { if (!s || !c.isConnected) { s?.dispose(); return c.remove() } h = s; s.kick() });
   }
 
-  /* UI.backdrop({host, under, tint, active}) — the living backdrop: three palette colours (tint, as tokens) drifting
-     slowly behind the whole screen, so the clear glass (the header's pills, the tab bar, every card and filter) has
-     colour to show wherever it is. It fills the screen and stays put while the page scrolls over it, strongest at the
+  /* UI.backdrop({host, under, tint, active}) — the living backdrop: a toroidal field in the palette's colours (tint, as
+     tokens, leads them) turning slowly behind the whole screen, so the clear glass (the header's pills, the tab bar,
+     every card and filter) has colour to show wherever it is. It fills the screen and stays put while the page scrolls over it, strongest at the
      top and settling to about a third of its colour lower down, where the cards' text sits on it. On a page that scrolls itself (the apps), it's the first thing
      in host (the body) and sits under the content (the body goes see-through; its colour comes from <html>). Under a box
      that scrolls (TODAY's page), pass under: it goes just before that box, behind it. Never a layer below the content
@@ -1203,16 +1203,26 @@ void main(){ vec3 n=normalize(vN); float fr=pow(1.0-max(dot(n,normalize(vV)),0.0
      after 20 seconds without a touch, scroll or key (it holds its frame, so nothing jumps) and moves again on the next one,
      or when its page or tab comes back on screen: a page you're only reading doesn't spend battery on it. Call it once
      (again is harmless: it only updates active). Returns a handle with kick(), to wake it when active() changes. */
-  const AURF = `uniform float uT; uniform vec2 uR; uniform float uTop; uniform vec3 uC1; uniform vec3 uC2; uniform vec3 uC3; uniform vec3 uBg; varying vec2 vUv;
-float hs(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
-float ns(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 w=f*f*(3.0-2.0*f);
-  return mix(mix(hs(i),hs(i+vec2(1.0,0.0)),w.x),mix(hs(i+vec2(0.0,1.0)),hs(i+vec2(1.0,1.0)),w.x),w.y); }
-float fbm(vec2 p){ float v=0.0, a=.5; for(int i=0;i<4;i++){ v+=a*ns(p); p*=2.03; a*=.5; } return v; }
-void main(){ vec2 p=vec2(vUv.x*uR.x/uR.y,vUv.y)*1.7; float t=uT*.05;
-  vec2 q=vec2(fbm(p+vec2(0.0,t)),fbm(p+vec2(5.2,1.3)-t));
-  vec2 r=vec2(fbm(p+3.0*q+vec2(1.7,9.2)+t*1.3),fbm(p+3.0*q+vec2(8.3,2.8)-t));
-  float f=fbm(p+2.4*r); vec3 c=mix(uC1,uC2,smoothstep(.25,.8,f)); c=mix(c,uC3,smoothstep(.5,.95,r.x));
-  gl_FragColor=vec4(mix(uBg,c,mix(.3,1.0,smoothstep(.3,1.0,vUv.y))*smoothstep(1.0,1.0-uTop,vUv.y)),1.0); }`;
+  // the toroidal field: lines wound round a torus through its hole, coloured by where they are round the ring (the
+  // palette's blue, light blue, green, orange and red), light running along them, the far side dimmer; round them a soft
+  // haze of the same colours (big faint points along the lines) and under everything a quiet wash, so the glass has
+  // colour to show between the lines. All of it fades to the page's colour over the top 50 px (the status bar) and
+  // settles to about a third of its strength lower down, under the cards' text.
+  const TORV = `attribute float aU; attribute float aS; attribute vec3 aC; uniform float uT; uniform float uD; uniform float uDark; uniform float uPS;
+varying vec3 vC; varying float vA;
+void main(){ vec4 mv=modelViewMatrix*vec4(position,1.0); gl_Position=projectionMatrix*mv; gl_PointSize=uPS;
+  float run=pow(fract(aU*4.0-uT*.05+aS),12.0); vC=mix(aC,vec3(1.0),run*.5*uDark);
+  vA=(.32+.9*run)*mix(.3,1.0,smoothstep(-1.6,1.6,mv.z+uD))*mix(.3,1.0,smoothstep(.05,.6,length(position.xy))); }`;   // the hole, where they all meet, kept soft
+  const TORF = `uniform float uBH; uniform float uTop; uniform float uDark; uniform float uPt; varying vec3 vC; varying float vA;
+void main(){ float y=gl_FragCoord.y/uBH, k=vA*mix(.35,1.0,smoothstep(.3,1.0,y))*smoothstep(1.0,1.0-uTop,y);
+  if(uPt>.5){ vec2 q=gl_PointCoord-.5; k*=exp(-dot(q,q)*14.0)*.1; }
+  gl_FragColor=uDark>.5?vec4(vC*k*.85,1.0):vec4(vC,min(1.0,k*(uPt>.5?1.6:.9))); }`;
+  const TORG = `uniform vec2 uR; uniform vec2 uO; uniform float uK; uniform float uBH; uniform float uTop; uniform float uDark; uniform vec3 uBg;
+uniform vec3 uP0; uniform vec3 uP1; uniform vec3 uP2; varying vec2 vUv;
+void main(){ vec2 p=(vUv-uO)*vec2(uR.x/uR.y,1.0); float d=length(p)/uK;
+  vec3 c=mix(mix(uP0,uP1,smoothstep(.1,.9,vUv.x)),uP2,smoothstep(.6,0.0,vUv.y)*.6);
+  float g=.24+.4*exp(-d*d*.6), y=gl_FragCoord.y/uBH; g*=mix(.5,1.0,smoothstep(.3,1.0,y))*smoothstep(1.0,1.0-uTop,y);
+  gl_FragColor=vec4(mix(uBg,c,g*(uDark>.5?.5:.4)),1.0); }`;
   let bd = null, bdSeen = 0;
   const BD_IDLE = 20000, bdWake = () => { bdSeen = performance.now(); if (bd) glKick() };
   function backdrop({ host = document.body, under = null, tint = ['--accent', '--info', '--success'], active = () => true } = {}) {
@@ -1227,17 +1237,53 @@ void main(){ vec2 p=vec2(vUv.x*uR.x/uR.y,vUv.y)*1.7; float t=uT*.05;
     document.addEventListener('visibilitychange', () => { if (!document.hidden) bdWake() });
     gl(c, s => {
       const T = s.THREE; let tm = 20;
-      s.camera = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-      const V3 = () => ({ value: new T.Vector3() }), u = { uT: { value: tm }, uR: { value: new T.Vector2(1, 1) }, uTop: { value: .1 }, uC1: V3(), uC2: V3(), uC3: V3(), uBg: V3() };
-      s.scene.add(new T.Mesh(new T.PlaneGeometry(2, 2), new T.ShaderMaterial({ uniforms: u, depthTest: false, fragmentShader: AURF,
-        vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.0,1.0); }' })));
-      s.theme = () => { const bg = s.rgb('--background'), dk = glDark(s), [a, b, d] = tint.map(n => s.rgb(n));
-        u.uC1.value.fromArray(glMix(a, bg, dk ? .35 : .6)); u.uC2.value.fromArray(glMix(b, bg, dk ? .55 : .42)); u.uC3.value.fromArray(glMix(d, bg, dk ? .6 : .6)); u.uBg.value.fromArray(bg) };
-      s.resize = (w, h) => { u.uR.value.set(w, h); u.uTop.value = Math.min(.5, 50 / h) };   // the status-bar fade: 50 px
+      const C = { R: 1, RS: [.96], LINES: [28], P: [4], TW: [1], TILT: -1, SC: 1.6, CY: .45 };   // a horn torus, 28 lines four times round it
+      const { R, RS, TILT } = C, D = 2 * (R + Math.max(...RS));
+      // the palette round the ring: the app's own colours first, then the rest of the five
+      const pal = [...new Set([...tint, '--accent', '--info', '--success', '--warning', '--error'])].slice(0, 5);
+      const SEG = 360, n = RS.reduce((t, r, k) => t + C.LINES[k] * SEG * 2, 0);
+      const pos = new Float32Array(n * 3), aU = new Float32Array(n), aS = new Float32Array(n), aC = new Float32Array(n * 3), phi = new Float32Array(n);
+      let q = 0;
+      RS.forEach((r, k) => { for (let j = 0, L = C.LINES[k]; j < L; j++) {
+        const f0 = 2 * Math.PI * j / L + k * .2, t0 = k * 1.1, seed = ((j * 7 + k * 3) % 11) / 11;
+        const at = u => { const f = f0 + 2 * Math.PI * C.TW[k] * u, t = t0 + 2 * Math.PI * C.P[k] * u; return [(R + r * Math.cos(t)) * Math.cos(f), (R + r * Math.cos(t)) * Math.sin(f), r * Math.sin(t), f] };
+        for (let i = 0; i < SEG; i++) for (const u of [i / SEG, (i + 1) / SEG]) { const [x, y, z, f] = at(u);
+          pos.set([x, y, z], q * 3); aU[q] = u; aS[q] = seed; phi[q] = ((f / (2 * Math.PI)) % 1 + 1) % 1; q++ } } });
+      const g = new T.BufferGeometry(); g.setAttribute('position', new T.BufferAttribute(pos, 3)); g.setAttribute('aU', new T.BufferAttribute(aU, 1));
+      g.setAttribute('aS', new T.BufferAttribute(aS, 1)); g.setAttribute('aC', new T.BufferAttribute(aC, 3));
+      const ul = { uT: { value: tm }, uD: { value: 8 }, uDark: { value: 1 }, uBH: { value: 1 }, uTop: { value: .05 }, uPS: { value: 1 }, uPt: { value: 0 } };
+      const lm = new T.ShaderMaterial({ uniforms: ul, vertexShader: TORV, fragmentShader: TORF, transparent: true, depthTest: false, depthWrite: false });
+      // the haze: every ninth point of the lines, drawn as a big faint disc
+      const hz = new T.BufferGeometry(), every = 9, hn = Math.floor(n / every), hp = new Float32Array(hn * 3), hu = new Float32Array(hn), hs = new Float32Array(hn), hc = new Float32Array(hn * 3);
+      const fillHaze = () => { for (let i = 0; i < hn; i++) { const o = i * every; hp.set(pos.subarray(o * 3, o * 3 + 3), i * 3); hu[i] = aU[o]; hs[i] = aS[o]; hc.set(aC.subarray(o * 3, o * 3 + 3), i * 3) } };
+      fillHaze(); hz.setAttribute('position', new T.BufferAttribute(hp, 3)); hz.setAttribute('aU', new T.BufferAttribute(hu, 1)); hz.setAttribute('aS', new T.BufferAttribute(hs, 1)); hz.setAttribute('aC', new T.BufferAttribute(hc, 3));
+      const uh = { ...ul, uPS: { value: 24 }, uPt: { value: 1 } }, hm = new T.ShaderMaterial({ uniforms: uh, vertexShader: TORV, fragmentShader: TORF, transparent: true, depthTest: false, depthWrite: false });
+      const field = new T.Group(), ring = new T.Group(); field.add(new T.Points(hz, hm), new T.LineSegments(g, lm)); ring.rotation.x = TILT; ring.add(field); s.scene.add(ring);
+      const V3 = () => new T.Vector3(), ug = { uR: { value: new T.Vector2(1, 1) }, uO: { value: new T.Vector2(.5, .7) }, uK: { value: .3 },
+        uBH: ul.uBH, uTop: ul.uTop, uDark: ul.uDark, uBg: { value: V3() }, uP0: { value: V3() }, uP1: { value: V3() }, uP2: { value: V3() } };
+      const glow = new T.Mesh(new T.PlaneGeometry(2, 2), new T.ShaderMaterial({ uniforms: ug, depthTest: false, depthWrite: false, fragmentShader: TORG,
+        vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.0,1.0); }' }));
+      glow.frustumCulled = false; glow.renderOrder = -1; s.scene.add(glow);
+      s.camera = new T.PerspectiveCamera(30, 1, .1, 60);
+      s.theme = () => { const bg = s.rgb('--background'), dk = glDark(s), cs = pal.map(n => s.rgb(n));
+        const at = x => { const f = x * cs.length, i = Math.floor(f) % cs.length, w = f - Math.floor(f), b = cs[(i + 1) % cs.length], e = w * w * (3 - 2 * w); return cs[i].map((v, m) => v + (b[m] - v) * e) };
+        for (let i = 0; i < n; i++) aC.set(at(phi[i]), i * 3); g.attributes.aC.needsUpdate = true; fillHaze(); hz.attributes.aC.needsUpdate = true;
+        ul.uDark.value = dk ? 1 : 0; uh.uDark.value = ul.uDark.value; for (const m of [lm, hm]) { m.blending = dk ? T.AdditiveBlending : T.NormalBlending; m.needsUpdate = true }
+        ug.uBg.value.fromArray(bg); ug.uP0.value.fromArray(cs[0]); ug.uP1.value.fromArray(cs[1]); ug.uP2.value.fromArray(cs[2 % cs.length]) };
+      // the ring's size and place: across the width on a phone, its centre a third of the way down; smaller and a little
+      // lower on a wide screen
+      s.resize = (w, h) => { const asp = w / h, tgt = asp < 1 ? w * (C.SC || 1.3) : Math.min(w * .62, h * 1.2), cy = asp < 1 ? (C.CY || .36) : .42;
+        const vh = D * h / tgt, d = vh / (2 * Math.tan(15 * Math.PI / 180));
+        s.camera.aspect = asp; s.camera.position.set(0, 0, d); s.camera.lookAt(0, 0, 0); s.camera.updateProjectionMatrix();
+        ring.position.y = (.5 - cy) * vh; ul.uD.value = d; uh.uD.value = d;
+        const bs = s.r.getDrawingBufferSize(new T.Vector2()); ul.uBH.value = bs.y; ul.uTop.value = Math.min(.5, 50 * s.r.getPixelRatio() / bs.y);
+        uh.uBH.value = bs.y; uh.uTop.value = ul.uTop.value; uh.uPS.value = Math.max(8, .09 * Math.min(w, h) * s.r.getPixelRatio());
+        ug.uR.value.set(w, h); ug.uO.value.set(.5, 1 - cy); ug.uK.value = (R / D) * tgt / h };
       // a tab coming back on screen in TODAY counts as a wake: the frame saw no touch of its own while it was hidden
       s.running = () => { const sh = glShown(); if (sh && !bd.shown) bdSeen = performance.now(); bd.shown = sh;
         if (s.still || document.hidden || !sh || glSheet() || performance.now() - bdSeen > BD_IDLE) return false; try { return !!bd.active() } catch (e) { return false } };
-      s.update = dt => { tm += dt; u.uT.value = tm };
+      s.update = dt => { tm += dt; ul.uT.value = tm; uh.uT.value = tm; field.rotation.z = tm * .035 };
+      field.rotation.z = tm * .035;
     }, { ratio: .5, fps: 24 }).then(s => { if (s) { s.draw(); s.kick(); setInterval(glKick, 1000) } else { bd.failed = true; undo() } });
     return bd.h;
   }
