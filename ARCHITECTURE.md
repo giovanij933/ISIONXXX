@@ -231,7 +231,10 @@ holds a colour of its own, so the palette changes in one file and every app foll
   sheet is open the backdrop also fades out (`html:has(dialog[open]) canvas.ui-bd`).
   It is modelled on the menus iOS draws itself: the page shows through, blurred (`--glass-filter`, 26 px) with its
   colours kept, under a light or dark tint (`--glass`; `--float` is the heavier tint for a sheet full of text), with
-  a light across it (`--glass-sheen`) and a bright rim (`--glass-rim`, carried by the shadows). Cards stay flat.
+  a light across it (`--glass-sheen`) and a bright rim (`--glass-rim`, carried by the shadows). Cards wear the same
+  sheen and rim over the surface colour, a little see-through (`--g-card`, `--g-hi`), so they read as the pills' glass,
+  but without the backdrop blur: twenty blurred cards make a long page judder on a phone, and over the flat page behind
+  most cards it would show nothing. Reduce Transparency keeps them flat.
   Reduce Transparency makes the glass solid; Increase Contrast makes it more opaque with a stronger edge. Text on
   glass is not checked by the contrast audit (what is behind it changes as the page scrolls); the tint keeps it
   readable over the apps' own colours. Headless Chromium's default renderer draws a large blur wrongly near an
@@ -332,7 +335,7 @@ there. `personal.test.js` checks a session's row.
 **2l. Liquid Glass: Apple's iOS 26 conventions, where the web can follow them.**
 Apple's guidance (developer.apple.com, "Adopting Liquid Glass" and the HIG's Materials) asks for glass only on the
 layer that floats over the content, flat content, and controls shaped like the hardware. The apps already had the first
-two (2c's glass on the header pills, tab bar, menus, sheets and toasts; flat cards). This adds the rest:
+two (2c's glass on the header pills, tab bar, menus, sheets and toasts; cards in the same glass, unblurred). This adds the rest:
 - **No capitals.** Headers are title-style and buttons and labels sentence case ("Save check-in", "Today's plan", the
   tab bar's "Mind"): Apple's section headers "no longer render entirely in capital letters". No rule sets
   `text-transform: uppercase` (the release check fails one), and no label is typed in capitals. What stays in capitals

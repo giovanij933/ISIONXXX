@@ -395,7 +395,8 @@ button.ui-stat:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
 .ui-stat.ui-on{border-color:var(--accent-line);background:var(--accent-soft)}.ui-stat.ui-on .ui-stat-l{color:var(--accent-text)}
 
 /* ---------- surfaces: rounded, layered ----------
-   Scoped with "html body" so it wins over each app's own (later, equal-weight) rules. Cards are flat: the page is
+   Scoped with "html body" so it wins over each app's own (later, equal-weight) rules. (Cards now wear the pills' glass,
+   unblurred: see the end of this file.) The page is
    --background, a card --surface, and that step is the depth. Real backdrop blur only on what floats over content
    (dialogs, sheets, menus, toasts, the header), which keeps long dashboards smooth to scroll on phones. */
 :root{--g-r:22px;--g-r2:14px;--g-r3:12px;--g-line:transparent;--g-line2:var(--border);
@@ -715,4 +716,9 @@ button.ui-wr-d:active{opacity:.6}
 .ui-wr-d b{font-weight:600;font-variant-numeric:tabular-nums;white-space:nowrap}.ui-wr-d b.pos{color:var(--success-text)}.ui-wr-d b.neg{color:var(--error-text)}
 .ui-wr-hint{font-size:12px!important;color:var(--text-muted)}
 .ui-wr-a{display:flex;justify-content:space-between;gap:10px;margin-top:12px}.ui-wr-a .ui-btn{min-width:104px}
+/* cards wear the header pills' glass: their sheen and bright rim over the surface colour, a little see-through so the
+   backdrop at the top shows faintly through. No backdrop blur: twenty blurred cards make a long page judder on a phone,
+   and over the flat page behind most cards it would show nothing. Reduce Transparency keeps them flat. */
+:root{--g-card:var(--glass-sheen),color-mix(in srgb,var(--surface) 88%,transparent);--g-hi:var(--glass-rim);--g-line:var(--glass-edge);--g-drop:0 12px 30px -20px rgba(0,0,0,.35)}
+@media (prefers-reduced-transparency:reduce){:root{--g-card:var(--surface);--g-hi:0 0 transparent;--g-drop:0 0 transparent}}
 
