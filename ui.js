@@ -1191,17 +1191,19 @@ void main(){ vec3 n=normalize(vN); float fr=pow(1.0-max(dot(n,normalize(vV)),0.0
   }
 
   /* UI.backdrop({host, under, tint, active}) — the living backdrop: three palette colours (tint, as tokens) drifting
-     slowly behind the top of the page and fading into it, so the clear glass header has colour to show. It scrolls
-     away with the page. On a page that scrolls itself (the apps), it's the first thing in host (the body) and sits under
-     the content (the body goes see-through; its colour comes from <html>). Under a box that scrolls (TODAY's page),
-     pass under: it goes just before that box, behind it, and follows its scroll. Never a layer below the content inside
-     a scrolling box: Safari on iPhone can leave that box's content undrawn (TODAY lost everything under its first card). It starts as the page's own colour at the very top, the colour of iOS's solid status bar above it,
-     and builds up over the first 50 px, so the bar flows into it rather than meeting it at a line. Drawn at half resolution, 24 times a second, and only while the top is on screen, the page (and in
+     slowly behind the whole screen, so the clear glass (the header's pills, the tab bar, every card and filter) has
+     colour to show wherever it is. It fills the screen and stays put while the page scrolls over it, strongest at the
+     top and settling to about a third of its colour lower down, where the cards' text sits on it. On a page that scrolls itself (the apps), it's the first thing
+     in host (the body) and sits under the content (the body goes see-through; its colour comes from <html>). Under a box
+     that scrolls (TODAY's page), pass under: it goes just before that box, behind it. Never a layer below the content
+     inside a scrolling box: Safari on iPhone can leave that box's content undrawn (TODAY lost everything under its first
+     card). It starts as the page's own colour at the very top, the colour of iOS's solid status bar above it, and builds
+     up over the first 50 px, so the bar flows into it rather than meeting it at a line. Drawn at half resolution, 24 times a second, and only while the page (and in
      TODAY its tab) is showing, no sheet is open, and active() says so; a still frame under Reduce Motion. It also rests
      after 20 seconds without a touch, scroll or key (it holds its frame, so nothing jumps) and moves again on the next one,
      or when its page or tab comes back on screen: a page you're only reading doesn't spend battery on it. Call it once
      (again is harmless: it only updates active). Returns a handle with kick(), to wake it when active() changes. */
-  const AURF = `uniform float uT; uniform vec2 uR; uniform vec3 uC1; uniform vec3 uC2; uniform vec3 uC3; uniform vec3 uBg; varying vec2 vUv;
+  const AURF = `uniform float uT; uniform vec2 uR; uniform float uTop; uniform vec3 uC1; uniform vec3 uC2; uniform vec3 uC3; uniform vec3 uBg; varying vec2 vUv;
 float hs(vec2 p){ return fract(sin(dot(p,vec2(127.1,311.7)))*43758.5453); }
 float ns(vec2 p){ vec2 i=floor(p), f=fract(p); vec2 w=f*f*(3.0-2.0*f);
   return mix(mix(hs(i),hs(i+vec2(1.0,0.0)),w.x),mix(hs(i+vec2(0.0,1.0)),hs(i+vec2(1.0,1.0)),w.x),w.y); }
@@ -1210,7 +1212,7 @@ void main(){ vec2 p=vec2(vUv.x*uR.x/uR.y,vUv.y)*1.7; float t=uT*.05;
   vec2 q=vec2(fbm(p+vec2(0.0,t)),fbm(p+vec2(5.2,1.3)-t));
   vec2 r=vec2(fbm(p+3.0*q+vec2(1.7,9.2)+t*1.3),fbm(p+3.0*q+vec2(8.3,2.8)-t));
   float f=fbm(p+2.4*r); vec3 c=mix(uC1,uC2,smoothstep(.25,.8,f)); c=mix(c,uC3,smoothstep(.5,.95,r.x));
-  gl_FragColor=vec4(mix(uBg,c,smoothstep(0.0,.85,vUv.y)*smoothstep(1.0,.86,vUv.y)),1.0); }`;
+  gl_FragColor=vec4(mix(uBg,c,mix(.3,1.0,smoothstep(.3,1.0,vUv.y))*smoothstep(1.0,1.0-uTop,vUv.y)),1.0); }`;
   let bd = null, bdSeen = 0;
   const BD_IDLE = 20000, bdWake = () => { bdSeen = performance.now(); if (bd) glKick() };
   function backdrop({ host = document.body, under = null, tint = ['--accent', '--info', '--success'], active = () => true } = {}) {
@@ -1218,8 +1220,7 @@ void main(){ vec2 p=vec2(vUv.x*uR.x/uR.y,vUv.y)*1.7; float t=uT*.05;
     if (bd) { bd.active = active; glKick(); return bd.h }
     const c = document.createElement('canvas'); c.className = 'ui-bd'; c.setAttribute('aria-hidden', 'true');
     const box = under || host, undo = () => { c.remove(); box.classList.remove('ui-bd-host', 'ui-bd-over') };
-    if (under) { c.classList.add('ui-bd-under'); under.before(c); under.classList.add('ui-bd-over');
-      const follow = () => { c.style.transform = `translate3d(0,${-under.scrollTop}px,0)` }; under.addEventListener('scroll', follow, { passive: true }); follow() }
+    if (under) { c.classList.add('ui-bd-under'); under.before(c); under.classList.add('ui-bd-over') }
     else { host.prepend(c); host.classList.add('ui-bd-host') }
     bd = { c, active, failed: false, shown: false, h: { kick: glKick } };
     bdWake(); ['pointerdown', 'keydown', 'wheel', 'scroll'].forEach(e => document.addEventListener(e, bdWake, { capture: true, passive: true }));
@@ -1227,12 +1228,12 @@ void main(){ vec2 p=vec2(vUv.x*uR.x/uR.y,vUv.y)*1.7; float t=uT*.05;
     gl(c, s => {
       const T = s.THREE; let tm = 20;
       s.camera = new T.OrthographicCamera(-1, 1, 1, -1, 0, 1);
-      const V3 = () => ({ value: new T.Vector3() }), u = { uT: { value: tm }, uR: { value: new T.Vector2(1, 1) }, uC1: V3(), uC2: V3(), uC3: V3(), uBg: V3() };
+      const V3 = () => ({ value: new T.Vector3() }), u = { uT: { value: tm }, uR: { value: new T.Vector2(1, 1) }, uTop: { value: .1 }, uC1: V3(), uC2: V3(), uC3: V3(), uBg: V3() };
       s.scene.add(new T.Mesh(new T.PlaneGeometry(2, 2), new T.ShaderMaterial({ uniforms: u, depthTest: false, fragmentShader: AURF,
         vertexShader: 'varying vec2 vUv; void main(){ vUv=uv; gl_Position=vec4(position.xy,0.0,1.0); }' })));
       s.theme = () => { const bg = s.rgb('--background'), dk = glDark(s), [a, b, d] = tint.map(n => s.rgb(n));
         u.uC1.value.fromArray(glMix(a, bg, dk ? .35 : .6)); u.uC2.value.fromArray(glMix(b, bg, dk ? .55 : .42)); u.uC3.value.fromArray(glMix(d, bg, dk ? .6 : .6)); u.uBg.value.fromArray(bg) };
-      s.resize = (w, h) => u.uR.value.set(w, h);
+      s.resize = (w, h) => { u.uR.value.set(w, h); u.uTop.value = Math.min(.5, 50 / h) };   // the status-bar fade: 50 px
       // a tab coming back on screen in TODAY counts as a wake: the frame saw no touch of its own while it was hidden
       s.running = () => { const sh = glShown(); if (sh && !bd.shown) bdSeen = performance.now(); bd.shown = sh;
         if (s.still || document.hidden || !sh || glSheet() || performance.now() - bdSeen > BD_IDLE) return false; try { return !!bd.active() } catch (e) { return false } };
