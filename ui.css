@@ -720,18 +720,25 @@ button.ui-wr-d:active{opacity:.6}
    shows its colour softly through. The filters are capsules like the pills. What's inside a card (cells, rows, fields)
    keeps its own solid colour, so numbers sit on something steady. Reduce Transparency: solid surfaces, no blur;
    Increase Contrast thickens the tint (--glass-clear) to nearly solid. */
-:root{--g-card:var(--glass-sheen),var(--glass-clear);--g-blur:var(--glass-clear-filter);--g-hi:var(--glass-rim);--g-line:var(--glass-edge);--g-drop:0 12px 30px -16px rgba(0,0,0,.3)}
+:root{--g-card:var(--glass-sheen),var(--glass-clear);--g-blur:var(--glass-clear-filter);--g-hi:var(--glass-rim);--g-line:var(--glass-edge);--g-drop:0 12px 30px -16px rgba(0,0,0,.3);
+  --g-in:var(--glass-sheen),var(--glass-clear);--g-in-hi:var(--glass-rim)}
 html body :is(.card,.ui-card){-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur)}
 /* text on the glass is a step stronger (--glass-t2 …, set with the palette above), so it keeps 4.5:1 over the
    backdrop's brightest colour; the apps' own names for the second text colour (--dim, --mu) follow it */
-html body :is(.card,.ui-card,.bar,#today .ci,#today .hero,#today .ins,#today .pl,#today .ywk){--text-secondary:var(--glass-t2);--text-muted:var(--glass-t3);
-  --success-text:var(--glass-ok);--error-text:var(--glass-bad);--warning-text:var(--glass-warn);--dim:var(--text-secondary);--mu:var(--text-secondary)}
+html body :is(.card,.ui-card,.ui-hero,.bar,#today .ci,#today .hero,#today .ins,#today .pl,#today .ywk){--text-secondary:var(--glass-t2);--text-muted:var(--glass-t3);
+  --success-text:var(--glass-ok);--error-text:var(--glass-bad);--warning-text:var(--glass-warn);--dim:var(--text-secondary);--mu:var(--text-secondary);--ui-dim:var(--text-secondary)}
+/* the Today card (UI.hero) is a card too: the same glass, its accent glow over it. The tiles and the day's list inside
+   it are the pills' glass again, without a blur of their own (the card's already softens what's behind) */
+html body .ui-hero{background:radial-gradient(120% 90% at 0% 0%,var(--accent-soft),transparent 60%),var(--g-card);box-shadow:var(--g-hi),var(--g-drop);
+  -webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur)}
+html body .ui-stat{background:var(--g-in);border-color:var(--g-line);box-shadow:var(--g-in-hi)}
+@media (min-width:700px){html body .ui-hero>.ui-hero-side{background:var(--g-in);border-color:var(--g-line);box-shadow:var(--g-in-hi)}}
 html body .bar select:not([multiple]):not([size]){border-radius:999px;border-color:var(--glass-edge);background-color:var(--glass-clear);box-shadow:var(--glass-rim);
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%2386868B' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"),var(--glass-sheen);
   background-position:right 14px center,0 0;background-size:10px 6px,100% 100%;padding-left:14px;-webkit-backdrop-filter:var(--g-blur);backdrop-filter:var(--g-blur)}
 html body .bar select:not([multiple]):not([size]):focus{border-color:var(--accent);
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%230071E3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"),var(--glass-sheen)}
-@media (prefers-reduced-transparency:reduce){:root{--g-card:var(--surface);--g-blur:none;--g-hi:0 0 transparent;--g-drop:0 0 transparent}
+@media (prefers-reduced-transparency:reduce){:root{--g-card:var(--surface);--g-blur:none;--g-hi:0 0 transparent;--g-drop:0 0 transparent;--g-in:var(--raised);--g-in-hi:0 0 transparent}
   html body .bar select:not([multiple]):not([size]){background-color:var(--raised);box-shadow:none}
-  html body :is(.card,.ui-card,.bar,#today .ci,#today .hero,#today .ins,#today .pl,#today .ywk){--text-secondary:inherit;--text-muted:inherit;--success-text:inherit;--error-text:inherit;--warning-text:inherit}}
+  html body :is(.card,.ui-card,.ui-hero,.bar,#today .ci,#today .hero,#today .ins,#today .pl,#today .ywk){--text-secondary:inherit;--text-muted:inherit;--success-text:inherit;--error-text:inherit;--warning-text:inherit}}
 

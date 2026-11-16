@@ -231,11 +231,12 @@ holds a colour of its own, so the palette changes in one file and every app foll
   sheet is open the backdrop also fades out (`html:has(dialog[open]) canvas.ui-bd`).
   It is modelled on the menus iOS draws itself: the page shows through, blurred (`--glass-filter`, 26 px) with its
   colours kept, under a light or dark tint (`--glass`; `--float` is the heavier tint for a sheet full of text), with
-  a light across it (`--glass-sheen`) and a bright rim (`--glass-rim`, carried by the shadows). Cards (TODAY's too)
-  and the filters are the pills' clear glass exactly: the same tint, blur, sheen, rim and edge (`--g-card`, `--g-blur`,
+  a light across it (`--glass-sheen`) and a bright rim (`--glass-rim`, carried by the shadows). Cards (TODAY's and
+  each app's Today card too) and the filters are the pills' clear glass exactly: the same tint, blur, sheen, rim and edge (`--g-card`, `--g-blur`,
   `--g-hi`), the filters capsules like the pills. For them to show colour the living backdrop (2m) fills the screen
-  behind the page and stays put as it scrolls, settling to a third of its colour below the top. What sits inside a card
-  (cells, rows, fields) keeps its own solid colour. Text on the glass is a step stronger (`--glass-t2`, `--glass-t3`,
+  behind the page and stays put as it scrolls, settling to a third of its colour below the top. The Today card's tiles
+  and its day's list are the same glass inside it, unblurred (`--g-in`); other things inside a card (cells, rows,
+  fields) keep their own solid colour. Text on the glass is a step stronger (`--glass-t2`, `--glass-t3`,
   `--glass-ok`, `--glass-bad`, `--glass-warn`), measured at 4.5:1 or better over the backdrop's brightest colour in
   all seven, dark and light. The cost is a blurred layer per card on screen over a moving backdrop; the backdrop rests
   after 20 seconds untouched. Reduce Transparency keeps them flat.
