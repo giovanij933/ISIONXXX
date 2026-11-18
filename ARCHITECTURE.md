@@ -347,7 +347,8 @@ two (2c's glass on the header pills, tab bar, menus, sheets, toasts, cards and f
   is what is written that way: acronyms (JSON, CSV, SQL, RPE, NSDR), contract codes (NQZ6), SQL and SAS keywords in
   LEARN's lessons, and an account name the person typed. The headers show only the ISIONXXX mark, as a round pill on
   phones; the app's name is still in the h1 for screen readers ("ISIONXXX MIND"), and the tab bar names the app. The
-  homepage shows the mark alone too. Internal keys stay as they are and are shown in words: TRAINING's days (PUSH → "Push day"), the breath cues
+  homepage and the affirmation page show the mark alone too. The mark is the same 22 × 21 px in every header on a phone,
+  centred in its pill, and the pills beside it (⋮ and the appearance switch) are 44 px circles in one line with it. Internal keys stay as they are and are shown in words: TRAINING's days (PUSH → "Push day"), the breath cues
   (INHALE → "Inhale"), REWIRE's app names (MIND → "Mind"). Card headers are 15 px semibold, a sheet's title 17 px.
 - **Capsules.** A button that is a line of text, every `.ui-btn` and every main button (`.pri`, `.go`) is a capsule.
   The main action keeps the accent fill; the others take a soft grey fill (`--fill`, `--fill-2` on hover) with the

@@ -178,10 +178,11 @@ dialog.dd{max-height:min(86vh,760px);overflow:auto;overscroll-behavior:contain}
 /* phones: TODAY's header floats as glass pieces like the apps' (ui.css): the name, the date, the sync dot. The page
    softens and fades as it slides under them (.ui-edge, drawn with the page) */
 @media(max-width:640px){
-  #today .th{top:8px;background:none;border-bottom:0;padding:0;margin:8px 0 14px;align-items:center;z-index:8}
+  #today .th{top:8px;background:none;border-bottom:0;padding:0;margin:8px 0 14px;align-items:center;gap:8px;z-index:8}
   #today .th :is(.brand,.dt,#isx-sync){background:var(--glass-sheen),var(--glass-clear);border:1px solid var(--glass-edge);box-shadow:var(--shadow-float);-webkit-backdrop-filter:var(--glass-clear-filter);backdrop-filter:var(--glass-clear-filter)}
   #today .th .brand{display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;margin:0;border-radius:50%}
   #today .th .brand>.ui-brand-a{display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;margin:0;border-radius:50%}
+  #today .th .ui-brand-mark{display:block;width:22px;height:21px}
   #today .th .acts{display:flex;align-items:center;gap:8px}
   #today .th .dt{display:inline-flex;align-items:center;gap:.3em;height:44px;padding:0 16px;border-radius:999px}
   #today .th #isx-sync{margin:0;width:44px;height:44px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}

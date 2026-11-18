@@ -426,7 +426,7 @@ html body .tw{border-radius:var(--g-r2)}
 html body .hb,html body .hb i,html body .ui-meter-bar,html body .ui-meter-bar i,html body .ui-week i{border-radius:999px}
 html body svg.chart rect:not(.hit){rx:2px}
 /* controls */
-html body :is(button,.btn,select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea):not(.ui-lf):not(.tl-go):not(.cd):not(.cell):not(.ui-seg>*):not(nav *):not(.ui-stat):not(.ui-btn):not(.pri):not(.go):not(button:not(:has(*))):not(.btn:not(:has(*))){border-radius:var(--g-r3)}
+html body :is(button,.btn,select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea):not(.ui-lf):not(.tl-go):not(.cd):not(.cell):not(.ui-seg>*):not(nav *):not(.ui-stat):not(.ui-btn):not(.pri):not(.go):not(.ui-more-btn):not(button:not(:has(*))):not(.btn:not(:has(*))){border-radius:var(--g-r3)}
 html body :is(select,input:not([type=checkbox]):not([type=radio]):not([type=range]),textarea){background-color:var(--raised);border-color:var(--g-line2)}
 /* Liquid Glass (ARCHITECTURE.md, 2l): a button that is a line of text is a capsule. The main action keeps the accent
    fill; the others take a soft grey fill instead of an outline, with the text colour, so colour stays for what matters.
@@ -576,7 +576,7 @@ html body header.top:not(.th)::before{content:'';position:absolute;z-index:-1;in
   -webkit-backdrop-filter:var(--glass-clear-filter);backdrop-filter:var(--glass-clear-filter)}
 html body header.top:not(.th) .brand{line-height:22px}
 .ui-more{position:relative;flex:none;display:flex;align-self:stretch}
-html body .ui-more-btn{min-width:44px;display:inline-flex;align-items:center;justify-content:center;line-height:1}
+html body .ui-more-btn{min-width:44px;display:inline-flex;align-items:center;justify-content:center;line-height:1;border-radius:999px}
 /* the three dots are drawn, not typed, so they sit centred and round in every app and font */
 .ui-more-h,.ui-more-v{display:block;flex:none;background:radial-gradient(circle,currentColor 1.7px,transparent 2.2px)}
 .ui-more-h{width:18px;height:6px;background-size:6px 6px;background-repeat:repeat-x}
@@ -622,7 +622,8 @@ html body .brand>.ui-brand-a:active{opacity:.7}
     -webkit-backdrop-filter:var(--glass-clear-filter);backdrop-filter:var(--glass-clear-filter)}
   html body header.top:not(.th) .brand{display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;margin:0;border-radius:50%}
   html body header.top:not(.th) .brand>.ui-brand-a{display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;margin:0;border-radius:50%}
-  html body header.top:not(.th) .acts{flex:1 1 auto;justify-content:flex-end;align-items:center;gap:8px}
+  html body header.top:not(.th) .ui-brand-mark{display:block;width:22px;height:21px}
+  html body header.top:not(.th) .acts{flex:1 1 auto;justify-content:flex-end;align-items:center;gap:8px;padding-bottom:0}
   html body header.top:not(.th) .acts>:is(button.pri,.go){border-radius:999px;min-height:44px}
   html body header.top:not(.th) .ui-more{align-self:center}
   html body header.top:not(.th) .ui-more-btn{width:44px;min-width:44px;height:44px;padding:0;border-radius:50%}
@@ -635,7 +636,6 @@ html body .brand>.ui-brand-a:active{opacity:.7}
     -webkit-backdrop-filter:blur(4px);backdrop-filter:blur(4px);-webkit-mask-image:linear-gradient(#000 35%,transparent);mask-image:linear-gradient(#000 35%,transparent);
     background:linear-gradient(color-mix(in srgb,var(--background) 55%,transparent),color-mix(in srgb,var(--background) 12%,transparent) 70%,transparent)}
 }
-@media (max-width:374px){html body header.top:not(.th) .ui-brand-mark{width:1.4em;height:1.34em}}
 @media (prefers-reduced-transparency:reduce){html body header.top:not(.th)::before,.ui-more-pop,html body header.top:not(.th) :is(.brand,.ui-more-btn,#isx-sync.inl){background:var(--float-solid);-webkit-backdrop-filter:none;backdrop-filter:none}
   .ui-edge{-webkit-backdrop-filter:none;backdrop-filter:none}}
 @media (prefers-reduced-motion:reduce){.ui-more-pop{animation:none}}

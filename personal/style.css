@@ -33,6 +33,8 @@ body { padding: env(safe-area-inset-top) env(safe-area-inset-right) env(safe-are
    up with the letters whatever the font's metrics, at every size. 44 px tall for touch */
 .wordmark { display: inline-block; min-width: 44px; line-height: 44px; text-align: center; white-space: nowrap; font-size: 15px; font-weight: 600; letter-spacing: .06em; }
 .wordmark .ui-brand-mark { vertical-align: -.4em; }
+.header .wordmark { display: inline-flex; align-items: center; justify-content: center; height: 44px; }
+.header .wordmark .ui-brand-mark { display: block; width: 22px; height: 21px; }
 .main-nav { display: flex; gap: 6px; margin-left: auto; text-transform: uppercase; font-size: 11px; letter-spacing: .05em; color: var(--dim); }
 .main-nav a { display: inline-flex; align-items: center; min-height: 44px; padding: 0 8px; }
 .main-nav a:hover { color: var(--accent-text); }
