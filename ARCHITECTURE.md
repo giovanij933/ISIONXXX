@@ -345,8 +345,9 @@ two (2c's glass on the header pills, tab bar, menus, sheets, toasts, cards and f
   tab bar's "Mind"): Apple's section headers "no longer render entirely in capital letters". No rule sets
   `text-transform: uppercase` (the release check fails one), and no label is typed in capitals. What stays in capitals
   is what is written that way: acronyms (JSON, CSV, SQL, RPE, NSDR), contract codes (NQZ6), SQL and SAS keywords in
-  LEARN's lessons, an account name the person typed, and the app's name in its own header, the wordmark beside the
-  mark. Internal keys stay as they are and are shown in words: TRAINING's days (PUSH → "Push day"), the breath cues
+  LEARN's lessons, and an account name the person typed. The headers show only the ISIONXXX mark, as a round pill on
+  phones; the app's name is still in the h1 for screen readers ("ISIONXXX MIND"), and the tab bar names the app. The
+  homepage shows the mark alone too. Internal keys stay as they are and are shown in words: TRAINING's days (PUSH → "Push day"), the breath cues
   (INHALE → "Inhale"), REWIRE's app names (MIND → "Mind"). Card headers are 15 px semibold, a sheet's title 17 px.
 - **Capsules.** A button that is a line of text, every `.ui-btn` and every main button (`.pri`, `.go`) is a capsule.
   The main action keeps the accent fill; the others take a soft grey fill (`--fill`, `--fill-2` on hover) with the

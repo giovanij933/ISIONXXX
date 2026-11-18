@@ -742,15 +742,17 @@
     }), Object.assign(document.createElement('hr'), { className: 'ui-more-sep' }));
     acts.append(wrap);
   }
-  // the header reads "ISIONXXX JOURNAL": the ISIONXXX name shows as its mark (ui.css), and screen readers still hear
-  // it. The name links to the personal homepage, which sits beside the apps the way GitHub Pages serves them
-  // (/ISIONXXX/personal/). Inside the TODAY shell the whole window goes there, not the app's frame.
+  // the header shows only the ISIONXXX mark (ui.css): the h1 still reads "ISIONXXX JOURNAL" to a screen reader (the
+  // mark's label, then the app's name, hidden from sight), and the tab bar says which app this is. The mark links to
+  // the personal homepage, which sits beside the apps the way GitHub Pages serves them (/ISIONXXX/personal/). Inside the
+  // TODAY shell the whole window goes there, not the app's frame.
   const brandInit = () => document.querySelectorAll('header.top:not(.th) .brand').forEach(h => {
     const t = h.firstChild;
     if (t?.nodeType === 3 && /^\s*ISIONXXX\s/.test(t.textContent)) {
       const s = document.createElement('span'); s.className = 'ui-brand-pre';
       const m = document.createElement('span'); m.className = 'ui-brand-mark'; m.setAttribute('role', 'img'); m.setAttribute('aria-label', 'ISIONXXX');
       s.append(m); h.insertBefore(s, t); t.textContent = t.textContent.replace(/^\s*ISIONXXX\s+/, '');
+      const n = document.createElement('span'); n.className = 'ui-sr'; h.insertBefore(n, t); n.append(t);
     }
     if (h.querySelector('.ui-brand-a')) return;
     const a = document.createElement('a'); a.className = 'ui-brand-a'; a.href = '../ISIONXXX/personal/'; a.target = '_top';
