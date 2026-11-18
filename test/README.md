@@ -96,6 +96,10 @@ Each run serves the apps side by side from one local origin, the way GitHub Page
 - Every other app comes from `main`. If that repo has a branch with the same name as the PR's branch, that branch
   is merged in first. A change made across repos on one branch (a shared-file update, say) is then tested together.
 
+The workflows run in Playwright's own container image (`mcr.microsoft.com/playwright`), the same version as the
+`playwright` pinned in `package.json`: Chromium, WebKit and their system packages are already in it, so a run installs
+nothing from Ubuntu's package servers. Bump the image tag in all seven workflows together with that pin.
+
 A full run of all seven apps takes about 4 minutes.
 
 ## Run it locally

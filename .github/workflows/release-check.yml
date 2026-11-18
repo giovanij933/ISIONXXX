@@ -14,8 +14,13 @@ concurrency:
   cancel-in-progress: true
 jobs:
   check:
-    # the Playwright pinned in ISIONXXX/test/package.json (1.56) installs its browser on Ubuntu up to 24.04
     runs-on: ubuntu-24.04
+    # Playwright's own image, the same version as the one pinned in ISIONXXX/test/package.json (change both together):
+    # Chromium, WebKit and the system packages they need are already in it, so a run installs nothing from Ubuntu's
+    # package servers (when those were slow, installing them used up the whole time limit)
+    container:
+      image: mcr.microsoft.com/playwright:v1.56.1-noble
+      options: --ipc=host
     timeout-minutes: 25
     steps:
       - uses: actions/checkout@v5

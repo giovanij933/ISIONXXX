@@ -10,7 +10,10 @@ bash "$HERE/site.sh" "$APP" "$SELF"
 # the harness as it will be merged: this PR's own in the shell's repo, else main with any same-named branch merged in
 T=$SITE/ISIONXXX/test
 npm ci --prefix "$T" --no-audit --no-fund
-"$T/node_modules/.bin/playwright" install --with-deps chromium webkit
+# in Playwright's image (the workflows run in it) the browsers and their system packages are already there; anywhere else
+# they're installed, with the packages from Ubuntu's servers
+if [ -d /ms-playwright ]; then "$T/node_modules/.bin/playwright" install chromium webkit
+else "$T/node_modules/.bin/playwright" install --with-deps chromium webkit; fi
 # both run, so one failing doesn't hide the other's result
 rc=0
 if [ "$APP" = ISIONXXX ]; then node "$T/ship.js" || rc=$?; else node "$T/ship.js" "$APP" ISIONXXX || rc=$?; fi
