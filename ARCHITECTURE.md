@@ -416,7 +416,10 @@ you open:
 7. Three breakdowns.
 8. More, only where an app has it: JOURNAL's time and instrument cards, MIND's practice table, NUTRITION's week planner
    and body weight, LEARN's tracks.
-9. The log.
+9. The log. On a phone each row is two lines (`table.ui-lg` in ui.css): what it was and its key figure (P&L, mood
+   shift, change vs last time, kcal, what happened, result) with the row's buttons, then when and a short summary of
+   the other columns. The table's header becomes a row of its columns' sort and filter buttons. Wider screens keep the
+   full table.
 
 The cards in each slot are the app's own: a trading calendar and a meal calendar can't be one card. What's shared is
 the order, and Up next, which is one component.

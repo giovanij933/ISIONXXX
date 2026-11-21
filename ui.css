@@ -543,6 +543,37 @@ html body .card:not(:has(:is(.lg,.lr)>em:not(:empty))) :is(.lg,.lr)>em{display:n
     animation:ui-tw-more linear both;animation-timeline:scroll(self inline)}
   @keyframes ui-tw-more{0%,88%{--tw-fade:44px}100%{--tw-fade:0px}}
 }
+/* Logs on phones (a table marked ui-lg): each row is two lines instead of a table scrolled sideways, where only the
+   time and the name fitted and the numbers that matter sat off the screen. Line one is what it was (.lm, with .ln
+   beside it), then its key figure (.lk: P&L, mood shift, kcal, result) and the row's buttons (.la) on the right; a
+   long name is cut short with "…" rather than pushing them down. Line two is a summary only phones show (.lp): when,
+   then the figures the full table spreads over its other columns. Those other cells are for wider screens. .lu is a
+   unit only phones add ("160" under the table's kcal heading reads "160 kcal" on its own). The header becomes a row of
+   the columns' sort and filter buttons, scrolled sideways when it doesn't fit. Rows keep the cells' 10 px inset: some
+   cards (NUTRITION's, LEARN's) run the table to their edges and leave that inset to the cells. */
+html body table.ui-lg td.lp,html body table.ui-lg .lu{display:none}
+@media (max-width:640px){
+  html body table.ui-lg{display:block;width:100%;min-width:0}
+  html body table.ui-lg>:is(thead,tbody){display:block}
+  html body table.ui-lg>thead>tr{display:flex;gap:6px;overflow-x:auto;padding:2px 10px 8px;scrollbar-width:none}
+  html body table.ui-lg>thead>tr::-webkit-scrollbar{display:none}
+  html body table.ui-lg>thead th{display:block;flex:none;padding:0;border:0}
+  html body table.ui-lg>thead th:not(:has(.ui-lf)){display:none}
+  html body table.ui-lg .ui-lf{min-height:32px;padding:0 11px;border:1px solid var(--border-soft);border-radius:999px;font-size:12px}
+  html body table.ui-lg>tbody>tr{display:grid;grid-template-columns:minmax(0,auto) minmax(0,1fr) auto auto;align-items:center;column-gap:8px;row-gap:3px;
+    padding:10px;border-bottom:1px solid var(--border-soft)}
+  html body table.ui-lg>tbody td{display:none;padding:0;border:0;white-space:nowrap;text-align:left;box-shadow:none}
+  html body table.ui-lg>tbody td[colspan]{display:block;grid-column:1/-1;padding:18px 0}
+  html body table.ui-lg>tbody td:is(.lm,.ln,.lk,.la){display:block;grid-row:1;font-size:15px}
+  html body table.ui-lg>tbody td.lm{grid-column:1;overflow:hidden;text-overflow:ellipsis;color:var(--text-primary)}
+  html body table.ui-lg>tbody td.ln{grid-column:2;overflow:hidden;text-overflow:ellipsis;color:var(--text-secondary);font-size:13px}
+  html body table.ui-lg>tbody td.lk{grid-column:3;text-align:right}
+  html body table.ui-lg>tbody td.la{grid-column:4}
+  html body table.ui-lg>tbody td.lp{display:block;grid-row:2;grid-column:1/-1;white-space:normal;font-size:13px;color:var(--text-secondary)}
+  html body table.ui-lg .lu{display:inline}
+  html body table.ui-lg>tbody tr:has(button) td{padding-top:0;padding-bottom:0}
+  html body :is(#app,#top) .tw:has(>table.ui-lg){overflow:visible;-webkit-mask-image:none;mask-image:none;animation:none}
+}
 
 /* phones: labels, tags, badges, section heads and chart axis labels at 11 px, Apple's minimum for legible text (they
    were 10 px). The calendar's per-day figures and TODAY's tab bar stay smaller: they have to fit seven to a row */
