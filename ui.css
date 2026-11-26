@@ -799,3 +799,70 @@ html body .ui-status.ui-bad{border-color:transparent;background:color-mix(in srg
 @media (max-width:360px){html body .g4 :is(.card,.bd):has(>.gauge)>.big{font-size:24px}}
 /* the calendar's month bar (< November 2026 > Today Week) wraps on a 320 px phone instead of running off the card */
 html body .calf>div{flex-wrap:wrap;row-gap:8px;min-width:0}
+/* ---------- premium session sheets (ARCHITECTURE.md 2s) ----------
+   MIND's session, TRAINING's workout, REWIRE's surf (dialog.ss) and NUTRITION's cook mode (.box.ss), in the sleep
+   screens' language: a 17 px title, 15 px section heads, choices as filled rounded tiles instead of hairline lists,
+   filled callouts, a big thin clock, and large capsule buttons along the bottom. Each app keeps its own layout. */
+html body :is(dialog.ss,.box.ss){--ss-fill:color-mix(in srgb,var(--text-muted) 13%,transparent);--ss-on:color-mix(in srgb,var(--accent) 18%,transparent)}
+html body dialog.ss h3,html body .box.ss .ckh h3{font-size:17px!important;font-weight:600;letter-spacing:-.01em!important;color:var(--text-primary);margin-top:2px;margin-bottom:16px}
+html body .box.ss .ckh h3{margin:0}
+html body dialog.ss h3 .dim{font-weight:500}
+/* section heads */
+html body dialog.ss :is(form,div)>span.k,html body dialog.ss :is(form,.fgrid)>label,html body .box.ss :is(.lbl,.sec){font-size:15px;font-weight:600;color:var(--text-primary);letter-spacing:-.005em}
+html body dialog.ss label :is(input,select,textarea),html body .box.ss label :is(input,select,textarea){font-weight:400}
+html body dialog.ss p.dim.c,html body dialog.ss .pw{font-size:13px}
+/* choices: one rounded group per list, rows split by thin lines (as in iOS Settings; tiles with gaps pushed TRAINING's
+   Log set under the buttons), the picked row tinted, with a filled radio */
+html body :is(dialog.ss,.box.ss){--ss-line:color-mix(in srgb,var(--text-muted) 16%,transparent)}
+html body dialog.ss :is(.vl,.xl,.plan),html body .box.ss .vl{gap:0;border:0;border-radius:18px;overflow:hidden;background:var(--ss-fill);margin-top:8px}
+html body dialog.ss .xl{margin-top:0}
+html body :is(dialog.ss,.box.ss) .vl>button,html body dialog.ss .vl>.tqr,html body dialog.ss .xl>button,html body dialog.ss .xl>.xrw,html body dialog.ss .plan>.prw{
+  border:0;border-bottom:1px solid var(--ss-line);border-radius:0!important;background:none;padding-left:14px;padding-right:14px;font-size:15px;color:var(--text-primary)}
+html body dialog.ss .plan>.prw{padding-left:10px;padding-right:8px}
+html body :is(dialog.ss,.box.ss) :is(.vl,.xl,.plan)>:last-child{border-bottom:0}
+html body dialog.ss .vl>.tqr>button,html body dialog.ss .xl>.xrw>button{background:none;padding-left:0;font-size:15px;border-radius:0!important}
+html body :is(dialog.ss,.box.ss) .vl>button.on,html body dialog.ss .vl>.tqr:has(>button.on),html body dialog.ss .xl>button.on,html body dialog.ss .xl>.xrw:has(>button.on){background:var(--ss-on)}
+html body :is(dialog.ss,.box.ss) .vl button.on,html body dialog.ss .xl button.on{color:var(--text-primary)}
+html body :is(dialog.ss,.box.ss) :is(.vl,.xl) button::before{width:20px;height:20px;box-sizing:border-box;border:1.5px solid color-mix(in srgb,var(--text-muted) 70%,transparent)}
+html body :is(dialog.ss,.box.ss) :is(.vl,.xl) button.on::before{border:0;background:radial-gradient(circle,#fff 0 3.5px,var(--accent) 4px)}
+html body :is(dialog.ss,.box.ss) .vl.multi button::before{border-radius:6px}
+html body :is(dialog.ss,.box.ss) .vl.multi button.on::before{background:var(--accent);color:#fff;font-size:12px}
+html body dialog.ss .xl button.dn::before{border:0;background:var(--success)}
+html body :is(dialog.ss,.box.ss) :is(.vl,.xl) em{font-size:12.5px;color:var(--text-muted)}
+html body :is(dialog.ss,.box.ss) :is(.vl,.xl) button.on em{color:var(--accent-text)}
+html body dialog.ss .plan>.prw{padding-top:11px;padding-bottom:11px}
+html body dialog.ss .prw b{font-size:14px;font-weight:600}html body dialog.ss .prw small{font-size:12.5px}
+html body dialog.ss .prw button{font-size:12.5px;letter-spacing:0;padding:7px 6px}
+/* scales (1-10), chips and segmented bars: filled, no outlines */
+html body dialog.ss .rate{gap:8px}
+html body dialog.ss .rate button{min-height:48px;font-size:17px;font-weight:600;letter-spacing:0}
+html body dialog.ss .chips button,html body .box.ss .chips>*{font-size:15px;letter-spacing:0;padding:10px 16px;border-color:transparent}
+html body dialog.ss .chips button:not(.on){background:var(--ss-fill)}
+html body dialog.ss .seg{border:0;border-radius:999px;background:var(--ss-fill);padding:3px;gap:2px}
+html body dialog.ss .seg button{border:0;border-radius:999px;font-size:15px;letter-spacing:0;padding:10px 2px}
+/* callouts: a tinted card, no outline */
+html body dialog.ss :is(.sg,.pf),html body .box.ss :is(.tip,.ns){border:0;border-radius:18px;padding:14px 16px;background:var(--ss-on)}
+html body .box.ss .ns{background:var(--ss-fill)}
+html body dialog.ss :is(.sg p,.pf){font-size:14px}
+html body dialog.ss :is(.sg p b,.pf b){font-size:13px;letter-spacing:0;color:var(--accent-text)}
+/* fields */
+html body :is(dialog.ss,.box.ss) :is(textarea,select,input:not([type=checkbox]):not([type=radio]):not([type=range])){border-color:transparent;background-color:var(--ss-fill);border-radius:14px}
+html body dialog.ss .pm,html body .box.ss .step button{border:0;background:var(--ss-fill)}
+/* live: a big thin clock, the cue a size up */
+html body dialog.ss .clock{font-size:64px;font-weight:200;letter-spacing:-.01em}
+html body dialog.ss .cue{font-size:13px;letter-spacing:.02em}html body dialog.ss .cue em{font-size:40px;font-weight:200}
+html body dialog.ss .gp{font-size:17px}
+/* the buttons along the bottom: large capsules */
+html body dialog.ss .fa2>button,html body .box.ss .mact .btn,html body dialog.ss button.pri:not(.fa2>*){min-height:54px;font-size:17px;font-weight:600;letter-spacing:0;text-transform:none}
+html body dialog.ss .fa2>button:not(.ghost){flex:1 1 auto;white-space:nowrap}
+html body dialog.ss button.pri:not(.fa2>*){min-height:50px}
+html body dialog.ss .fa2>.ghost{font-weight:500;color:var(--text-secondary);padding-left:10px;padding-right:10px}
+html body dialog.ss .fa2:has(>button:nth-of-type(3))>button{font-size:16px}
+html body dialog.ss .fa2:has(>button:nth-of-type(4))>button{min-height:50px;font-size:14px;padding-left:8px;padding-right:8px;white-space:normal}
+html body dialog.ss .fa2:has(>button:nth-of-type(4))>button.pri{flex:1 0 100%;min-height:54px;font-size:17px}
+@media (max-width:374px){html body dialog.ss .fa2:has(>button:nth-of-type(3))>button{font-size:14px;white-space:normal;padding-left:8px;padding-right:8px}}
+html body dialog.ss .fa2{padding-top:18px;background:linear-gradient(transparent,var(--bg,var(--background)) 16px)}
+html body dialog.ss .fa2:has(>span:not(:empty)){padding-top:30px;background:linear-gradient(transparent,var(--bg,var(--background)) 26px)}
+html body .box.ss .tmr{border:0;border-radius:999px;background:var(--ss-on);color:var(--accent-text);font-size:13px;font-weight:600;letter-spacing:0}
+html body .box.ss .stp>b{border:0;border-radius:50%;background:var(--ss-fill);font-size:12px}
+html body .box.ss .stp{border-bottom-color:transparent}
