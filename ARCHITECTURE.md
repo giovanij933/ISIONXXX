@@ -473,6 +473,20 @@ app and TODAY. Most of it is the last block of `ui.css`, so the seven stay ident
   without lines between them and its buttons filled capsules, card titles 20 px.
 The cost is length: a page is about 10-15% taller, so there is a little more to scroll.
 
+**2s. Premium session sheets.** MIND's session, TRAINING's workout, REWIRE's surf (`dialog.ss`) and NUTRITION's cook
+mode (`.box.ss`) take the same look, from one block at the end of `ui.css`; each app keeps its own layout:
+- a 17 px semibold title, 15 px section heads, the live clock 64 px and thin;
+- every list of choices is one rounded group with thin lines between rows (iOS Settings style), the picked row tinted,
+  with a filled radio (a rounded box where you can pick several). Separate tiles with gaps were tried first: they pushed
+  TRAINING's Log set under the bottom buttons, so the live workout is now as tall as before (Log set ends within 4 px
+  of where it did);
+- scales (1-10), chips and segmented bars are filled, without outlines; callouts ("Suggested", "Pre-filled") a tinted
+  card;
+- the bottom buttons are 54 px capsules at 17 px, 16 px with three, 14 px with four, where the main one takes its own
+  full-width row; on one line while they fit (they may wrap on a 320 px phone). The footer's fade is short, and taller
+  only when it shows a hint, so the hint never sits over the list;
+- labels in sentence case: TRAINING's "Next ›" and "‹ Back", REWIRE's "Inhale" / "Exhale" (they were capitals).
+
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL
 would tie every app's offline start-up and update timing to the shell's deploy. That would also break the
