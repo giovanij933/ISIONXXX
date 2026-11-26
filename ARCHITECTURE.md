@@ -47,7 +47,7 @@ change. A copy that drifts is a bug.
 | LEARN | `xl.progress.v1` `xl.events.v1` `xl.sessions.v1` `xl.drafts.v1` `xl.settings.v1` `xl.videos.v1` |
 | JOURNAL | `isx.journal.v1` |
 | REWIRE | `isx.rewire.v1` |
-| Shell | `isx.checkin.v1` (also read by the apps) |
+| Shell | `isx.checkin.v1` (also read by the apps: `log`, the check-ins; `outs`, the check-outs, is TODAY's own) |
 
 Every app also writes `isx.plan.<app>` (local only, never synced) through `UI.planner` in ui.js: the session its START
 would begin next, with a signature of the keys it was built from and the day, for TODAY's plan card.
@@ -441,6 +441,18 @@ clean days, slips, urges beaten, triggers and the busiest hour; LEARN study agai
 accuracy and tracks. JOURNAL keeps its own, richer one (rules, max loss, morning and afternoon), and its Done marks the
 week reviewed for its weekend plan. Every app opens its review from a Week button under its calendar and from act
 `week`, which is what each row of TODAY's Your week sends.
+
+**2q. Check out at night, check in on waking: sleep is worked out, not guessed.** From 7 PM TODAY's check-in card gives
+way to a check-out: rate the day if you like (Rough to Great) and tap Check out as you go to bed. The next morning's
+check-in counts the sleep from that bedtime to now, so checking in on waking is all it takes; both times can be
+changed for a late check-in, and a bedtime after the wake time isn't saved. Without a check-out it is the hours
+stepper, as before. A night is named by its evening (before 4 AM it is still last night), so a check-out at 12:40 AM
+counts for the night it ends. Once checked out, the hero says when, with Still up (bedtime moves to now) and Clear;
+a saved check-in's Edit opens the form with Clear, which deletes it, both with Undo. The hero adds the last week's
+sleep: the average, nights of 7 h or more and, after three check-outs, the usual bedtime and how far it wanders. The
+day's rating feeds TODAY's insights (how you rate days after 7+ h of sleep against shorter nights).
+`isx.checkin.v1` keeps its `log` of check-ins, now with `bed` and `wake` when they came from a check-out (`sleep`
+stays hours, to a tenth, for every app that reads it), and adds `outs`: one record a night, `co-<night>`.
 
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL
