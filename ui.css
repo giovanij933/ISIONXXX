@@ -398,7 +398,7 @@ button.ui-stat:focus-visible{outline:1px solid var(--accent);outline-offset:2px}
    Scoped with "html body" so it wins over each app's own (later, equal-weight) rules. The tokens below are the flat
    fallback (a card --surface on the --background page); the end of this file makes cards and the filters the pills'
    clear glass over the plain page, as on the personal homepage, and Reduce Transparency brings the flat look back. */
-:root{--g-r:22px;--g-r2:14px;--g-r3:12px;--g-line:transparent;--g-line2:var(--border);
+:root{--g-r:26px;--g-r2:16px;--g-r3:12px;--g-line:transparent;--g-line2:var(--border);
   --g-card:var(--surface);--g-hi:0 0 transparent;
   --g-drop:0 0 transparent;--g-spring:cubic-bezier(.32,.72,0,1)}
 /* The page is one flat colour. (It used to carry a glow that followed the mouse; a picture behind the cards is also
@@ -521,11 +521,11 @@ html body .card:not(:has(:is(.lg,.lr)>em:not(:empty))) :is(.lg,.lr)>em{display:n
 /* Phones: the four cards under the filters put their dial beside the figure instead of under it. Stacked, each card
    was a screen-third of mostly empty space around a small dial, and the four took a screen and a half */
 @media (max-width:640px){
-  html body .g4>.card:has(>.gauge),html body .g4>.card>.bd:has(>.gauge){display:grid;grid-template-columns:minmax(0,1fr) 116px;column-gap:12px;align-content:start}
+  html body .g4>.card:has(>.gauge),html body .g4>.card>.bd:has(>.gauge){display:grid;grid-template-columns:minmax(0,1fr) 104px;column-gap:12px;align-content:start}
   html body .g4 :is(.card,.bd):has(>.gauge)>*{grid-column:1/-1}
   html body .g4 :is(.card,.bd):has(>.gauge)>:is(.k,.lbl,.big){grid-column:1}
-  html body .g4 :is(.card,.bd):has(>.gauge)>.big{font-size:26px;margin-bottom:12px;align-self:start}
-  html body .g4 :is(.card,.bd):has(>.gauge)>.gauge{grid-column:2;grid-row:2/span 2;width:116px;margin:0 0 10px;align-self:center}
+  html body .g4 :is(.card,.bd):has(>.gauge)>.big{font-size:28px;margin-bottom:12px;align-self:start}
+  html body .g4 :is(.card,.bd):has(>.gauge)>.gauge{grid-column:2;grid-row:2/span 2;width:104px;margin:0 0 10px;align-self:center}
   /* tables: rows with their own buttons sit a little closer (the buttons keep their size, and set the row's height;
      a row that is itself the thing to tap keeps its padding, or it would be under 30 px) */
   html body .tw tr:has(button) td{padding-top:5px;padding-bottom:5px}
@@ -763,4 +763,39 @@ html body .bar select:not([multiple]):not([size]):focus{border-color:var(--accen
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='10' height='6' viewBox='0 0 10 6'%3E%3Cpath d='M1 1l4 4 4-4' fill='none' stroke='%230071E3' stroke-width='1.5' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E"),var(--glass-sheen)}
 @media (prefers-reduced-transparency:reduce){:root{--g-card:var(--surface);--g-blur:none;--g-hi:0 0 transparent;--g-drop:0 0 transparent;--g-in:var(--raised);--g-in-hi:0 0 transparent}
   html body .bar select:not([multiple]):not([size]){background-color:var(--raised);box-shadow:none}}
-
+/* ---------- premium: big confident figures, full rings, more air, fewer grey lines (ARCHITECTURE.md 2r) ----------
+   The sleep screens' language in every app. Cards have more room and rounder corners (--g-r above); a card's title is
+   17 px, its main figure bold and tight; the dials are full rings (each app's gauge()); the Today card's tiles are
+   filled instead of outlined; legend markers are dots; status chips are filled capsules. Placed last: it wins over the
+   phone sizes above. */
+html body :is(.g,.grid){gap:14px;margin-bottom:14px}
+html body .card:not(.ui-nx):not(:has(>.bd)),html body .card>.bd,html body .ui-card{padding:20px 20px 18px}
+html body :is(.card>.h,.card>.rowh>.h,.card>.bd>h3,.card>h3,.ui-card-head h3){font-size:17px;font-weight:600;letter-spacing:-.01em;color:var(--text-primary)}
+html body .card :is(.k,.lbl){font-size:13px;color:var(--text-muted)}
+html body .card .big{font-size:28px;font-weight:700;letter-spacing:-.035em;line-height:1.1;font-variant-numeric:tabular-nums}
+html body .card :is(.lg,.lr){padding-top:5px;padding-bottom:5px;font-size:14px}
+html body :is(.lg,.lr)>i,html body .card .dot{border-radius:50%}
+html body svg.chart rect:not([fill=none]){rx:3px}
+/* the Today card */
+html body .ui-hero{padding:20px 18px 18px}
+html body .ui-hero h2{font-size:28px;font-weight:700;letter-spacing:-.025em}
+html body .ui-hero .ui-sub{font-size:14px;margin-top:6px}
+html body .ui-stats{gap:10px;margin:18px 0 6px}
+html body .ui-stat{border:0;border-radius:18px;padding:12px 14px;gap:2px;box-shadow:none;background:color-mix(in srgb,var(--text-muted) 12%,transparent)}
+html body button.ui-stat:hover{background:color-mix(in srgb,var(--text-muted) 18%,transparent)}
+html body .ui-stat.ui-on{background:var(--accent-soft);box-shadow:inset 0 0 0 1px var(--accent-line)}
+html body .ui-stat .ui-stat-l{font-size:12.5px}
+html body .ui-stat b{font-size:clamp(19px,5.4vw,25px);font-weight:700;letter-spacing:-.025em}
+/* four tiles in a row (a tablet or wider): sized to the tile, so "122h 10m" isn't cut off */
+@container (min-width:481px){html body .ui-stat b{font-size:clamp(19px,3.6cqi,23px)}}
+html body .ui-stat small{font-size:12px}
+html body .ui-hero-side{border-top-color:transparent;margin-top:10px}
+/* status chips */
+html body .ui-status{border-color:transparent;padding:4px 10px;font-size:12px;background:color-mix(in srgb,var(--text-muted) 14%,transparent)}
+html body .ui-status:is(.ui-ok,.ui-live){border-color:transparent;background:color-mix(in srgb,var(--success) 16%,transparent)}
+html body .ui-status.ui-bad{border-color:transparent;background:color-mix(in srgb,var(--error) 16%,transparent)}
+@media (prefers-contrast:more){html body :is(.ui-stat,.ui-status){box-shadow:inset 0 0 0 1px var(--border)}}
+/* the small phones (360 px and under): a card's figure beside its ring a step smaller, so LEARN's "Practitioner" fits */
+@media (max-width:360px){html body .g4 :is(.card,.bd):has(>.gauge)>.big{font-size:24px}}
+/* the calendar's month bar (< November 2026 > Today Week) wraps on a 320 px phone instead of running off the card */
+html body .calf>div{flex-wrap:wrap;row-gap:8px;min-width:0}

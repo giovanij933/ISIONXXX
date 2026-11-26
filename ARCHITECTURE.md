@@ -459,6 +459,20 @@ ends. The day's rating feeds TODAY's insights (how you rate days after 7+ h of s
 `isx.checkin.v1` keeps its `log` of check-ins, now with `bed` and `wake` (`sleep` stays hours, to a tenth, for every app
 that reads it), and adds `outs`: one record a night, `co-<night>`.
 
+**2r. Premium: big confident figures, full rings, more air, fewer grey lines.** The sleep screens' look, in every
+app and TODAY. Most of it is the last block of `ui.css`, so the seven stay identical:
+- cards: 20 px inside, 26 px corners (`--g-r`), 14 px apart; a card's title 17 px semibold; its main figure 28 px bold
+  and tight (24 px beside a ring on a phone of 360 px or less, so LEARN's "Practitioner" fits);
+- the dials are full rings with round ends, 120 px, the figure 22 px bold in the middle (16 px when it is longer than
+  6 characters, "1240 XP"). Each app's `gauge()` draws it from 12 o'clock, clockwise, with the same segments, picks
+  and tooltips as the half-circle it replaces; on a phone the ring sits beside the figure, 104 px;
+- the Today card: a 28 px title; the four tiles filled, without outlines, their figures sized to the tile once four
+  sit in a row (a container query, so "122h 10m" is never cut off);
+- legend markers and every `.dot` in a card are round; status chips are filled capsules (green, red or grey);
+- TODAY: a 30 px greeting and a 40 px count, larger rings and labels, Next up a filled capsule, the plan's rows
+  without lines between them and its buttons filled capsules, card titles 20 px.
+The cost is length: a page is about 10-15% taller, so there is a little more to scroll.
+
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL
 would tie every app's offline start-up and update timing to the shell's deploy. That would also break the
