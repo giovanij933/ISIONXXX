@@ -21,7 +21,7 @@ if [ "$APP" = ISIONXXX ]; then node "$T/ship.js" || rc=$?; else node "$T/ship.js
 node "$T/personal.test.js" || rc=$?
 # db.js, the database layer every app loads first
 node "$T/db.test.js" || rc=$?
-# TODAY's check-in and check-out, on a clock the test sets
+# TODAY's sleep: the check-out and the check-in, on a clock the test sets
 node "$T/checkin.test.js" || rc=$?
 # the iPhone lane: the app and TODAY in WebKit, Safari's engine, on an iPhone-sized screen (webkit.test.js)
 if [ "$APP" = ISIONXXX ]; then node "$T/webkit.test.js" || rc=$?; else node "$T/webkit.test.js" "$APP" ISIONXXX || rc=$?; fi
