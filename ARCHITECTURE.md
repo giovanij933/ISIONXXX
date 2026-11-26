@@ -442,17 +442,22 @@ accuracy and tracks. JOURNAL keeps its own, richer one (rules, max loss, morning
 week reviewed for its weekend plan. Every app opens its review from a Week button under its calendar and from act
 `week`, which is what each row of TODAY's Your week sends.
 
-**2q. Check out at night, check in on waking: sleep is worked out, not guessed.** From 7 PM TODAY's check-in card gives
-way to a check-out: rate the day if you like (Rough to Great) and tap Check out as you go to bed. The next morning's
-check-in counts the sleep from that bedtime to now, so checking in on waking is all it takes; both times can be
-changed for a late check-in, and a bedtime after the wake time isn't saved. Without a check-out it is the hours
-stepper, as before. A night is named by its evening (before 4 AM it is still last night), so a check-out at 12:40 AM
-counts for the night it ends. Once checked out, the hero says when, with Still up (bedtime moves to now) and Clear;
-a saved check-in's Edit opens the form with Clear, which deletes it, both with Undo. The hero adds the last week's
-sleep: the average, nights of 7 h or more and, after three check-outs, the usual bedtime and how far it wanders. The
-day's rating feeds TODAY's insights (how you rate days after 7+ h of sleep against shorter nights).
-`isx.checkin.v1` keeps its `log` of check-ins, now with `bed` and `wake` when they came from a check-out (`sleep`
-stays hours, to a tenth, for every app that reads it), and adds `outs`: one record a night, `co-<night>`.
+**2q. Sleep: check out at night, check in on waking.** TODAY has one Sleep card, under the hero, that follows the
+day. In the morning it asks how you slept (Check in); once you have, it shows last night: a ring against 8 h, bed to
+wake, sleep quality and energy, and the last 7 nights as bars (7 h or more in colour) with the average and, after
+three check-outs, the usual bedtime and how far it wanders. From 7 PM it adds Check out; checked out, it says since
+when, with Still up (bedtime moves to now) and Undo.
+The check-out and the check-in are full screens, dark whatever the appearance (a sheet on phones, so they swipe away):
+- night: one tap on Check out saves the bedtime and opens it: the time, Good night, how the day went (Rough to Great,
+  optional), Sleep well, and Not yet to take the check-out back;
+- wake: a ring with the hours, the bedtime and wake time it comes from (tap either to change it), sleep quality, energy
+  and weight from your last answers, and Start my day. After a check-out it opens by itself the first time TODAY
+  shows that morning; without one, bedtime is your usual one, marked as a guess. A bedtime after the wake time isn't
+  saved. Opened from a saved check-in it has Clear (with Undo).
+A night is named by its evening (before 4 AM it is still last night), so a check-out at 12:40 AM counts for the night it
+ends. The day's rating feeds TODAY's insights (how you rate days after 7+ h of sleep against shorter nights).
+`isx.checkin.v1` keeps its `log` of check-ins, now with `bed` and `wake` (`sleep` stays hours, to a tenth, for every app
+that reads it), and adds `outs`: one record a night, `co-<night>`.
 
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL

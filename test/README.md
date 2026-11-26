@@ -69,10 +69,11 @@ They cover:
 - other tabs hearing about changes, including a key moving mid-read;
 - a browser without IndexedDB.
 
-Every run also runs `checkin.test.js`, the tests for TODAY's check-in and check-out (ARCHITECTURE.md 2q), on a clock
-the test sets: the check-out stamping the bedtime and the day's rating (and Still up moving it), the morning check-in
-counting the sleep from it (a changed wake time too; a bedtime after waking refused), Clear and Undo, a check-out
-after midnight belonging to the night before, and the hours stepper when there is no check-out.
+Every run also runs `checkin.test.js`, the tests for TODAY's sleep (ARCHITECTURE.md 2q), on a clock the test sets:
+Check out saving the bedtime in one tap and opening the night screen (the day's rating, Still up, Not yet with Undo);
+the wake screen opening by itself the morning after, counting the sleep from the bedtime (a changed wake time too; a
+bedtime after waking refused); the usual bedtime as a guess without a check-out; Clear and Undo; and a check-out after
+midnight belonging to the night before.
 
 Every run also runs `personal.test.js`, the tests for the personal homepage (`personal/`). It links into every
 app, so a change in any repo can break it. It also checks the launch image `ui.js` offers in Safari on a phone, on
@@ -114,7 +115,7 @@ cd test && npm ci
 BRANCH=main bash site.sh nutrition ../../nutrition   # site/ with every app; nutrition from your checkout
 SITE=$PWD/site node ship.js nutrition ISIONXXX        # or no app names for all seven
 SITE=$PWD/site node personal.test.js                 # the personal homepage
-SITE=$PWD/site node checkin.test.js                  # TODAY's check-in and check-out
+SITE=$PWD/site node checkin.test.js                  # TODAY's sleep (check-out and check-in)
 ```
 
 - `site.sh` clones the other apps from GitHub.

@@ -77,11 +77,6 @@ nav button:focus-visible{outline:1px solid var(--accent);outline-offset:-4px}
 .hero-top{display:flex;justify-content:space-between;align-items:flex-start;gap:12px}
 .hero h2{margin:0;font-size:20px;font-weight:600;letter-spacing:.02em}
 .hero-sub{margin:4px 0 0;color:var(--dim);font-size:12px}
-/* today's check-in, once saved: one line under the greeting, with Edit */
-.hero-ci{margin:6px 0 0;color:var(--dim);font-size:11.5px;line-height:1.6}.hero-ci b{color:var(--success-text);font-weight:600}
-.hero-ci button{all:unset;box-sizing:border-box;cursor:pointer;display:inline-flex;align-items:center;min-height:24px;padding:0 6px;margin:-4px 0 -4px -2px;border-radius:6px;
-  font-size:11.5px;color:var(--accent-text);-webkit-tap-highlight-color:transparent}
-.hero-ci button:hover{background:var(--accent-soft)}.hero-ci button:focus-visible{outline:2px solid var(--accent);outline-offset:1px}
 .hero-n{margin:0;font-size:12px;color:var(--dim)}.hero-n b{font-size:30px;color:var(--text-primary);font-weight:600;margin-right:2px}
 .hero.perfect .hero-n b{color:var(--success-text)}
 .rings{display:grid;grid-auto-flow:column;grid-auto-columns:minmax(0,1fr);gap:6px;margin:16px 0 4px;padding:0;list-style:none}   /* one equal share each, edge to edge */
@@ -155,35 +150,84 @@ dialog.dd{max-height:min(86vh,760px);overflow:auto;overscroll-behavior:contain}
 /* a plan row's picture (ARCHITECTURE.md, 2h): the app draws it in the plan-art classes, this colours them */
 .pl-r.done .pl-art,.pl-r.old .pl-art{opacity:.65}
 .pl-r .ui-btn{flex:none;min-width:96px}.pl-r .ui-btn.ui-secondary{color:var(--text-primary)}
-/* morning check-in */
-.ci{background:var(--panel);border:1px solid var(--border-soft);padding:14px 16px 16px;margin-bottom:12px;animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}
-.ci-row{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:10px 0;border-bottom:1px solid var(--line)}
-.ci-l{font-size:12px;color:var(--dim)}.ci-l em{font-style:normal;color:var(--text-secondary);margin-left:6px}
-.ci-w{display:flex;align-items:center;gap:6px}.ci-w input{width:86px;background:var(--raised);border:1px solid var(--line2);color:var(--tx);font:14px var(--f);padding:7px 8px;text-align:right}.ci-w input:focus{outline:0;border-color:var(--accent)}.ci-w span{font-size:11px;color:var(--dim)}
-/* wide screens: the check-in in two columns (sleep · quality / energy · weight) instead of a label at one edge of
-   the page and its control at the other; TODAY's rings in a compact row instead of spread across the page */
-@media(min-width:900px){
-  #today .ci{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:40px;align-items:center}
-  #today .ci>.tch,#today .ci>.ui-actions{grid-column:1/-1}
-}
 /* wide screens: TODAY on the apps' four stat-card columns. The hero splits into equal halves with a 12 px gap, so the
-   Next up panel's frame sits on card 3's edge; the check-in's and the plan's unframed rows use a 46 px gap so their
+   Next up panel's frame sits on card 3's edge; the plan's unframed rows use a 46 px gap so their
    columns line up with the text inside those cards (12 px gap + 17 px padding either side) */
 #today .acts{display:flex;align-items:center;gap:10px}
 #today h1.brand,#today h2.h{margin:0;font-weight:600}#today h2.h{font-weight:400}
-.ci-row .ui-rating{flex:1}.ci-row .ui-field-label{color:var(--dim)}
-/* the check-in's sleep row after a check-out: the hours, and the two times they come from (both can be changed) */
-.ci-sd{display:flex;flex-direction:column;gap:4px;min-width:0}
-.ci-dur{font-size:22px;font-weight:600;font-variant-numeric:tabular-nums}.ci-dur.bad{font-size:13px;font-weight:500;color:var(--warning)}
-.ci-tm{display:flex;flex-direction:column;align-items:flex-end;gap:8px}.ci-tm label{display:flex;align-items:center;gap:8px;font-size:12px;color:var(--dim);white-space:nowrap}
-.ci-sd .ci-l em{display:block;margin:2px 0 0}
-#today .ci h2:focus{outline:0}#today .ci h2:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
-.ci-tm input{background:var(--raised);border:1px solid var(--line2);color:var(--tx);font:14px var(--f);padding:0 10px;min-height:36px;border-radius:999px;font-variant-numeric:tabular-nums}
-.ci-tm input:focus{outline:0;border-color:var(--accent)}
-/* evening check-out: a note under the day's rating; the hero's check-out and week-of-sleep lines */
-.co-n{font-size:12px;line-height:1.45;color:var(--dim);margin:10px 0 2px}
-#today .hero-ci .co-ok{color:var(--text-primary)}#today .hero-ci.ci-wk{color:var(--dim);font-size:12px}
 .ld .ui-skeleton{width:min(420px,calc(100% - 32px))}
+/* ---------- sleep: TODAY's Sleep card ---------- */
+.slpc{background:var(--panel);border:1px solid var(--line);padding:14px 16px 16px;margin-bottom:12px;animation:tIn .35s cubic-bezier(.2,.8,.2,1) both}
+.slpc-row{display:flex;align-items:center;gap:14px;width:100%;padding:8px 0;text-align:left;color:inherit}
+.slpc-row>div{flex:1;min-width:0;display:flex;flex-direction:column;gap:3px}
+.slpc-row b{font-size:17px;font-weight:600;letter-spacing:-.01em;color:var(--text-primary)}
+.slpc-row small{font-size:12.5px;line-height:1.4;color:var(--text-secondary)}
+.slpc-row .ui-btn{flex:none}
+.slpc-sum{all:unset;box-sizing:border-box;display:flex;align-items:center;gap:14px;width:100%;padding:8px 0;cursor:pointer;-webkit-tap-highlight-color:transparent;border-radius:14px}
+.slpc-sum:focus-visible{outline:2px solid var(--accent);outline-offset:4px}
+.slpc-sum b{font-size:24px;font-weight:600;letter-spacing:-.02em;font-variant-numeric:tabular-nums}
+.slpc-ring{position:relative;flex:none;width:58px;height:58px}
+.slpc-chev{font-size:22px;color:var(--text-muted);flex:none}
+.slpc-ic{flex:none;display:grid;place-items:center;width:44px;height:44px;border-radius:50%;color:var(--accent-text);background:color-mix(in srgb,var(--accent) 14%,transparent)}
+.slpc-ic svg{width:22px;height:22px}.slpc-ic.sun{color:var(--warning-text);background:color-mix(in srgb,var(--warning) 16%,transparent)}
+.slpc-btns{display:flex;gap:6px;flex:none}
+.slpc-wk{display:grid;grid-template-columns:repeat(7,1fr);gap:8px;height:84px;margin:12px 0 0;padding-top:4px}
+.slpc-b{display:flex;flex-direction:column;justify-content:flex-end;align-items:center;gap:6px;min-width:0}
+.slpc-b i{display:block;width:100%;max-width:22px;border-radius:6px;background:color-mix(in srgb,var(--text-muted) 38%,transparent);transition:height .6s var(--g-spring,ease)}
+.slpc-b.ok i{background:linear-gradient(180deg,var(--info),var(--accent))}
+.slpc-b span{font-size:11px;color:var(--text-muted)}.slpc-b.now span{color:var(--text-primary);font-weight:600}
+.slpc-ft{margin:10px 0 0;font-size:12px;color:var(--text-secondary)}
+.slpc-out{display:flex;align-items:center;justify-content:center;gap:10px;width:100%;margin-top:14px;min-height:50px;font-size:16px}
+.slpc-out svg{width:18px;height:18px}
+html body .slpc-out.ui-primary{background:linear-gradient(135deg,var(--accent),color-mix(in srgb,var(--accent) 50%,#000));border-color:transparent;color:#fff}
+/* ---------- sleep: the night and wake screens (a sheet on phones; dark whatever the appearance, so their colours are
+   the palette's mixed with black and white) ---------- */
+html body dialog.slp{color-scheme:dark;--sk1:color-mix(in srgb,var(--accent) 14%,#000);--sk2:#000;color:#fff;background:radial-gradient(120% 70% at 50% 0%,var(--sk1),var(--sk2) 70%);border:1px solid color-mix(in srgb,#fff 8%,transparent);
+  width:min(440px,calc(100vw - 24px));max-height:calc(100dvh - 24px);padding:0;overflow:auto;overscroll-behavior:contain;-webkit-backdrop-filter:none;backdrop-filter:none}
+html body dialog.slp-wake{--sk1:color-mix(in srgb,var(--accent) 9%,#000)}
+html body dialog.slp::backdrop{background:color-mix(in srgb,#000 72%,transparent)}
+@media (max-width:640px){html body dialog.slp[open]:not(#isx-sd){height:calc(100dvh - 12px);max-height:calc(100dvh - 12px);padding:0}}
+.slp-in{position:relative;display:flex;flex-direction:column;align-items:center;gap:18px;min-height:100%;padding:40px 22px calc(26px + env(safe-area-inset-bottom));text-align:center}
+.slp-sky{position:absolute;inset:0 0 auto 0;height:260px;pointer-events:none;opacity:.9;
+  background-image:radial-gradient(1.2px 1.2px at 12% 18%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 28% 42%,color-mix(in srgb,#fff 80%,transparent) 50%,transparent 51%),radial-gradient(1.4px 1.4px at 66% 12%,#fff 50%,transparent 51%),
+  radial-gradient(1px 1px at 82% 34%,color-mix(in srgb,#fff 85%,transparent) 50%,transparent 51%),radial-gradient(1px 1px at 47% 26%,#fff 50%,transparent 51%),radial-gradient(1.2px 1.2px at 90% 8%,#fff 50%,transparent 51%),radial-gradient(1px 1px at 6% 48%,color-mix(in srgb,#fff 80%,transparent) 50%,transparent 51%);
+  animation:slpTw 6s ease-in-out infinite alternate}
+.slp-wake .slp-sky{background-image:radial-gradient(70% 90% at 50% 0%,color-mix(in srgb,var(--warning) 22%,transparent),transparent 70%);animation:none}
+@keyframes slpTw{from{opacity:.55}to{opacity:1}}
+.slp-in>:not(.slp-sky){position:relative}
+.slp-moon{width:76px;height:76px;color:color-mix(in srgb,#fff 88%,var(--info));filter:drop-shadow(0 0 22px color-mix(in srgb,var(--info) 50%,transparent));margin-top:6px}
+.slp-moon svg{width:100%;height:100%}
+.slp-clock{margin:0;display:flex;align-items:baseline;gap:6px;font-variant-numeric:tabular-nums}
+.slp-clock b{font-size:76px;font-weight:200;letter-spacing:-.04em;line-height:1}.slp-clock span{font-size:20px;font-weight:500;color:color-mix(in srgb,#fff 60%,transparent)}
+.slp h2{margin:0;font-size:30px;font-weight:700;letter-spacing:-.02em;outline:0}
+.slp-sub,.slp-hint,.slp-day{margin:0;max-width:30ch;font-size:15px;line-height:1.45;color:color-mix(in srgb,#fff 62%,transparent)}
+.slp-hint{font-size:13px}.slp-day{font-size:13px;margin-top:12px}
+.slp-hd{display:flex;flex-direction:column;gap:4px}.slp-k{margin:0;font-size:13px;font-weight:600;letter-spacing:.02em;color:color-mix(in srgb,#fff 60%,transparent)}
+.slp-card{width:100%;display:flex;flex-direction:column;gap:14px;padding:16px;border-radius:22px;background:color-mix(in srgb,#fff 6%,transparent);border:1px solid color-mix(in srgb,#fff 8%,transparent);text-align:left}
+.slp-card .ui-field-label{color:color-mix(in srgb,#fff 60%,transparent)}.slp-card .ui-field-label em{color:#fff}
+.slp-w{display:flex;align-items:center;justify-content:space-between;gap:10px;font-size:14px;color:color-mix(in srgb,#fff 60%,transparent)}.slp-w em{font-style:normal;opacity:.7;margin-left:4px}
+.slp-w input{width:84px;text-align:right;background:color-mix(in srgb,#fff 8%,transparent);border:1px solid color-mix(in srgb,#fff 12%,transparent);color:#fff;font:16px var(--f);padding:8px 10px;border-radius:12px}
+.slp-ring{position:relative;width:208px;height:208px;margin:4px 0 2px}
+.slp-rs{display:block}.slp-rt{fill:none;stroke:color-mix(in srgb,#fff 9%,transparent);stroke-width:12}
+.slp-rf{fill:none;stroke-width:12;stroke-linecap:round;transition:stroke-dasharray .9s var(--g-spring,ease)}.slp-rf.full{filter:drop-shadow(0 0 6px color-mix(in srgb,var(--info) 60%,transparent))}
+.slpc-ring .slp-rt,.slpc-ring .slp-rf{stroke-width:11}.slpc .slp-rt{stroke:color-mix(in srgb,var(--text-muted) 25%,transparent)}
+.slp-rv{position:absolute;inset:0;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.slp-rv b{font-size:32px;font-weight:600;letter-spacing:-.03em;font-variant-numeric:tabular-nums}.slp-rv b.bad{font-size:16px;color:var(--warning)}
+.slp-rv span{font-size:13px;color:color-mix(in srgb,#fff 60%,transparent)}
+.slp-tl{display:flex;align-items:center;gap:10px;width:100%}
+.slp-ln{flex:1;height:2px;min-width:12px;background:linear-gradient(90deg,var(--accent),var(--warning));border-radius:1px;opacity:.7}
+.slp-t{position:relative;display:flex;align-items:center;gap:10px;padding:10px 14px 10px 10px;border-radius:18px;background:color-mix(in srgb,#fff 7%,transparent);border:1px solid color-mix(in srgb,#fff 10%,transparent);cursor:pointer;text-align:left}
+.slp-t:focus-within{border-color:var(--accent)}
+.slp-t input{position:absolute;inset:0;width:100%;height:100%;opacity:0;cursor:pointer;font-size:16px}
+.slp-i{display:grid;place-items:center;width:34px;height:34px;border-radius:50%;background:color-mix(in srgb,var(--accent) 24%,transparent);color:color-mix(in srgb,#fff 70%,var(--info))}
+.slp-t-wake .slp-i{background:color-mix(in srgb,var(--warning) 18%,transparent);color:var(--warning)}.slp-i svg{width:18px;height:18px}
+.slp-tv{display:flex;flex-direction:column}.slp-tv small{font-size:11px;color:color-mix(in srgb,#fff 60%,transparent)}.slp-tv b{font-size:17px;font-weight:600;font-variant-numeric:tabular-nums}
+.slp-a{width:100%;display:flex;flex-direction:column;align-items:center;gap:10px;margin-top:auto;padding-top:6px}
+html body .slp-go.ui-btn{width:100%;min-height:54px;font-size:17px;font-weight:600;border-radius:999px}
+html body .slp-night .slp-go.ui-btn{background:#fff;color:#000;border-color:transparent}
+.slp-link{all:unset;cursor:pointer;padding:8px 12px;border-radius:999px;font-size:15px;color:color-mix(in srgb,#fff 70%,transparent)}.slp-link:focus-visible{outline:2px solid var(--accent)}
+html body dialog.slp .slp-del{color:var(--error)}
+@media (prefers-reduced-motion:reduce){.slp-sky{animation:none}.slp-rf,.slpc-b i{transition:none}}
 #today .th .brand{white-space:nowrap}#today .th .dt b{font-weight:400}
 #today .th .dt i{font-style:normal}@media(max-width:420px){#today .th .dt i{display:none}}
 /* phones: TODAY's header floats as glass pieces like the apps' (ui.css): the name, the date, the sync dot. The page
@@ -227,13 +271,13 @@ dialog.dd{max-height:min(86vh,760px);overflow:auto;overscroll-behavior:contain}
   #today .hero>.nx-none{border:1px solid var(--line);color:var(--success-text);font-size:12px}
 }
 @keyframes tIn{from{opacity:0;transform:translateY(8px)}}
-#today.drawn .ci,#today.drawn .ins,#today.drawn .pl,#today.drawn .ywk{animation:none}
+#today.drawn .slpc,#today.drawn .ins,#today.drawn .pl,#today.drawn .ywk{animation:none}
 .tch{display:flex;justify-content:space-between;align-items:center;gap:8px;margin-bottom:4px}
 .st{font-size:10px;letter-spacing:.06em;color:var(--dim);border:1px solid var(--line2);padding:2px 6px}
 /* the plan and Insights cards wear the same glass as every other card, and their count badges are pills */
-html body :is(.ins,.pl,.ywk,.ci){border-radius:var(--g-r);background:var(--g-card);border-color:var(--g-line);box-shadow:var(--g-hi),var(--g-drop)}
+html body :is(.ins,.pl,.ywk,.slpc){border-radius:var(--g-r);background:var(--g-card);border-color:var(--g-line);box-shadow:var(--g-hi),var(--g-drop)}
 /* every TODAY card is the pills' clear glass, like the apps' (ui.css); the hero keeps its accent glow over the glass */
-html body #today :is(.ins,.pl,.ywk,.ci,.hero){-webkit-backdrop-filter:var(--g-blur,none);backdrop-filter:var(--g-blur,none)}
+html body #today :is(.ins,.pl,.ywk,.slpc,.hero){-webkit-backdrop-filter:var(--g-blur,none);backdrop-filter:var(--g-blur,none)}
 html body #today .hero{background:radial-gradient(120% 90% at 0% 0%,var(--accent-soft),transparent 60%),var(--g-card);border-color:var(--g-line)}
 html body .ins.sto{border-color:var(--border)}html body .ins.sto.bad{border-color:var(--red)}
 html body .st{border-radius:999px;padding:3px 10px;border-color:var(--g-line2)}
@@ -244,7 +288,7 @@ html body .st{border-radius:999px;padding:3px 10px;border-color:var(--g-line2)}
 /* (placed last so it wins over the 700 px hero layout above) */
 @media(min-width:1001px){
   #today .hero{grid-template-columns:minmax(0,1fr) minmax(0,1fr);column-gap:12px}
-  #today .ci,#today .pl-l{column-gap:46px}
+  #today .pl-l{column-gap:46px}
 }
 body.app-on #isx-sync{display:none}
 .pane:focus{outline:0}
@@ -510,136 +554,206 @@ const QA={mind:[['go','▶ Start session']],training:[['go','▶ Start workout']
   learn:[['startnext','▶ Next lesson']],journal:[['note',"✎ Today's notes"],['add','+ Trade']],rewire:[['urge','Urge']]};
 // what each app is for, on its plan row until you start using it
 const EMPTY={mind:'Meditate, breathe or journal',training:'Log a workout',nutrition:'Log a meal',learn:'Study a lesson',journal:'Import or log trades',rewire:'Name a habit to break'};
-/* ---------- morning check-in and evening check-out ----------
+/* ---------- sleep: check out at night, check in on waking ----------
    isx.checkin.v1 (synced like the apps) holds two lists.
-   log: one check-in a day: hours slept, sleep quality, energy, weight; and, when it came from a check-out, the bedtime
-   and wake time it was worked out from (bed, wake). Every app that reads check-ins reads this list, so its shape stays.
+   log: one check-in a day: hours slept, sleep quality, energy, weight; and the bedtime and wake time the hours were
+   worked out from (bed, wake). Every app that reads check-ins reads this list, so its shape stays.
    outs: one check-out a night ({id 'co-<night>', night, at, day}): when you went to bed, and how the day went (1–5,
    optional). A night is named by its evening: before 4 AM it is still last night.
-   The morning check-in starts from your last answers, so most mornings it's a tap or two and Save. After a check-out it
-   works the sleep out itself, from bedtime to now (both times can be changed, for a late check-in). Once saved it
-   folds into a line in the hero with the week's sleep; Edit opens it again, where Clear deletes it (with Undo).
-   From 7 PM the check-out takes its place: rate the day if you like, tap Check out as you go to bed. */
+   TODAY shows one Sleep card. It changes with the day: in the morning it asks how you slept; once you've checked in
+   it shows last night (a ring against 8 h, bed to wake) and the week; from 7 PM it adds Check out; checked out, it says
+   since when. The check-in and the check-out are two full screens (a sheet on phones):
+   - night: one tap on Check out saves the bedtime and opens it: the time, Good night, how the day went (optional), Sleep
+     well, and Not yet to take it back;
+   - wake: a ring with the hours, the bedtime and wake time it comes from (tap either to change it), sleep quality,
+     energy and weight from your last answers, and Start my day. After a check-out it opens by itself the first time
+     TODAY shows that morning. Without one, bedtime is your usual one, marked as a guess. Opened from a saved check-in
+     it has Clear (with Undo). */
 const CIK='isx.checkin.v1',QW=['','Poor','Restless','OK','Good','Great'],EW=['','Drained','Low','Steady','Good','Charged'],DWD=['','Rough','Meh','OK','Good','Great'];
 const ciLog=()=>arr(read(CIK)?.log),ciOuts=()=>arr(read(CIK)?.outs);
 const wUnit=()=>read('isx.training.v1')?.wu||(/-US$/.test(navigator.language||'')?'lb':'kg');
 const r1=v=>Math.round(v*10)/10,avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
+const SLP_GOAL=8;   // the ring's whole circle, in hours
 const ciNight=ms=>ymd(new Date(ms-4*36e5)),ciEve=h=>h>=19||h<4;
 const ciPrev=t=>{const[y,m,d]=t.split('-').map(Number);return ymd(new Date(y,m-1,d-1))};
 const ciClock=ms=>new Date(ms).toLocaleTimeString('en-US',{hour:'numeric',minute:'2-digit'});
 const ciHHMM=ms=>{const d=new Date(ms);return pad(d.getHours())+':'+pad(d.getMinutes())};
-// hours slept as "7 h 28 m" once it came from times; a stepped value stays "7.5 h"
-// (from the times themselves, to the minute; the stored hours are rounded to a tenth for every app that reads them)
+// hours slept as "7 h 28 m", from the times themselves to the minute (the stored hours are rounded to a tenth for every
+// app that reads them); an old check-in without times stays "7.5 h"
 const ciHM=h=>{const m=Math.round(h*60);return `${Math.floor(m/60)} h${m%60?' '+(m%60)+' m':''}`},ciSl=e=>e.bed&&e.wake?ciHM((e.wake-e.bed)/36e5):`${e.sleep} h`;
 const ciSpan=(b,w)=>{const h=(w-b)/36e5;return h>0&&h<=16?h:null};
-let CI=null,CO={day:null};   // the check-in being filled in (null when not editing); tonight's day rating before Check out
+// your usual bedtime as minutes after noon (11:30 PM = 690), from the last check-ins that have one; 11 PM before there are any
+function ciUsualBed(){
+  const B=ciLog().filter(e=>e.bed).sort((a,b)=>a.day<b.day?1:-1).slice(0,14).map(e=>{const d=new Date(e.bed);return ((d.getHours()+12)%24)*60+d.getMinutes()});
+  return B.length?Math.round(avg(B)):660;
+}
+let CI=null;   // the check-in being filled in (null when not editing)
 function ciDraft(t){
   const L=ciLog(),saved=L.find(e=>e.day===t),b=saved||L.filter(e=>e.day<t).sort((a,c)=>a.day<c.day?1:-1)[0]||{};
   const d={day:t,sleep:b.sleep??7.5,q:b.q??3,energy:b.energy??3,w:b.w??null};
-  // the times: a saved check-in keeps its own; a new one counts from last night's check-out to now
-  const o=!saved&&ciOuts().find(x=>x.night===ciPrev(t)),bed=saved?saved.bed:o?.at,wake=saved?saved.wake:Date.now();
-  if(bed&&wake&&ciSpan(bed,wake)){d.bed=bed;d.wake=wake;d.sleep=r1(ciSpan(bed,wake))}
+  const o=!saved&&ciOuts().find(x=>x.night===ciPrev(t));
+  // the times: a saved check-in's own (or, for one saved before there were times, its hours back from when it was
+  // saved); a new one counts from last night's check-out to now, or from your usual bedtime, as a guess
+  let bed,wake;
+  if(saved){wake=saved.wake||saved.at;bed=saved.bed||wake-(saved.sleep||0)*36e5}
+  else{wake=Date.now();bed=o?.at;if(!bed){const[y,m,dd]=ciPrev(t).split('-').map(Number),u=ciUsualBed();bed=new Date(y,m-1,dd,12,u).getTime();d.est=1}}
+  if(ciSpan(bed,wake)){d.bed=bed;d.wake=wake;d.sleep=r1(ciSpan(bed,wake))}
   return d;
 }
 const ciStore=()=>{let s=null;try{s=JSON.parse(localStorage.getItem(CIK))}catch(e){}if(!s||typeof s!=='object')s={};if(!Array.isArray(s.log))s.log=[];if(!Array.isArray(s.outs))s.outs=[];return s};
-// a full disk: sync.js says so, and nothing is lost on screen (the form keeps your answers)
+// a full disk: sync.js says so, and nothing is lost on screen (the sheet keeps your answers)
 const ciPut=s=>{try{localStorage.setItem(CIK,JSON.stringify(s));return true}catch(x){return false}};
 function ciSave(){
+  if(CI.bed&&!ciSpan(CI.bed,CI.wake)){UI.toast('Bedtime has to be before the time you woke');return false}
   const s=ciStore(),i=s.log.findIndex(e=>e.day===CI.day);
   // one id per day, so the same day checked in on two devices merges instead of doubling
   const e={id:'ci-'+CI.day,day:CI.day,at:Date.now(),sleep:CI.sleep,q:CI.q,energy:CI.energy,w:CI.w,u:wUnit()};
   if(CI.bed){e.bed=CI.bed;e.wake=CI.wake}
   if(i>=0)s.log[i]=e;else s.log.push(e);
-  if(!ciPut(s))return false;
-  CI=null;drawToday();return true;
+  return ciPut(s);
 }
-// a typed time on the check-in's sleep row: bedtime from noon on is last night's, earlier is after midnight
-function ciTime(k,v){
+// tonight's check-out: the bedtime is now (again, if you were still up); the day's rating stays
+function ciOut(){
+  const n=ciNight(Date.now()),s=ciStore(),i=s.outs.findIndex(o=>o.night===n),was=i>=0?s.outs[i]:null;
+  const o={id:'co-'+n,night:n,at:Date.now(),day:was?.day??null};
+  if(i>=0)s.outs[i]=o;else s.outs.push(o);
+  s.outs=s.outs.sort((a,b)=>a.night<b.night?-1:1).slice(-400);
+  return ciPut(s)?o:null;
+}
+function ciUnout(){
+  const n=ciNight(Date.now()),s=ciStore(),i=s.outs.findIndex(o=>o.night===n);if(i<0)return;
+  const[gone]=s.outs.splice(i,1);if(!ciPut(s))return;
+  UI.undo('Check-out cleared',()=>{const s2=ciStore();if(!s2.outs.some(o=>o.night===gone.night)){s2.outs.push(gone);ciPut(s2)}drawToday()});
+}
+function ciRate(v){const n=ciNight(Date.now()),s=ciStore(),o=s.outs.find(x=>x.night===n);if(o){o.day=v;ciPut(s)}}
+function ciClear(t){
+  const s=ciStore(),i=s.log.findIndex(e=>e.day===t);if(i<0)return;
+  const[gone]=s.log.splice(i,1);if(!ciPut(s))return;
+  UI.undo("Today's check-in cleared",()=>{const s2=ciStore();if(!s2.log.some(e=>e.day===gone.day)){s2.log.push(gone);ciPut(s2)}drawToday()});
+}
+
+/* the sleep screens */
+const SLP_MOON='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20.5 14.6A8.6 8.6 0 0 1 9.4 3.5a8.6 8.6 0 1 0 11.1 11.1Z" fill="currentColor"/></svg>';
+const SLP_SUN='<svg viewBox="0 0 24 24" aria-hidden="true"><circle cx="12" cy="12" r="4.2" fill="currentColor"/><g stroke="currentColor" stroke-width="1.8" stroke-linecap="round"><path d="M12 2.5v2.2M12 19.3v2.2M2.5 12h2.2M19.3 12h2.2M5.3 5.3l1.6 1.6M17.1 17.1l1.6 1.6M5.3 18.7l1.6-1.6M17.1 6.9l1.6-1.6"/></g></svg>';
+// the hours against the goal, a full circle at 8 h (past it, the ring is full and glows)
+function slpRing(h,size){
+  const f=Math.max(0,Math.min(1,(h||0)/SLP_GOAL)),id='sg'+size;
+  return `<svg class="slp-rs" viewBox="0 0 120 120" width="${size}" height="${size}" aria-hidden="true"><defs><linearGradient id="${id}" x1="0" y1="0" x2="1" y2="1"><stop offset="0" style="stop-color:var(--accent)"/><stop offset="1" style="stop-color:var(--info)"/></linearGradient></defs>
+    <circle cx="60" cy="60" r="50" class="slp-rt"/><circle cx="60" cy="60" r="50" class="slp-rf${f>=1?' full':''}" stroke="url(#${id})" pathLength="100" stroke-dasharray="${(f*100).toFixed(1)} 100" transform="rotate(-90 60 60)"/></svg>`;
+}
+let SLP=null;   // the open sleep screen: {d: its <dialog>, mode: 'wake' | 'night'}
+function slpClose(){if(SLP?.d?.open)SLP.d.close()}
+function slpOpen(mode){
+  slpClose();
+  const d=document.createElement('dialog');d.className='slp slp-'+mode;d.setAttribute('aria-label',mode==='night'?'Good night':'Good morning');
+  document.body.appendChild(d);UI.mount(d);SLP={d,mode};
+  d.addEventListener('close',()=>{if(SLP?.d===d){SLP=null;if(mode==='wake')CI=null;drawToday()}setTimeout(()=>d.remove(),400)});
+  d.addEventListener('click',e=>{const b=e.target.closest('[data-slp]');if(b)slpAct(b.dataset.slp)});
+  d.addEventListener('ui-change',e=>{const n=e.detail.name,v=e.detail.value;
+    if(n==='co-day'){ciRate(v);slpDraw()}else if(CI&&(n==='ci-q'||n==='ci-energy')){CI[n==='ci-q'?'q':'energy']=v;slpDraw()}});
+  d.addEventListener('input',e=>{if(e.target.id==='slpw'&&CI){const w=+e.target.value.trim().replace(',','.');CI.w=w>0&&w<1500?w:null}
+    if(e.target.dataset.ciT)slpTime(e.target.dataset.ciT,e.target.value)});
+  d.addEventListener('change',e=>{if(e.target.dataset.ciT)slpTime(e.target.dataset.ciT,e.target.value)});
+  slpDraw(true);d.showModal();
+  // the focus goes to the heading, not a field: a time field would open its picker on a phone
+  d.querySelector('h2')?.focus({preventScroll:true});
+}
+function slpDraw(first){
+  if(!SLP)return;const{d,mode}=SLP;
+  if(!first&&d.contains(document.activeElement)&&document.activeElement.matches('input'))return;   // don't redraw under typing
+  const keep=d.querySelector('.ui-rating [aria-checked=true]:focus')?.closest('[data-name]')?.dataset.name;
+  d.innerHTML=mode==='night'?slpNight():slpWake();
+  if(keep)d.querySelector(`[data-name="${keep}"] [aria-checked=true]`)?.focus({preventScroll:true});
+}
+function slpNight(){
+  const o=ciOuts().find(x=>x.night===ciNight(Date.now())),at=o?.at||Date.now(),[clock,ap]=ciClock(at).split(' ');
+  const t=ymd(new Date()),C=[tMind(t),tTrain(t),tFuel(t),tExtract(t),tJournal(),tRewire(t)].filter(c=>c&&c.done!=null),won=C.filter(c=>c.done).length;
+  return `<div class="slp-in"><div class="slp-sky" aria-hidden="true"></div>
+    <div class="slp-moon">${SLP_MOON}</div>
+    <p class="slp-clock" aria-label="Bedtime ${ciClock(at)}"><b>${clock}</b><span>${ap}</span></p>
+    <h2 tabindex="-1">Good night</h2>
+    <p class="slp-sub">Bedtime saved. Check in when you wake and your sleep is worked out for you.</p>
+    <div class="slp-card">${UI.rating({name:'co-day',label:'How was today?',value:o?.day??null,words:DWD})}
+      ${C.length?`<p class="slp-day">${won===C.length?'Everything done today ✓':`${won} of ${C.length} done today`}</p>`:''}</div>
+    <div class="slp-a"><button type="button" class="ui-btn ui-primary slp-go" data-slp="close">Sleep well</button>
+      <button type="button" class="slp-link" data-slp="unout">Not yet, I'm still up</button></div></div>`;
+}
+function slpWake(){
+  const d=CI,t=d.day,h=ciSpan(d.bed,d.wake),ed=ciLog().some(e=>e.day===t);
+  const date=pd(t).toLocaleDateString('en-US',{weekday:'long',month:'long',day:'numeric'}),hr=new Date().getHours();
+  const tm=(k,lab,ms,ic)=>`<label class="slp-t slp-t-${k}"><span class="slp-i">${ic}</span><span class="slp-tv"><small>${lab}</small><b>${ciClock(ms)}</b></span>
+    <input type="time" data-ci-t="${k}" value="${ciHHMM(ms)}" aria-label="${k==='bed'?'Went to bed at':'Woke up at'}"></label>`;
+  return `<div class="slp-in"><div class="slp-sky" aria-hidden="true"></div>
+    <header class="slp-hd"><p class="slp-k">${esc(date)}</p><h2 tabindex="-1">${ed?'Last night':hr<12?'Good morning':hr<18?'Good afternoon':'Good evening'}</h2></header>
+    <div class="slp-ring">${slpRing(h,208)}<div class="slp-rv"><b class="slp-dur" aria-live="polite">${h?ciHM(h):'Check the times'}</b><span>${d.est?'bedtime guessed':`of ${SLP_GOAL} h`}</span></div></div>
+    <div class="slp-tl">${tm('bed','In bed',d.bed,SLP_MOON)}<span class="slp-ln" aria-hidden="true"></span>${tm('wake','Woke',d.wake,SLP_SUN)}</div>
+    ${d.est?'<p class="slp-hint">No check-out last night, so this is your usual bedtime. Tap it to change.</p>':''}
+    <div class="slp-card">${UI.rating({name:'ci-q',label:'Sleep quality',value:d.q,words:QW})}${UI.rating({name:'ci-energy',label:'Energy',value:d.energy,words:EW})}
+      <div class="slp-w"><label for="slpw">Weight <em>optional</em></label><span><input id="slpw" type="text" inputmode="decimal" autocomplete="off" value="${esc(d.w??'')}" placeholder="—"> ${esc(wUnit())}</span></div></div>
+    <div class="slp-a"><button type="button" class="ui-btn ui-primary slp-go" data-slp="save">${ed?'Update':'Start my day'}</button>
+      ${ed?`<button type="button" class="slp-link slp-del" data-slp="clear">Clear this check-in</button>`:''}</div></div>`;
+}
+// a picked time: bedtime from noon on is last night's, earlier is after midnight. The ring and the times update in place
+// (a redraw would close the picker)
+function slpTime(k,v){
   if(!CI||!/^\d\d:\d\d$/.test(v))return;
-  const[H,M]=v.split(':').map(Number),[y,m,d]=(k==='bed'&&H>=12?ciPrev(CI.day):CI.day).split('-').map(Number),ms=new Date(y,m-1,d,H,M).getTime();
-  const b=k==='bed'?ms:CI.bed,w=k==='wake'?ms:CI.wake,h=ciSpan(b,w),o=$('#today .ci-dur');
-  CI[k]=ms;if(h)CI.sleep=r1(h);
-  if(o){o.textContent=h?ciHM(h):'Check the times';o.classList.toggle('bad',!h)}
+  const[H,M]=v.split(':').map(Number),[y,m,dd]=(k==='bed'&&H>=12?ciPrev(CI.day):CI.day).split('-').map(Number);
+  CI[k]=new Date(y,m-1,dd,H,M).getTime();if(k==='bed')CI.est=0;
+  const h=ciSpan(CI.bed,CI.wake),d=SLP?.d;if(h)CI.sleep=r1(h);if(!d)return;
+  const o=d.querySelector('.slp-dur');if(o){o.textContent=h?ciHM(h):'Check the times';o.classList.toggle('bad',!h)}
+  const f=d.querySelector('.slp-rf');if(f){const x=Math.max(0,Math.min(1,(h||0)/SLP_GOAL));f.setAttribute('stroke-dasharray',`${(x*100).toFixed(1)} 100`);f.classList.toggle('full',x>=1)}
+  d.querySelector(`.slp-t-${k} b`).textContent=ciClock(CI[k]);
+  const s=d.querySelector('.slp-rv span');if(s)s.textContent=CI.est?'bedtime guessed':`of ${SLP_GOAL} h`;d.querySelector('.slp-hint')?.remove();
 }
-function ciAct(k,v){
+function slpAct(k){
   const t=ymd(new Date());
-  if(k==='save'){if(CI.bed&&!ciSpan(CI.bed,CI.wake))return UI.toast('Bedtime has to be before the time you woke');if(!ciSave())return}
-  else if(k==='edit'||k==='add'){CI={...ciDraft(t),ed:1};drawToday()}   // ed: opened on purpose, so a sync doesn't fold it
-  else if(k==='cancel'){CI=null;drawToday()}
-  else if(k==='clear'){
-    // delete today's check-in; the form comes back empty-handed (last night's check-out still counts), with Undo
-    const s=ciStore(),i=s.log.findIndex(e=>e.day===t);CI=null;
-    if(i>=0){const[gone]=s.log.splice(i,1);if(!ciPut(s))return;drawToday();
-      UI.undo("Today's check-in cleared",()=>{const s2=ciStore();if(!s2.log.some(e=>e.day===gone.day)){s2.log.push(gone);ciPut(s2)}drawToday()})}
-    else drawToday();
-  }
-  else if(k==='out'){
-    // check out: tonight's bedtime is now (again, if you were still up), with the day's rating if you gave one
-    const n=ciNight(Date.now()),s=ciStore(),i=s.outs.findIndex(o=>o.night===n),was=i>=0?s.outs[i]:null;
-    const o={id:'co-'+n,night:n,at:Date.now(),day:CO.day??was?.day??null};
-    if(i>=0)s.outs[i]=o;else s.outs.push(o);
-    s.outs=s.outs.sort((a,b)=>a.night<b.night?-1:1).slice(-400);
-    if(!ciPut(s))return;CO={day:null};drawToday();UI.toast(`Checked out at ${ciClock(o.at)} · sleep well`);
-  }
-  else if(k==='unout'){
-    const n=ciNight(Date.now()),s=ciStore(),i=s.outs.findIndex(o=>o.night===n);if(i<0)return drawToday();
-    const[gone]=s.outs.splice(i,1);if(!ciPut(s))return;drawToday();
-    UI.undo('Check-out cleared',()=>{const s2=ciStore();if(!s2.outs.some(o=>o.night===gone.night)){s2.outs.push(gone);ciPut(s2)}drawToday()});
-  }
-  else return drawToday();
-  // the form opens or folds away under the button you pressed: keep the keyboard's place there
-  // (with the times, the heading: focusing a time field would open its picker on a phone)
-  $(CI?(CI.bed?'#today .ci h2':'#today .ci output'):'#today [data-ci=edit], #today [data-ci=add], #today [data-ci=out]')?.focus({preventScroll:true});
+  if(k==='close')slpClose();
+  else if(k==='save'){if(ciSave()){CI=null;slpClose();UI.toast('Checked in · have a good day')}}
+  else if(k==='clear'){CI=null;slpClose();ciClear(t);drawToday()}
+  else if(k==='unout'){slpClose();ciUnout();drawToday()}
 }
-// tonight's check-out, from 7 PM until you tap it
-function coHTML(h){
-  const t=ymd(new Date()),ci=ciLog().find(e=>e.day===t);
-  return `<section class="ci co"><div class="tch"><h2 class="h">${h>=21||h<4?'Good night':'Good evening'} · check-out</h2><span class="st">5 sec</span></div>
-    <div class="ci-row">${UI.rating({name:'co-day',label:'How was today?',value:CO.day,words:DWD})}</div>
-    <p class="co-n">${ci?`Last night: ${esc(ciSl(ci))} of sleep. `:''}Tap as you go to bed. Check in as soon as you wake up and it works out how long you slept.</p>
-    <div class="ui-actions">${UI.button({label:'🌙 Check out · going to sleep',variant:'primary',attrs:{'data-ci':'out'}})}</div></section>`;
+// the Sleep card's buttons on TODAY
+function ciAct(k){
+  const t=ymd(new Date());
+  if(k==='wake'||k==='edit'){CI=ciDraft(t);slpOpen('wake')}
+  else if(k==='out'){if(ciOut())slpOpen('night')}
+  else if(k==='still'){const o=ciOut();drawToday();if(o)UI.toast(`Bedtime moved to ${ciClock(o.at)}`)}
+  else if(k==='unout'){ciUnout();drawToday()}
 }
-function ciHTML(){
-  const now=new Date(),t=ymd(now),h=now.getHours(),L=ciLog(),done=L.find(e=>e.day===t);
-  // a new day, or today's check-in arrived from another device: the draft gives way (a form opened with Edit stays)
-  if(CI&&(CI.day!==t||done&&!CI.ed))CI=null;
-  // evenings: the check-out instead (once it's done, it's a line in the hero, ciLine)
-  if(!CI&&ciEve(h))return ciOuts().some(o=>o.night===ciNight(+now))?'':coHTML(h);
-  if(done&&!CI)return '';   // saved: it's a line in the hero (ciLine), with Edit
-  const d=CI||(CI=ciDraft(t));
-  // sleep: from last night's check-out to when you woke (both times can be changed), or hours on a stepper
-  const sleep=d.bed?`<div class="ci-row ci-sr"><div class="ci-sd"><span class="ci-l">Sleep <em>from your check-out</em></span><b class="ci-dur" aria-live="polite">${ciHM(ciSpan(d.bed,d.wake))}</b></div>
-      <div class="ci-tm"><label>In bed <input type="time" data-ci-t="bed" value="${ciHHMM(d.bed)}" aria-label="Went to bed at"></label><label>Up <input type="time" data-ci-t="wake" value="${ciHHMM(d.wake)}" aria-label="Woke up at"></label></div></div>`
-    :`<div class="ci-row"><span class="ci-l" aria-hidden="true">Sleep</span>${UI.stepper({name:'ci-sleep',label:'Hours slept',value:d.sleep,min:0,max:14,step:.5,unit:'h'})}</div>`;
-  return `<section class="ci"><div class="tch"><h2 class="h" tabindex="-1">${h<12?'Good morning':h<18?'Good afternoon':'Good evening'} · check-in</h2><span class="st">10 sec</span></div>
-    ${sleep}
-    <div class="ci-row">${UI.rating({name:'ci-q',label:'Sleep quality',value:d.q,words:QW})}</div>
-    <div class="ci-row">${UI.rating({name:'ci-energy',label:'Energy',value:d.energy,words:EW})}</div>
-    <div class="ci-row"><label class="ci-l" for="ciw">Weight <em>optional</em></label><div class="ci-w"><input id="ciw" type="text" inputmode="decimal" autocomplete="off" value="${esc(d.w??'')}" placeholder="—"><span>${esc(wUnit())}</span></div></div>
-    <div class="ui-actions">${done?UI.button({label:'Clear',variant:'danger',attrs:{'data-ci':'clear','aria-label':"Clear today's check-in"}})+UI.button({label:'Cancel',variant:'ghost',attrs:{'data-ci':'cancel'}}):''}${UI.button({label:done?'Update':'Save check-in',variant:'primary',attrs:{'data-ci':'save'}})}</div></section>`;
+// the last week's nights, one bar each (a full bar is 10 h; 7 h or more in the accent), with the average and, after
+// three check-outs, the usual bedtime and how far it wanders
+function slpWeek(t){
+  const L=ciLog(),days=[...Array(7)].map((_,i)=>{const d=pd(t);d.setDate(d.getDate()-6+i);return ymd(d)});
+  const E=days.map(k=>L.find(e=>e.day===k&&e.sleep>0)),got=E.filter(Boolean);if(got.length<2)return '';
+  const a=avg(got.map(e=>e.sleep)),B=got.filter(e=>e.bed).map(e=>{const d=new Date(e.bed);return ((d.getHours()+12)%24)*60+d.getMinutes()});
+  let bed='';if(B.length>=3){const m=avg(B),dev=Math.round(avg(B.map(x=>Math.abs(x-m)))/5)*5;bed=` · bed ~${ciClock(new Date(2000,0,1,12,Math.round(m)).getTime())}${dev?` ±${dev} m`:''}`}
+  return `<div class="slpc-wk" role="img" aria-label="Sleep, last 7 nights: ${ciHM(a)} on average">${E.map((e,i)=>`<div class="slpc-b${e&&e.sleep>=7?' ok':''}${days[i]===t?' now':''}"><i style="height:${e?Math.max(6,Math.min(100,e.sleep/10*100)).toFixed(0):0}%"></i><span>${'SMTWTFS'[pd(days[i]).getDay()]}</span></div>`).join('')}</div>
+    <p class="slpc-ft">${ciHM(a)} average · ${got.filter(e=>e.sleep>=7).length} of ${got.length} nights at 7 h+${bed}</p>`;
 }
-// the last week's sleep: average, nights of 7 h or more, and how steady bedtime is once there are check-outs behind it
-function ciWeek(t){
-  const L=ciLog().filter(e=>e.day<=t&&e.day>ymd(new Date(pd(t).getTime()-7*864e5))&&e.sleep>0);if(L.length<3)return '';
-  const a=avg(L.map(e=>e.sleep)),n7=L.filter(e=>e.sleep>=7).length,B=L.filter(e=>e.bed).map(e=>{const d=new Date(e.bed);return (d.getHours()+(d.getHours()<12?24:0))*60+d.getMinutes()});
-  let bed='';
-  if(B.length>=3){const m=avg(B),dev=Math.round(avg(B.map(x=>Math.abs(x-m)))/5)*5,c=new Date(2000,0,1,0,Math.round(m)%1440);bed=` · bed ~${ciClock(c)}${dev?` ±${dev} m`:''}`}
-  return `<p class="hero-ci ci-wk">Last ${L.length} nights: ${ciHM(a)} average · ${n7} of ${L.length} at 7 h+${bed}</p>`;
+// TODAY's Sleep card, under the hero
+function slpCard(t){
+  const now=new Date(),h=now.getHours(),L=ciLog(),ci=L.find(e=>e.day===t),eve=ciEve(h),out=eve&&ciOuts().find(o=>o.night===ciNight(+now));
+  const lw=w=>w==='OK'?w:w.toLowerCase(),lastOut=!ci&&!eve&&ciOuts().find(o=>o.night===ciPrev(t));
+  let top='';
+  if(out)top=`<div class="slpc-row slpc-night"><span class="slpc-ic">${SLP_MOON}</span><div><b>Sleeping since ${ciClock(out.at)}</b><small>Check in when you wake up</small></div>
+      <span class="slpc-btns"><button type="button" class="ui-btn ui-secondary" data-ci="still" aria-label="Still up: move tonight's bedtime to now">Still up</button><button type="button" class="ui-btn ui-ghost" data-ci="unout" aria-label="Clear tonight's check-out">Undo</button></span></div>`;
+  else if(ci){const sub=[ci.bed&&ci.wake?`${ciClock(ci.bed)} → ${ciClock(ci.wake)}`:'',QW[ci.q]&&lw(QW[ci.q])+' sleep',EW[ci.energy]&&lw(EW[ci.energy])+' energy',ci.w&&`${ci.w} ${ci.u||wUnit()}`].filter(Boolean).join(' · ');
+    top=`<button type="button" class="slpc-row slpc-sum" data-ci="edit" aria-label="Last night: ${esc(ciSl(ci))} of sleep. ${esc(sub)}. Edit">
+      <span class="slpc-ring">${slpRing(ci.bed&&ci.wake?(ci.wake-ci.bed)/36e5:ci.sleep,58)}</span><div><b>${esc(ciSl(ci))}</b><small>${esc(sub)}</small></div><span class="slpc-chev" aria-hidden="true">›</span></button>`}
+  else if(!eve)top=`<div class="slpc-row slpc-ask"><span class="slpc-ic sun">${SLP_SUN}</span><div><b>How did you sleep?</b><small>${lastOut?`In bed since ${ciClock(lastOut.at)}`:'10 seconds, from your last answers'}</small></div>
+      <button type="button" class="ui-btn ui-primary" data-ci="wake">Check in</button></div>`;
+  else top=`<div class="slpc-row slpc-ask"><span class="slpc-ic">${SLP_MOON}</span><div><b>No check-in this morning</b><small>Add it, or check out tonight</small></div>
+      <button type="button" class="ui-btn ui-ghost" data-ci="wake">Add</button></div>`;
+  const co=eve&&!out?`<button type="button" class="ui-btn ui-primary slpc-out" data-ci="out">${SLP_MOON}<span>Check out · going to sleep</span></button>`:'';
+  return `<section class="slpc${eve?' eve':''}" aria-labelledby="slpc-h"><div class="tch"><h2 class="h" id="slpc-h">Sleep</h2><span class="st">${out?'Checked out':ci?'✓ Checked in':eve?'Tonight':'Not yet'}</span></div>
+    ${top}${slpWeek(t)}${co}</section>`;
 }
-// the hero's check-in lines: today's check-in ("7 h 28 m sleep · good sleep · steady energy · 180 lb (+1 vs wk)") or,
-// in the evening, a way to add the one you missed; tonight's check-out once it's done; the week's sleep
-function ciLine(t){
-  if(CI)return '';
-  const L=ciLog(),ci=L.find(e=>e.day===t),h=new Date().getHours(),out=ciEve(h)&&ciOuts().find(o=>o.night===ciNight(Date.now()));
-  const lw=w=>w==='OK'?w:w.toLowerCase();let x='';
-  if(ci){
-    const wa=avg(L.filter(e=>e.day<t&&e.w).sort((a,b)=>a.day<b.day?1:-1).slice(0,7).map(e=>e.w)),dw=ci.w&&wa?r1(ci.w-wa):null;
-    const txt=esc([`${ciSl(ci)} sleep${ci.bed?` (bed ${ciClock(ci.bed)})`:''}`,QW[ci.q]&&lw(QW[ci.q])+' sleep',EW[ci.energy]&&lw(EW[ci.energy])+' energy',
-      ci.w&&`${ci.w} ${ci.u||wUnit()}${dw?` (${dw>0?'+':''}${dw} vs wk)`:''}`].filter(Boolean).join(' · '));
-    x+=`<p class="hero-ci"><b>✓ Check-in</b> · ${txt} <button type="button" data-ci="edit" aria-label="Edit today's check-in: ${txt}">Edit</button></p>`;
-  }else if(ciEve(h)&&h>=19)x+=`<p class="hero-ci">No check-in this morning <button type="button" data-ci="add">Add</button></p>`;
-  if(out)x+=`<p class="hero-ci"><b class="co-ok">🌙 Checked out</b> · ${ciClock(out.at)}${out.day?` · today: ${lw(DWD[out.day])}`:''} <button type="button" data-ci="out" aria-label="Still up: move tonight's bedtime to now">Still up</button> <button type="button" data-ci="unout" aria-label="Clear tonight's check-out">Clear</button></p>`;
-  return x+ciWeek(t);
+// the morning after a check-out, the wake screen opens by itself the first time TODAY shows (once a day)
+function slpAuto(t){
+  const h=new Date().getHours();if(SLP||h<4||h>=14||ciLog().some(e=>e.day===t)||!ciOuts().some(o=>o.night===ciPrev(t)))return;
+  let seen='';try{seen=sessionStorage.getItem('isx.slp.auto')}catch(e){}if(seen===t)return;
+  try{sessionStorage.setItem('isx.slp.auto',t)}catch(e){}
+  CI=ciDraft(t);slpOpen('wake');
 }
 const pd=s=>{const[y,m,d]=s.split('-').map(Number);return new Date(y,m-1,d)};
 /* ---------- insights: what your check-ins line up with in the other apps ----------
@@ -963,7 +1077,7 @@ function heroHTML(wins,next,t){
   const won=wins.filter(c=>c.done).length,all=wins.length&&won===wins.length,h=new Date().getHours();
   const hello=h<5?'Still up':h<12?'Good morning':h<18?'Good afternoon':'Good evening';
   return `<section class="hero${all?' perfect':''}" aria-labelledby="hero-h">
-    <div class="hero-top"><div><h2 id="hero-h">${hello}</h2><p class="hero-sub">${!wins.length?'Log something in any app to start your day.':all?'Everything done today. Perfect day.':won?`${won} of ${wins.length} done · ${wins.length-won} to go`:`${wins.length} to do today`}</p>${ciLine(t)}</div>
+    <div class="hero-top"><div><h2 id="hero-h">${hello}</h2><p class="hero-sub">${!wins.length?'Log something in any app to start your day.':all?'Everything done today. Perfect day.':won?`${won} of ${wins.length} done · ${wins.length-won} to go`:`${wins.length} to do today`}</p></div>
       ${wins.length?`<p class="hero-n" aria-hidden="true"><b>${won}</b>/${wins.length}</p>`:''}</div>
     ${wins.length?`<ul class="rings" aria-label="Today's progress">${wins.map(c=>{const f=ringOf(c),from=PREV.ring[c.id]??0;
       return `<li><button type="button" class="ring${c.done?' done':''}${c.rest?' rest':''}" data-go="${c.id}" data-act="today" aria-label="${c.label}: ${c.done?'done':c.rest?'rest day':Math.round(f*100)+'%'}, open today in ${c.label}">
@@ -993,14 +1107,12 @@ function celebrate(el,wins){
 let lastToday='';
 function drawToday(){
   const el=$('#today');if(!el)return;
-  if(document.activeElement?.matches?.('#today .ci input'))return;   // don't redraw under you while you type your weight or pick a time
   dacZone();const t=ymd(new Date()),C=[tMind(t),tTrain(t),tFuel(t),tExtract(t),tJournal(),tRewire(t)];
   const wins=C.filter(c=>c&&c.done!=null);
   const next=wins.find(c=>!c.done&&!c.rest);
   const d=new Date(),date=d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'});
-  const ci=ciHTML();
   const html=`<div class="ui-edge" aria-hidden="true"></div><div class="in"><header class="th top"><h1 class="brand"><a class="ui-brand-a" href="personal/" title="ISIONXXX homepage"><span class="ui-brand-mark" role="img" aria-label="ISIONXXX"></span><span class="ui-sr">TODAY</span></a></h1><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>
-    ${stoHTML()}${ci}${heroHTML(wins,next,t)}${planHTML(t,C,next)}
+    ${stoHTML()}${heroHTML(wins,next,t)}${slpCard(t)}${planHTML(t,C,next)}
     ${weekHTML()}${insHTML()}</div>`;
   // only touch the page when something changed
   if(html!==lastToday){
@@ -1008,6 +1120,7 @@ function drawToday(){
     animateToday(el);celebrate(el,wins);UI.animate(el);firstDraw=false;
   }
   runTick();
+  if(el.classList.contains('on')&&!document.hidden)slpAuto(t);
   wins.forEach(c=>PREV.ring[c.id]=ringOf(c));
   // the cards fade in once, then 'drawn' turns the fade off: on a timer alone, so a page that isn't painting frames yet
   // (Safari busy at launch) still shows every card after it, never a page left at the fade's first, empty frame
@@ -1023,13 +1136,9 @@ setInterval(()=>{if(todayOn()&&!document.hidden)drawToday()},60e3);
 addEventListener('isx-sync',()=>{if(todayOn())drawToday()});
 // a text field, so "80,5" is 80.5 everywhere (a number field reads it as 805, or as nothing, depending on the browser);
 // a body weight in lb or kg: anything else (0, negative, 1e6, junk) isn't saved
-$('#today').addEventListener('input',e=>{if(e.target.id==='ciw'&&CI){const w=+e.target.value.trim().replace(',','.');CI.w=w>0&&w<1500?w:null}
-  if(e.target.dataset.ciT)ciTime(e.target.dataset.ciT,e.target.value)});
-$('#today').addEventListener('change',e=>{if(e.target.dataset.ciT)ciTime(e.target.dataset.ciT,e.target.value)});
 $('#today').addEventListener('click',e=>{const n=e.target.closest('[data-ins]');if(n)return insSheet(n.dataset.ins,n);const c=e.target.closest('[data-ci]');if(c)return ciAct(c.dataset.ci,c.dataset.v);const a=e.target.closest('[data-go]');if(a)return openAct(a.dataset.go,a.dataset.act);const b=e.target.closest('[data-open]');if(b)show(b.dataset.open)});
 UI.mount($('#today'));
-$('#today').addEventListener('ui-change',e=>{const k={'ci-sleep':'sleep','ci-q':'q','ci-energy':'energy'}[e.detail.name];if(k&&CI){CI[k]=e.detail.value;UI.keepFocus(drawToday)}
-  if(e.detail.name==='co-day'){CO.day=e.detail.value;UI.keepFocus(drawToday)}});
+
 { // the bar hides on scroll here too
   const el=$('#today');let y0=0;
   el.addEventListener('scroll',()=>{const y=el.scrollTop;if(Math.abs(y-y0)<8)return;const end=y+el.clientHeight>=el.scrollHeight-4;if(todayOn())setBar(y>y0&&y>40&&!end);y0=y},{passive:true});
