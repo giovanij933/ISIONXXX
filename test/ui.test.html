@@ -169,6 +169,27 @@ t('runBar: a clock that throws shows nothing, not an error',()=>{UI.runBar({labe
   t('gl: no canvas (or no WebGL) gives a promise of nothing, never an error, and says whether WebGL is there',()=>{const p=UI.gl(null,()=>{}),q=UI.gl(document.createElement('canvas'));
     return p instanceof Promise&&q instanceof Promise&&typeof UI.gl.ok()==='boolean'&&UI.gl.ok()===UI.gl.ok()});
   if(was==null)localStorage.removeItem('isx.theme');else localStorage.setItem('isx.theme',was)}
+// check-ins (UI.checkins): the one reader of TODAY's isx.checkin.v1, every record rebuilt with its own types
+t('checkins: nothing stored is passed on as it is: markup, numbers as text, impossible dates and values',()=>{
+  const c=UI.checkins({log:[
+    {id:'x',day:'2026-11-24',at:5,sleep:'<img src=x onerror=alert(1)>',q:4,energy:4},      // no hours: left out
+    {day:'2026-11-23',at:'9',sleep:'7.5',q:'4',energy:9,w:'abc',u:'<b>',extra:'<script>'},  // numbers as text come through as numbers
+    {day:'2026-02-30',sleep:7},{day:'26-11-22',sleep:7},null,'x',
+    {day:'2026-11-21',sleep:null,bed:1000,wake:1000+7.25*36e5},                            // hours worked out from the times
+    {day:'2026-11-20',sleep:6,bed:5000,wake:1000}],                                         // bed after waking: the times go, the hours stay
+    outs:[{night:'2026-11-25',at:null,day:3},{night:'2026-11-24',at:'12',day:'<i>'},{night:'2026-11-23',at:100,day:4}]});
+  const L=c.log,d=k=>L.find(e=>e.day===k);
+  return L.length===3&&!d('2026-11-24')&&JSON.stringify(d('2026-11-23'))==='{"id":"ci-2026-11-23","day":"2026-11-23","at":9,"sleep":7.5,"q":4,"energy":null,"w":null,"u":null}'
+    &&d('2026-11-21').sleep===7.3&&d('2026-11-21').bed===1000&&!('bed' in d('2026-11-20'))&&d('2026-11-20').sleep===6
+    &&L.map(e=>e.day).join()==='2026-11-20,2026-11-21,2026-11-23'
+    &&c.outs.length===2&&c.outs[0].night==='2026-11-23'&&c.outs[0].day===4&&c.outs[1].at===12&&c.outs[1].day===null});
+t('checkins: the same day twice keeps the one saved last; a broken or missing store reads as empty, and reading never writes',()=>{
+  const c=UI.checkins({log:[{day:'2026-11-23',at:5,sleep:6},{day:'2026-11-23',at:9,sleep:8},{day:'2026-11-23',at:7,sleep:7}]});
+  const K='isx.checkin.v1',was=localStorage.getItem(K);
+  localStorage.setItem(K,'{not json');const a=UI.checkins(),a2=localStorage.getItem(K);
+  localStorage.setItem(K,'[1,2]');const b=UI.checkins();
+  if(was==null)localStorage.removeItem(K);else localStorage.setItem(K,was);
+  return c.log.length===1&&c.log[0].sleep===8&&!a.log.length&&!a.outs.length&&a2==='{not json'&&!b.log.length&&!UI.checkins(null).log.length&&!UI.checkins('x').outs.length});
 window.UI_TEST={pass,fail};
 </script>
 </body>

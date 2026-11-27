@@ -140,6 +140,11 @@ const settle=async(p,ms)=>{await p.waitForLoadState('load').catch(()=>{});await 
       const h=fs.readFileSync(path.join(DIR,f),'utf8'),head=h.slice(0,h.indexOf('</head>'));
       if(!/localStorage\.getItem\('isx\.theme'\)[^<]*dataset\.theme/.test(head))I('high','appearance',`${f}: the head doesn't set Settings › Appearance before the first paint`)}
     if(app!=='ISIONXXX'&&!html.includes('UI.appearance()'))I('medium','appearance','Settings has no Appearance row (UI.appearance())');
+    // 2b'. TODAY's check-ins are read through UI.checkins (ui.js, ARCHITECTURE.md 2q): every record rebuilt with its own
+    // types. A page that parses isx.checkin.v1 itself can put a stored field (a restored backup's) into its HTML as it is
+    // (TODAY names the key CIK; its one raw read is ciStore, the writer's, which keeps every record as stored)
+    {const raw=(html.match(/(?:getItem|read|get)\(\s*(?:['"]isx\.checkin\.v1['"]|CIK)\s*\)/g)||[]).length,own=app==='ISIONXXX'?1:0;
+      if(raw>own)I('high','data',`reads TODAY's check-ins (isx.checkin.v1) ${raw-own} time${raw-own>1?'s':''} without UI.checkins()`)}
     // 2c. no forced capitals (ARCHITECTURE.md, 2l: Apple's headers are title-style, never all caps)
     {const css=(html.match(/<style[^>]*>[\s\S]*?<\/style>/g)||[]).join('\n')+(app==='ISIONXXX'&&fs.existsSync(path.join(DIR,'ui.css'))?fs.readFileSync(path.join(DIR,'ui.css'),'utf8'):'');
       const n=(css.match(/text-transform:\s*uppercase/g)||[]).length;if(n)I('medium','type',`${n} rule${n>1?'s':''} set text in capitals (text-transform: uppercase)`)}

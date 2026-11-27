@@ -185,6 +185,65 @@ async function main() {
     assert.deepEqual((await store(p)).log.length, 3, 'a file with no check-ins changes nothing');
   });
 
+  // Restore takes a file from anywhere: every record is rebuilt with its own types (UI.checkins), and the apps read
+  // check-ins only through UI.checkins, so nothing in a backup reaches a page as it is
+  const restoreFile = async (p, body) => {
+    if (!await p.$('dialog.tsd[open]')) await tap(p, '#today [data-tset]');
+    await p.setInputFiles('dialog.tsd [data-ts-file]', { name: 'b.json', mimeType: 'application/json', buffer: Buffer.from(typeof body === 'string' ? body : JSON.stringify(body)) });
+    await p.waitForTimeout(400);
+  };
+  const EVIL = '<img src=x onerror="window.__hit=1">';
+
+  await check('Restore keeps only well-formed records: markup, numbers as text, impossible values and missing times', async p => {
+    await open(p, '2026-11-26T15:00:00', { log: [], outs: [] });
+    await restoreFile(p, { log: [
+      { day: '2026-11-24', at: 1, sleep: EVIL, q: 4, energy: 4 },
+      { day: '2026-11-23', at: 2, sleep: '7.5', q: '4', energy: 9, w: 'abc', u: EVIL },
+      { day: '2026-02-30', at: 3, sleep: 7 } ],
+      outs: [{ night: '2026-11-25', at: null, day: 3 }, { night: '2026-11-22', at: ms('2026-11-22T23:00:00'), day: EVIL }] });
+    const s = await store(p), raw = JSON.stringify(s);
+    assert.ok(!raw.includes('<img') && !raw.includes('onerror'), 'no markup stored: ' + raw);
+    assert.deepEqual(s.log.map(e => [e.day, e.sleep, e.q, e.energy, e.w, e.u]), [['2026-11-23', 7.5, 4, null, null, null]]);
+    assert.deepEqual(s.outs.map(o => [o.night, o.day]), [['2026-11-22', null]], 'a check-out without its time is left out');
+    assert.match(await p.textContent('.ui-toast, .ui-undo, body'), /Restored 2 records/);
+  });
+
+  await check('Restore never replaces a newer check-in with an older one; it fills what is missing, and says when nothing is new', async p => {
+    const mine = { id: 'ci-2026-11-25', day: '2026-11-25', at: ms('2026-11-25T07:30:00'), sleep: 7.9, q: 5, energy: 5, w: 180, u: 'lb' };
+    await open(p, '2026-11-26T15:00:00', { log: [mine], outs: [] });
+    await restoreFile(p, { log: [{ ...mine, at: ms('2026-11-20T07:00:00'), sleep: 5 }, { day: '2026-11-24', at: ms('2026-11-24T07:00:00'), sleep: 6.5, q: 3, energy: 3 }], outs: [] });
+    let s = await store(p);
+    assert.equal(s.log.find(e => e.day === '2026-11-25').sleep, 7.9, 'the newer check-in stays');
+    assert.equal(s.log.find(e => e.day === '2026-11-24')?.sleep, 6.5, 'the missing day is added');
+    await restoreFile(p, { log: [{ ...mine, at: ms('2026-11-25T09:00:00'), sleep: 8.2 }], outs: [] });
+    assert.equal((await store(p)).log.find(e => e.day === '2026-11-25').sleep, 8.2, 'a check-in saved later does replace it');
+    await restoreFile(p, { log: [{ ...mine, at: ms('2026-11-25T09:00:00'), sleep: 8.2 }], outs: [] });
+    assert.match(await p.textContent('body'), /Nothing new in that backup/);
+  });
+
+  await check('Restore reads a whole-storage export (the stored text under its key)', async p => {
+    await open(p, '2026-11-26T15:00:00', { log: [], outs: [] });
+    await restoreFile(p, { [KEY]: JSON.stringify({ log: [{ id: 'ci-2026-11-21', day: '2026-11-21', at: 1, sleep: 7, q: 3, energy: 3 }], outs: [] }) });
+    assert.deepEqual((await store(p)).log.map(e => e.day), ['2026-11-21']);
+  });
+
+  await check("a check-in field holding markup never becomes markup in JOURNAL's review or on TODAY", async p => {
+    // stored as an old or tampered copy might hold it, bypassing Restore's own check
+    await p.addInitScript(([k, v]) => { if (!sessionStorage.getItem('seeded')) { localStorage.setItem(k, v); sessionStorage.setItem('seeded', '1') } },
+      [KEY, JSON.stringify({ log: [{ id: 'ci-2026-11-25', day: '2026-11-25', at: 1, sleep: EVIL, q: 4, energy: 4 }, { id: 'ci-2026-11-24', day: '2026-11-24', at: 1, sleep: '6', q: 3, energy: 3, u: EVIL, w: 70 }], outs: [] })]);
+    await p.clock.install({ time: new Date('2026-11-26T15:00:00') });
+    await p.goto(BASE.replace('/ISIONXXX/', '/JOURNAL/'));
+    await p.waitForTimeout(700);
+    await p.evaluate(() => document.querySelector('[data-a=sample]')?.click());
+    await p.waitForTimeout(1500);
+    await p.evaluate(() => { reviewForm('2026-11-25'); });
+    await p.waitForTimeout(600);
+    assert.equal(await p.evaluate(() => !!document.querySelector('img[src=x]') || !!window.__hit), false, 'no live markup in JOURNAL');
+    await p.goto(BASE + '#today'); await p.evaluate(() => drawToday()); await p.waitForTimeout(400);
+    assert.equal(await p.evaluate(() => !!document.querySelector('img[src=x]') || !!window.__hit), false, 'none on TODAY');
+    assert.ok(!/NaN/.test(await card(p)), 'the week of sleep has no NaN: ' + await card(p));
+  });
+
   await browser.close(); server.close();
   if (errs.length) { failed++; console.log('FAIL browser JavaScript errors\n  ' + errs.slice(0, 5).join('\n  ')); } else { passed++; console.log('PASS no browser JavaScript errors'); }
   console.log(failed ? `\nFAIL: ${failed} sleep check${failed === 1 ? '' : 's'} failed` : `\nPASS: ${passed} sleep checks`);
