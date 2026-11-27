@@ -866,3 +866,52 @@ html body dialog.ss .fa2:has(>span:not(:empty)){padding-top:30px;background:line
 html body .box.ss .tmr{border:0;border-radius:999px;background:var(--ss-on);color:var(--accent-text);font-size:13px;font-weight:600;letter-spacing:0}
 html body .box.ss .stp>b{border:0;border-radius:50%;background:var(--ss-fill);font-size:12px}
 html body .box.ss .stp{border-bottom-color:transparent}
+/* ---------- premium everyday sheets (ARCHITECTURE.md 2t) ----------
+   Every sheet that isn't a session: the apps' forms, notes, Settings and reviews (#dlg; NUTRITION's and LEARN's #mbox)
+   and TODAY's own (.ui-cf). The session sheets' language (2s) without their full screen: a 22 px title, 13 px captions
+   over filled fields, Settings as one rounded group, review sections led by 15 px heads instead of rules, and large
+   buttons along the bottom. LEARN's code editor (.ed) keeps its own look. */
+html body :is(#dlg,#mbox):not(.ss){--sh-fill:color-mix(in srgb,var(--text-muted) 13%,transparent)}
+@media (max-width:640px){html body dialog#dlg[open]:not(.ss),html body dialog.ui-cf[open],html body .modal>#mbox:not(.ss){border-radius:28px 28px 0 0}}
+/* titles */
+html body :is(#dlg,#mbox):not(.ss) :is(form>h3:first-child,.rvh>h3),html body :is(#dlg,#mbox):not(.ss)>h3{
+  font-size:22px;font-weight:700;letter-spacing:-.02em;line-height:1.2;color:var(--text-primary)}
+html body :is(#dlg,#mbox):not(.ss) :is(form>h3:first-child),html body :is(#dlg,#mbox):not(.ss)>h3{margin-bottom:16px}
+html body dialog.ui-cf .ui-cf-t{font-size:20px;font-weight:700;letter-spacing:-.015em}
+html body #mbox:not(.ss)>:is(.ckh,.row)>h3{font-size:22px!important;font-weight:700;letter-spacing:-.02em;color:var(--text-primary)}   /* LEARN sets 15 px inline */
+html body :is(#dlg,#mbox):not(.ss) .rvh>h3{font-size:19px}
+html body #mbox:not(.ss) pre.gl{border:0;border-radius:14px;background:var(--sh-fill);padding:14px 16px;font-size:13.5px}
+/* captions over fields; a checkbox's own label reads as an option */
+html body :is(#dlg,#mbox):not(.ss) label{font-size:13px;font-weight:500;color:var(--text-secondary);gap:6px}
+html body :is(#dlg,#mbox):not(.ss) label:has(>input:is([type=checkbox],[type=radio])){font-size:14px;font-weight:400;color:var(--text-primary)}
+html body :is(#dlg,#mbox):not(.ss) legend{font-size:13px;font-weight:500;color:var(--text-secondary)}
+html body :is(#dlg,#mbox):not(.ss) .fgrid{gap:12px;margin-bottom:12px}
+html body :is(#dlg,#mbox):not(.ss) :is(.fgrid,form)>button{min-height:48px;font-size:15px;letter-spacing:0}
+html body .ui-set select{max-width:min(46vw,220px)}
+/* fields: filled, no outline until focused */
+html body :is(#dlg,#mbox):not(.ss) :is(input:not([type=checkbox]):not([type=radio]):not([type=range]):not([type=file]),select,textarea:not(.ed)){
+  min-height:48px;border-color:transparent;background-color:var(--sh-fill);border-radius:14px;font-size:16px;font-weight:400;color:var(--text-primary)}
+html body :is(#dlg,#mbox):not(.ss) textarea:not(.ed){min-height:96px;padding-top:12px;line-height:1.45}
+html body :is(#dlg,#mbox):not(.ss) :is(input,select,textarea){box-sizing:border-box;max-width:100%}   /* REWIRE's habit rows ran 9 px off a 320 px phone */
+html body :is(#dlg,#mbox):not(.ss) :is(input,select,textarea:not(.ed)):focus{border-color:var(--accent)}
+/* Settings: one rounded group, rows split by thin lines (as in iOS Settings) */
+html body .ui-set{background:color-mix(in srgb,var(--text-muted) 12%,transparent);border-radius:18px;padding:0 16px;margin:8px 0 8px}
+html body .ui-set>div{padding:14px 0;border-top-color:color-mix(in srgb,var(--text-muted) 18%,transparent)}
+html body .ui-set b{font-size:15px;letter-spacing:-.005em}
+html body .ui-set small{font-size:12.5px;color:var(--text-muted)}
+html body .ui-set-btns>:is(button,.btn){font-size:14px;letter-spacing:0}
+/* reviews: sections led by their heads, not split by rules */
+html body :is(#dlg,#mbox).rvd .rv{border-top-color:transparent;padding-top:14px;font-size:15px;line-height:1.6}
+html body :is(#dlg,#mbox).rvd .rv h4{font-size:15px;font-weight:600;color:var(--text-primary);margin-bottom:6px}
+html body :is(#dlg,#mbox).rvd .rv .tr{font-size:13px}
+/* chips in a form: filled */
+html body :is(#dlg,#mbox):not(.ss) .chips>button{font-size:14px;letter-spacing:0;padding:9px 14px;border-color:transparent}
+html body :is(#dlg,#mbox):not(.ss) .chips>button:not(.on){background:var(--sh-fill)}
+/* the buttons along the bottom: large, sharing the width; a status line sits above them; a ghost (Cancel, Discard)
+   keeps its own width */
+html body :is(#dlg,#mbox):not(.ss) :is(.fa2,.mact){gap:10px;flex-wrap:wrap;margin-top:18px}
+html body :is(#dlg,#mbox):not(.ss) :is(.fa2>button,.fa2>span>button,.mact>button,.mact>.btn){flex:1 1 0;min-width:0;justify-content:center;text-align:center;min-height:50px;font-size:16px;font-weight:600;letter-spacing:0;padding-left:14px;padding-right:14px}
+html body :is(#dlg,#mbox):not(.ss) .fa2>.ghost{flex:0 0 auto;font-weight:500;color:var(--text-secondary)}
+html body :is(#dlg,#mbox):not(.ss) .fa2>span:has(>button){display:contents}
+html body :is(#dlg,#mbox):not(.ss) .fa2>span:not(:has(button)):not(:empty){flex:1 0 100%;order:-1;margin:0;text-align:center;font-size:13px}
+html body :is(#dlg,#mbox):not(.ss) .fa2>span:empty,html body #mbox:not(.ss) .mact>.sp{display:none}
