@@ -500,6 +500,14 @@ mode (`.box.ss`) take the same look, from one block at the end of `ui.css`; each
   only when it shows a hint, so the hint never sits over the list;
 - labels in sentence case: TRAINING's "Next ›" and "‹ Back", REWIRE's "Inhale" / "Exhale" (they were capitals).
 
+**2t. Premium everyday sheets.** Every sheet that isn't a session takes the same language, from one more block at the
+end of `ui.css`: the apps' forms, notes, Settings and reviews (`#dlg`; NUTRITION's and LEARN's `#mbox`) and TODAY's own
+(`.ui-cf`). A 22 px bold title (19 px beside a review's arrows, 20 px on a prompt); 13 px captions over filled fields
+48 px tall with no outline until focused (LEARN's code editor, `.ed`, keeps its own); Settings (`.ui-set`, everywhere) as
+one rounded group with thin lines between rows and 15 px row titles; reviews led by 15 px section heads instead of rules
+between them; and large buttons sharing the width along the bottom (a ghost such as Cancel keeps its own width, a status
+line sits above them). Fields in a sheet can't be wider than it (REWIRE's habit rows ran 9 px off a 320 px phone).
+
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL
 would tie every app's offline start-up and update timing to the shell's deploy. That would also break the
