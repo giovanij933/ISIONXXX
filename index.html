@@ -234,15 +234,16 @@ html body dialog.slp .slp-del{color:var(--error)}
    softens and fades as it slides under them (.ui-edge, drawn with the page) */
 @media(max-width:640px){
   #today .th{top:8px;background:none;border-bottom:0;padding:0;margin:8px 0 14px;align-items:center;gap:8px;z-index:8}
-  #today .th :is(.brand,.dt,#isx-sync){background:var(--glass-sheen),var(--glass-clear);border:1px solid var(--glass-edge);box-shadow:var(--shadow-float);-webkit-backdrop-filter:var(--glass-clear-filter);backdrop-filter:var(--glass-clear-filter)}
+  #today .th :is(.brand,.dt,#isx-sync,.tset){background:var(--glass-sheen),var(--glass-clear);border:1px solid var(--glass-edge);box-shadow:var(--shadow-float);-webkit-backdrop-filter:var(--glass-clear-filter);backdrop-filter:var(--glass-clear-filter)}
   #today .th .brand{display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;margin:0;border-radius:50%}
   #today .th .brand>.ui-brand-a{display:flex;align-items:center;justify-content:center;width:44px;height:44px;padding:0;margin:0;border-radius:50%}
   #today .th .ui-brand-mark{display:block;width:22px;height:21px}
   #today .th .acts{display:flex;align-items:center;gap:8px}
   #today .th .dt{display:inline-flex;align-items:center;gap:.3em;height:44px;padding:0 16px;border-radius:999px}
   #today .th #isx-sync{margin:0;width:44px;height:44px;padding:0;border-radius:50%;display:inline-flex;align-items:center;justify-content:center}
+  #today .th .tset{width:44px;height:44px;padding:0;border-radius:50%}
 }
-@media(max-width:640px) and (prefers-reduced-transparency:reduce){#today .th :is(.brand,.dt,#isx-sync){background:var(--float-solid);-webkit-backdrop-filter:none;backdrop-filter:none}}
+@media(max-width:640px) and (prefers-reduced-transparency:reduce){#today .th :is(.brand,.dt,#isx-sync,.tset){background:var(--float-solid);-webkit-backdrop-filter:none;backdrop-filter:none}}
 /* wider screens: the header is the apps' rounded glass bar (ui.css, header.top), not a solid strip, so the living
    backdrop shows through it instead of stopping in a hard band under it */
 @media(min-width:641px){
@@ -297,6 +298,11 @@ html body #today .hero .nx{border-radius:18px}
   #today .pl-l{column-gap:46px}
 }
 body.app-on #isx-sync{display:none}
+/* TODAY's ··· (Settings): the apps' ··· button (ui.css), opening the sheet straight away since it is the only item */
+#today .th .tset{display:inline-flex;align-items:center;justify-content:center;flex:none;min-width:44px;height:40px;margin:0;padding:0 10px;
+  border-radius:999px;color:var(--text-primary);background:var(--background);border:1px solid var(--border);cursor:pointer}
+@media (hover:hover){#today .th .tset:hover{background:var(--fill)}}
+#today .th .tset:focus-visible{outline:2px solid var(--accent);outline-offset:2px}
 .pane:focus{outline:0}
 </style>
 </head>
@@ -919,6 +925,55 @@ function insSheet(i,from){
   d.addEventListener('click',e=>{if(e.target!==d)return;const r=d.getBoundingClientRect();if(e.clientY<r.top||e.clientY>r.bottom||e.clientX<r.left||e.clientX>r.right)d.close()});
   document.body.appendChild(d);d.showModal();d.querySelector('.ui-btn').focus({preventScroll:true});d.scrollTop=0;
 }
+/* ---------- TODAY's Settings: the apps' sheet (Appearance, Sync, Backup, Delete everything) for TODAY's own data, the
+   morning check-ins and night check-outs (isx.checkin.v1). Delete asks first, then offers Undo; with sync on, the
+   deletion reaches the other devices as it does for any record (sync.js), and an Undo brings the records back there too */
+const ciCount=s=>`${plural(s.log.length,'check-in')} and ${plural(s.outs.length,'check-out')}`;
+function tsetHTML(){
+  const s=ciStore(),n=s.log.length+s.outs.length,on=window.ISXSync?.state==='ok';
+  return `<form method="dialog"><h3 class="ui-cf-t" id="tsd-t">Settings</h3><div class="ui-set">${UI.appearance()}
+    <div><span><b>Sync</b><small>${on?'On · TODAY and every app sync across your devices':'Keep TODAY and every app the same on all your devices'}</small></span><span class="ui-set-btns"><button type="button" data-ts="sync">Sync…</button></span></div>
+    <div><span><b>Check-ins</b><small>${ciCount(s)} on this device. Download a copy, or restore one.</small></span><span class="ui-set-btns"><button type="button" data-ts="bak"${n?'':' disabled'}>Back up JSON</button><button type="button" data-ts="imp">Restore</button></span></div>
+    <div><span><b>Delete check-ins</b><small>Every check-in and check-out${on?', on your other devices too':''}.</small></span><span class="ui-set-btns"><button type="button" class="ui-danger" data-ts="clear"${n?'':' disabled'}>Clear all</button></span></div>
+  </div><input type="file" accept=".json,application/json" hidden data-ts-file>
+  <div class="ui-cf-a"><button class="ui-btn ui-primary" value="ok">Done</button></div></form>`;
+}
+// a restore or an Undo puts records back: each one replaces the same day's (night's), the rest stay
+const ciMerge=(s,add)=>{for(const k of['log','outs']){const key=k==='log'?'day':'night';for(const e of add[k]){const i=s[k].findIndex(x=>x[key]===e[key]);if(i>=0)s[k][i]=e;else s[k].push(e)}s[k].sort((a,b)=>a[key]<b[key]?-1:1)}return s};
+// a backup file: { log, outs } as TODAY saves it (or a bare list of check-ins). Anything without a real date is skipped
+const isDay=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v);
+function ciParse(txt){
+  let j;try{j=JSON.parse(txt)}catch(e){return null}
+  if(j&&j[CIK])j=j[CIK];if(Array.isArray(j))j={log:j,outs:[]};if(!j||typeof j!=='object')return null;
+  const log=(Array.isArray(j.log)?j.log:[]).filter(e=>e&&isDay(e.day)).map(e=>({...e,id:'ci-'+e.day}));
+  const outs=(Array.isArray(j.outs)?j.outs:[]).filter(o=>o&&isDay(o.night)&&isFinite(o.at)).map(o=>({...o,id:'co-'+o.night}));
+  return log.length||outs.length?{log,outs}:null;
+}
+function tsetOpen(from){
+  const d=document.createElement('dialog');d.className='ui-cf tsd';d.setAttribute('aria-labelledby','tsd-t');d.innerHTML=tsetHTML();
+  const redraw=()=>{if(d.open){d.innerHTML=tsetHTML();wire()}drawToday()};
+  const wire=()=>d.querySelector('[data-ts-file]').addEventListener('change',async e=>{
+    const f=e.target.files?.[0];e.target.value='';if(!f)return;
+    const add=ciParse(await f.text());if(!add){UI.toast('No check-ins found in that file');return}
+    const prev=ciStore();if(!ciPut(ciMerge(ciStore(),add)))return;redraw();
+    UI.undo(`Restored ${ciCount(add)}`,()=>{ciPut(prev);redraw()});
+  });
+  wire();
+  d.addEventListener('click',e=>{
+    if(e.target===d){const r=d.getBoundingClientRect();if(e.clientY<r.top||e.clientY>r.bottom||e.clientX<r.left||e.clientX>r.right)d.close();return}
+    const b=e.target.closest('[data-ts]');if(!b)return;const k=b.dataset.ts;
+    if(k==='sync'){d.close();document.getElementById('isx-sync')?.click()}
+    else if(k==='imp')d.querySelector('[data-ts-file]').click();
+    else if(k==='bak'){const a=document.createElement('a');a.href=URL.createObjectURL(new Blob([JSON.stringify(ciStore())],{type:'application/json'}));
+      a.download=`checkins-backup-${ymd(new Date())}.json`;document.body.append(a);a.click();a.remove();setTimeout(()=>URL.revokeObjectURL(a.href),4000)}
+    else if(k==='clear'){const s=ciStore(),on=window.ISXSync?.state==='ok';
+      UI.confirm({title:'Delete all check-ins?',body:`${ciCount(s)} are deleted${on?' here and on your other devices':''}. TRAINING's readiness and the insights lose your sleep and energy with them. Back up first if you might want them.`,ok:'Delete all',danger:true})
+        .then(ok=>{if(!ok)return;const prev=ciStore();if(!ciPut({...prev,log:[],outs:[]}))return;d.close();drawToday();
+          UI.undo('Check-ins deleted',()=>{ciPut(ciMerge(ciStore(),prev));drawToday()})})}
+  });
+  d.addEventListener('close',()=>{setTimeout(()=>d.remove(),400);try{from?.focus({preventScroll:true})}catch(e){}});
+  document.body.appendChild(d);d.showModal();d.querySelector('.ui-btn').focus({preventScroll:true});
+}
 const insLine=(x,i)=>x.d?`<button type="button" class="in1" data-ins="${i}" aria-haspopup="dialog">${x.t}<span class="in-go" aria-hidden="true">›</span></button>`:`<p class="in1">${x.t}</p>`;
 /* ---------- your week: the weekend's look back over all six apps ----------
    Saturday and Sunday, under today's plan. A row per app with a dot for each day since Monday, decided the way that
@@ -1117,7 +1172,7 @@ function drawToday(){
   const wins=C.filter(c=>c&&c.done!=null);
   const next=wins.find(c=>!c.done&&!c.rest);
   const d=new Date(),date=d.toLocaleDateString('en-US',{weekday:'short',day:'numeric',month:'short'});
-  const html=`<div class="ui-edge" aria-hidden="true"></div><div class="in"><header class="th top"><h1 class="brand"><a class="ui-brand-a" href="personal/" title="ISIONXXX homepage"><span class="ui-brand-mark" role="img" aria-label="ISIONXXX"></span><span class="ui-sr">TODAY</span></a></h1><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span></div></header>
+  const html=`<div class="ui-edge" aria-hidden="true"></div><div class="in"><header class="th top"><h1 class="brand"><a class="ui-brand-a" href="personal/" title="ISIONXXX homepage"><span class="ui-brand-mark" role="img" aria-label="ISIONXXX"></span><span class="ui-sr">TODAY</span></a></h1><div class="acts"><span class="dt"><i>${date.split(',')[0]}, </i>${date.split(', ').slice(1).join(', ')}</span><button type="button" class="tset" data-tset aria-haspopup="dialog" aria-label="Settings" title="Settings"><span class="ui-more-h"></span><span class="ui-more-v"></span></button></div></header>
     ${stoHTML()}${heroHTML(wins,next,t)}${slpCard(t)}${planHTML(t,C,next)}
     ${weekHTML()}${insHTML()}</div>`;
   // only touch the page when something changed
@@ -1142,7 +1197,7 @@ setInterval(()=>{if(todayOn()&&!document.hidden)drawToday()},60e3);
 addEventListener('isx-sync',()=>{if(todayOn())drawToday()});
 // a text field, so "80,5" is 80.5 everywhere (a number field reads it as 805, or as nothing, depending on the browser);
 // a body weight in lb or kg: anything else (0, negative, 1e6, junk) isn't saved
-$('#today').addEventListener('click',e=>{const n=e.target.closest('[data-ins]');if(n)return insSheet(n.dataset.ins,n);const c=e.target.closest('[data-ci]');if(c)return ciAct(c.dataset.ci,c.dataset.v);const a=e.target.closest('[data-go]');if(a)return openAct(a.dataset.go,a.dataset.act);const b=e.target.closest('[data-open]');if(b)show(b.dataset.open)});
+$('#today').addEventListener('click',e=>{const st=e.target.closest('[data-tset]');if(st)return tsetOpen(st);const n=e.target.closest('[data-ins]');if(n)return insSheet(n.dataset.ins,n);const c=e.target.closest('[data-ci]');if(c)return ciAct(c.dataset.ci,c.dataset.v);const a=e.target.closest('[data-go]');if(a)return openAct(a.dataset.go,a.dataset.act);const b=e.target.closest('[data-open]');if(b)show(b.dataset.open)});
 UI.mount($('#today'));
 
 { // the bar hides on scroll here too

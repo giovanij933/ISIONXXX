@@ -142,6 +142,49 @@ async function main() {
     assert.equal((await store(p)).outs.length, 0, 'the card\'s Undo clears it');
   });
 
+  // TODAY's Settings (the ··· in the header): its own data, the check-ins, can be backed up, restored and deleted
+  const L3 = ['2026-11-23', '2026-11-24', '2026-11-25'].map(d => ({ id: 'ci-' + d, day: d, at: ms(`${d}T07:00:00`), sleep: 7.5, q: 4, energy: 4, w: null, u: 'lb',
+    bed: ms(`${d}T00:00:00`) - 30 * 60e3, wake: ms(`${d}T07:00:00`) }));
+  const O2 = [{ id: 'co-2026-11-24', night: '2026-11-24', at: ms('2026-11-24T23:30:00'), day: 4 }, { id: 'co-2026-11-25', night: '2026-11-25', at: ms('2026-11-25T23:30:00'), day: 3 }];
+
+  await check('Settings › Clear all deletes every check-in and check-out after asking; Cancel keeps them, Undo brings them back', async p => {
+    await open(p, '2026-11-26T15:00:00', { log: L3, outs: O2 });   // after 2 PM: the wake screen doesn't open by itself
+    await tap(p, '#today [data-tset]');
+    assert.match(await p.textContent('dialog.tsd'), /3 check-ins and 2 check-outs on this device/);
+    await tap(p, 'dialog.tsd [data-ts=clear]');
+    assert.match(await p.textContent('dialog.ui-cf:not(.tsd)'), /Delete all check-ins\?.*3 check-ins and 2 check-outs are deleted/s);
+    await tap(p, 'dialog.ui-cf:not(.tsd) [data-cf=no]');
+    assert.equal((await store(p)).log.length, 3, 'Cancel deletes nothing');
+    await tap(p, 'dialog.tsd [data-ts=clear]');
+    await tap(p, 'dialog.ui-cf:not(.tsd) [data-cf=yes]');
+    let s = await store(p);
+    assert.deepEqual([s.log.length, s.outs.length], [0, 0], 'everything gone');
+    assert.equal(await p.$('dialog.tsd[open]'), null, 'Settings closes');
+    await tap(p, '.ui-undo-b');
+    s = await store(p);
+    assert.deepEqual(s.log.map(e => e.id), L3.map(e => e.id), 'Undo puts the check-ins back');
+    assert.deepEqual(s.outs.map(o => o.id), O2.map(o => o.id), 'and the check-outs');
+  });
+
+  await check('Settings › Back up JSON then Restore: the same check-ins come back; a file without any is refused', async p => {
+    await open(p, '2026-11-26T15:00:00', { log: L3, outs: O2 });   // after 2 PM: the wake screen doesn't open by itself
+    await tap(p, '#today [data-tset]');
+    const [dl] = await Promise.all([p.waitForEvent('download'), p.click('dialog.tsd [data-ts=bak]')]);
+    assert.match(dl.suggestedFilename(), /^checkins-backup-2026-11-26\.json$/);
+    const backup = await fs.readFile(await dl.path(), 'utf8');
+    assert.deepEqual(JSON.parse(backup), await store(p), 'the backup is the stored check-ins');
+    // empty it, then restore the file
+    await p.evaluate(k => localStorage.setItem(k, JSON.stringify({ log: [], outs: [] })), KEY);
+    await p.setInputFiles('dialog.tsd [data-ts-file]', { name: 'b.json', mimeType: 'application/json', buffer: Buffer.from(backup) });
+    await p.waitForTimeout(400);
+    const s = await store(p);
+    assert.deepEqual([s.log.length, s.outs.length], [3, 2], 'restored');
+    assert.match(await p.textContent('dialog.tsd'), /3 check-ins and 2 check-outs/, 'the sheet shows the new count');
+    await p.setInputFiles('dialog.tsd [data-ts-file]', { name: 'x.json', mimeType: 'application/json', buffer: Buffer.from('{"hello":1}') });
+    await p.waitForTimeout(400);
+    assert.deepEqual((await store(p)).log.length, 3, 'a file with no check-ins changes nothing');
+  });
+
   await browser.close(); server.close();
   if (errs.length) { failed++; console.log('FAIL browser JavaScript errors\n  ' + errs.slice(0, 5).join('\n  ')); } else { passed++; console.log('PASS no browser JavaScript errors'); }
   console.log(failed ? `\nFAIL: ${failed} sleep check${failed === 1 ? '' : 's'} failed` : `\nPASS: ${passed} sleep checks`);

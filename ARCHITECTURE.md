@@ -456,6 +456,11 @@ The check-out and the check-in are full screens, dark whatever the appearance (a
   saved. Opened from a saved check-in it has Clear (with Undo).
 A night is named by its evening (before 4 AM it is still last night), so a check-out at 12:40 AM counts for the night it
 ends. The day's rating feeds TODAY's insights (how you rate days after 7+ h of sleep against shorter nights).
+TODAY's own data is the check-ins, so TODAY has the apps' Settings sheet too, behind a ··· in its header (it opens the
+sheet straight away: it is the only item): Appearance, Sync, the check-ins' Back up JSON and Restore (a restored
+record replaces the same day's or night's, the rest stay), and Delete check-ins, which asks first ("Delete all
+check-ins?", with how many) and then offers Undo. With sync on, the deletion reaches the other devices like any
+deleted record, and an Undo brings them back there too. `checkin.test.js` covers both.
 `isx.checkin.v1` keeps its `log` of check-ins, now with `bed` and `wake` (`sleep` stays hours, to a tenth, for every app
 that reads it), and adds `outs`: one record a night, `co-<night>`.
 
