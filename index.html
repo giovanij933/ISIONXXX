@@ -582,7 +582,8 @@ const EMPTY={mind:'Meditate, breathe or journal',training:'Log a workout',nutrit
      TODAY shows that morning. Without one, bedtime is your usual one, marked as a guess. Opened from a saved check-in
      it has Clear (with Undo). */
 const CIK='isx.checkin.v1',QW=['','Poor','Restless','OK','Good','Great'],EW=['','Drained','Low','Steady','Good','Charged'],DWD=['','Rough','Meh','OK','Good','Great'];
-const ciLog=()=>arr(read(CIK)?.log),ciOuts=()=>arr(read(CIK)?.outs);
+// read through UI.checkins (ui.js): every record rebuilt with its own types, so nothing stored reaches the page as it is
+const ciLog=()=>UI.checkins().log,ciOuts=()=>UI.checkins().outs;
 const wUnit=()=>read('isx.training.v1')?.wu||(/-US$/.test(navigator.language||'')?'lb':'kg');
 const r1=v=>Math.round(v*10)/10,avg=a=>a.length?a.reduce((x,y)=>x+y,0)/a.length:null;
 const SLP_GOAL=8;   // the ring's whole circle, in hours
@@ -864,7 +865,7 @@ function insights(){
   const rw2=(A,f)=>A.map(e=>[e.day,f(e)]).filter(r=>r[1]!=null),ins2=(L,A,B,f,k,ma,mb)=>insD(L[0],rw2(A,f),L[1],rw2(B,f),k,ma,mb);
   let a=mean(good,e=>e.energy),b=mean(short,e=>e.energy);
   // the day's rating comes from that evening's check-out (its night is the day it rates)
-  const DR={};arr(read(CIK)?.outs).forEach(o=>{if(o?.day)DR[o.night]=o.day});
+  const DR={};ciOuts().forEach(o=>{if(o.day)DR[o.night]=o.day});
   {const c=mean(good,e=>DR[e.day]??null),d=mean(short,e=>DR[e.day]??null);
     if(ok(c,d)&&Math.abs(c.v-d.v)>=.5)out.push({s:Math.abs(c.v-d.v)/2+.05,d:ins2(SL,good,short,e=>DR[e.day]??null,'/5',r1(c.v)+' / 5',r1(d.v)+' / 5'),t:`You rate your day <b>${r1(c.v)} / 5</b> after 7+ h of sleep vs <b>${r1(d.v)} / 5</b> after less.`})}
   if(ok(a,b)&&Math.abs(a.v-b.v)>=.5)out.push({s:Math.abs(a.v-b.v)/2,d:ins2(SL,good,short,e=>e.energy,'/5',r1(a.v)+' / 5',r1(b.v)+' / 5'),t:`Energy averages <b>${r1(a.v)}</b> after 7+ h of sleep vs <b>${r1(b.v)}</b> after less.`});
@@ -938,16 +939,21 @@ function tsetHTML(){
   </div><input type="file" accept=".json,application/json" hidden data-ts-file>
   <div class="ui-cf-a"><button class="ui-btn ui-primary" value="ok">Done</button></div></form>`;
 }
-// a restore or an Undo puts records back: each one replaces the same day's (night's), the rest stay
-const ciMerge=(s,add)=>{for(const k of['log','outs']){const key=k==='log'?'day':'night';for(const e of add[k]){const i=s[k].findIndex(x=>x[key]===e[key]);if(i>=0)s[k][i]=e;else s[k].push(e)}s[k].sort((a,b)=>a[key]<b[key]?-1:1)}return s};
-// a backup file: { log, outs } as TODAY saves it (or a bare list of check-ins). Anything without a real date is skipped
-const isDay=v=>typeof v==='string'&&/^\d{4}-\d{2}-\d{2}$/.test(v);
+// a restore or an Undo puts records back without losing anything newer here: a check-in replaces the same day's only
+// if it was saved later; a check-out only fills a night that has none. Returns how many records it added or replaced
+const ciMerge=(s,add)=>{let n=0;
+  for(const[k,key]of[['log','day'],['outs','night']])for(const e of add[k]){if(!e||typeof e!=='object')continue;const i=s[k].findIndex(x=>x&&x[key]===e[key]);
+    if(i<0){s[k].push(e);n++}else if(k==='log'&&e.at>(+s[k][i].at||0)){s[k][i]=e;n++}}
+  for(const[k,key]of[['log','day'],['outs','night']])s[k].sort((a,b)=>(a?.[key]??'')<(b?.[key]??'')?-1:1);
+  return n};
+// a backup file: { log, outs } as TODAY saves it, the stored text of it (a whole-storage export keeps each key's value
+// as a string), or a bare list of check-ins. Every record goes through UI.checkins: a field that isn't what it should be
+// (markup where a number goes, an impossible date, a missing time) is dropped, never stored
 function ciParse(txt){
   let j;try{j=JSON.parse(txt)}catch(e){return null}
-  if(j&&j[CIK])j=j[CIK];if(Array.isArray(j))j={log:j,outs:[]};if(!j||typeof j!=='object')return null;
-  const log=(Array.isArray(j.log)?j.log:[]).filter(e=>e&&isDay(e.day)).map(e=>({...e,id:'ci-'+e.day}));
-  const outs=(Array.isArray(j.outs)?j.outs:[]).filter(o=>o&&isDay(o.night)&&isFinite(o.at)).map(o=>({...o,id:'co-'+o.night}));
-  return log.length||outs.length?{log,outs}:null;
+  if(j&&typeof j==='object'&&!Array.isArray(j)&&CIK in j){j=j[CIK];if(typeof j==='string')try{j=JSON.parse(j)}catch(e){return null}}
+  if(Array.isArray(j))j={log:j,outs:[]};if(!j||typeof j!=='object')return null;
+  const c=UI.checkins(j);return c.log.length||c.outs.length?c:null;
 }
 function tsetOpen(from){
   const d=document.createElement('dialog');d.className='ui-cf tsd';d.setAttribute('aria-labelledby','tsd-t');d.innerHTML=tsetHTML();
@@ -955,8 +961,9 @@ function tsetOpen(from){
   const wire=()=>d.querySelector('[data-ts-file]').addEventListener('change',async e=>{
     const f=e.target.files?.[0];e.target.value='';if(!f)return;
     const add=ciParse(await f.text());if(!add){UI.toast('No check-ins found in that file');return}
-    const prev=ciStore();if(!ciPut(ciMerge(ciStore(),add)))return;redraw();
-    UI.undo(`Restored ${ciCount(add)}`,()=>{ciPut(prev);redraw()});
+    const prev=ciStore(),next=ciStore(),n=ciMerge(next,add);if(!n){UI.toast('Nothing new in that backup: everything in it is here already');return}
+    if(!ciPut(next))return;redraw();
+    UI.undo(`Restored ${plural(n,'record')}`,()=>{ciPut(prev);redraw()});
   });
   wire();
   d.addEventListener('click',e=>{
@@ -969,7 +976,7 @@ function tsetOpen(from){
     else if(k==='clear'){const s=ciStore(),on=window.ISXSync?.state==='ok';
       UI.confirm({title:'Delete all check-ins?',body:`${ciCount(s)} are deleted${on?' here and on your other devices':''}. TRAINING's readiness and the insights lose your sleep and energy with them. Back up first if you might want them.`,ok:'Delete all',danger:true})
         .then(ok=>{if(!ok)return;const prev=ciStore();if(!ciPut({...prev,log:[],outs:[]}))return;d.close();drawToday();
-          UI.undo('Check-ins deleted',()=>{ciPut(ciMerge(ciStore(),prev));drawToday()})})}
+          UI.undo('Check-ins deleted',()=>{const s2=ciStore();ciMerge(s2,prev);ciPut(s2);drawToday()})})}
   });
   d.addEventListener('close',()=>{setTimeout(()=>d.remove(),400);try{from?.focus({preventScroll:true})}catch(e){}});
   document.body.appendChild(d);d.showModal();d.querySelector('.ui-btn').focus({preventScroll:true});

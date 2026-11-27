@@ -12,6 +12,7 @@
    plus UI.toast(message) for announcements, and UI.confirm / UI.ask / UI.undo in place of the browser's confirm() and
    prompt(). See ui.html for every component, its props and its states.
    UI.appearance() is the Settings row for Auto / Light / Dark; UI.theme() reads the choice, UI.theme(v) sets it.
+   UI.checkins() is the one reader of TODAY's check-ins (isx.checkin.v1): every record rebuilt with its own types.
    UI.gl(canvas, setup) draws a 3D moment with Three.js where the device can, and gives null where it can't; on it,
    UI.orb (the breathing orb), and UI.bloom (light rising from what was just done).
 */
@@ -967,6 +968,60 @@
   document.readyState === 'complete' ? launchSoon(800) : addEventListener('load', () => launchSoon(800));
   matchMedia('(prefers-color-scheme: dark)').addEventListener?.('change', () => launchSoon(100));
 
+  /* ---------- check-ins: TODAY's morning check-ins and night check-outs (isx.checkin.v1) ----------
+     The one reader for them, in TODAY and every app. Each record is rebuilt from the fields it can have, each of its own
+     type, so what was stored (a restored backup, a hand-edited file, an old version) is never put into a page as it is:
+     a day is a real date (YYYY-MM-DD), numbers are finite and in range (sleep 0-24 h, ratings whole 1-5, weight under
+     1500, times in ms), the unit is lb or kg, and bed and wake are kept only as a pair, bed first, at most 16 h apart.
+     A check-in without its hours (or times to work them out from), or a check-out without its time, is left out; a day
+     stored twice keeps the one saved last. Reading never writes: nothing is deleted because it didn't read.
+     UI.checkins() reads the store; UI.checkins(obj) cleans any { log, outs } (a backup), in the same way. */
+  const CHECKINS = 'isx.checkin.v1';
+  const ciIsDay = v => {
+    if (typeof v !== 'string' || !/^\d{4}-\d{2}-\d{2}$/.test(v)) return false;
+    const [y, m, d] = v.split('-').map(Number), t = new Date(y, m - 1, d);
+    return t.getFullYear() === y && t.getMonth() === m - 1 && t.getDate() === d;
+  };
+  // a number, or a number written as text ("7.5"), within lo..hi; anything else is null
+  const ciNum = (v, lo, hi) => {
+    if (typeof v === 'string' && v.trim() !== '') v = Number(v);
+    return typeof v === 'number' && Number.isFinite(v) && v >= lo && v <= hi ? v : null;
+  };
+  const ciRate = v => { v = ciNum(v, 1, 5); return v != null && Number.isInteger(v) ? v : null };
+  const CI_MS = 8.64e15;   // the largest time a Date can hold
+  function checkinRow(e) {
+    if (!e || typeof e !== 'object' || !ciIsDay(e.day)) return null;
+    const r = { id: 'ci-' + e.day, day: e.day, at: ciNum(e.at, 0, CI_MS) ?? 0, sleep: ciNum(e.sleep, 0, 24), q: ciRate(e.q), energy: ciRate(e.energy),
+      w: ciNum(e.w, 0.1, 1499.9), u: e.u === 'kg' || e.u === 'lb' ? e.u : null };
+    const bed = ciNum(e.bed, 1, CI_MS), wake = ciNum(e.wake, 1, CI_MS);
+    if (bed != null && wake != null && wake > bed && wake - bed <= 16 * 36e5) {
+      r.bed = bed; r.wake = wake;
+      if (r.sleep == null) r.sleep = Math.round((wake - bed) / 36e5 * 10) / 10;
+    }
+    return r.sleep == null ? null : r;
+  }
+  function checkoutRow(o) {
+    if (!o || typeof o !== 'object' || !ciIsDay(o.night)) return null;
+    const at = ciNum(o.at, 1, CI_MS);
+    return at == null ? null : { id: 'co-' + o.night, night: o.night, at, day: ciRate(o.day) };
+  }
+  function checkins(raw) {
+    let s = raw;
+    if (raw === undefined) { try { s = JSON.parse(localStorage.getItem(CHECKINS)) } catch (e) { s = null } }
+    const clean = (list, row, key, newer) => {
+      const by = new Map();
+      for (const x of Array.isArray(list) ? list : []) {
+        const r = row(x); if (!r) continue;
+        const had = by.get(r[key]); if (!had || newer(r, had)) by.set(r[key], r);
+      }
+      return [...by.values()].sort((a, b) => a[key] < b[key] ? -1 : a[key] > b[key] ? 1 : 0);
+    };
+    return {
+      log: clean(s?.log, checkinRow, 'day', (a, b) => a.at > b.at),
+      outs: clean(s?.outs, checkoutRow, 'night', (a, b) => a.at > b.at)
+    };
+  }
+
   /* ---------- appearance: Auto (the device's), Light or Dark ----------
      One choice for TODAY and every app on this device: they share an origin, so one localStorage key (isx.theme:
      'auto', 'light' or 'dark'; Auto is saved too, not removed, because db.js holds a removed key back from the other
@@ -1290,5 +1345,5 @@ void main(){ vec3 n=normalize(vN); float fr=pow(1.0-max(dot(n,normalize(vV)),0.0
     });
   }
 
-  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, runBar, theme, appearance, gl, orb, bloom, upNext, planArt, weekReview, version: '1.14.0' };
+  window.UI = { planner, replan, planOf, planSig, hero, filter, timeline, animate, paint, keepFocus, esc, status, meter, week, button, card, segmented, rating, choiceList, stepper, emptyState, skeleton, toast, confirm: confirmSheet, ask, undo, mount, runBar, theme, appearance, checkins, gl, orb, bloom, upNext, planArt, weekReview, version: '1.15.0' };
 })();

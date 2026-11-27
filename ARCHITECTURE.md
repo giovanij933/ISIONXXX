@@ -47,7 +47,7 @@ change. A copy that drifts is a bug.
 | LEARN | `xl.progress.v1` `xl.events.v1` `xl.sessions.v1` `xl.drafts.v1` `xl.settings.v1` `xl.videos.v1` |
 | JOURNAL | `isx.journal.v1` |
 | REWIRE | `isx.rewire.v1` |
-| Shell | `isx.checkin.v1` (also read by the apps: `log`, the check-ins; `outs`, the check-outs, is TODAY's own) |
+| Shell | `isx.checkin.v1` (also read by the apps: `log`, the check-ins; `outs`, the check-outs, is TODAY's own; read only through `UI.checkins()`, 2q) |
 
 Every app also writes `isx.plan.<app>` (local only, never synced) through `UI.planner` in ui.js: the session its START
 would begin next, with a signature of the keys it was built from and the day, for TODAY's plan card.
@@ -458,9 +458,17 @@ A night is named by its evening (before 4 AM it is still last night), so a check
 ends. The day's rating feeds TODAY's insights (how you rate days after 7+ h of sleep against shorter nights).
 TODAY's own data is the check-ins, so TODAY has the apps' Settings sheet too, behind a ··· in its header (it opens the
 sheet straight away: it is the only item): Appearance, Sync, the check-ins' Back up JSON and Restore (a restored
-record replaces the same day's or night's, the rest stay), and Delete check-ins, which asks first ("Delete all
+check-in replaces the same day's only if it was saved later, a check-out only fills a night that has none, so a restore
+never loses anything newer here; it says so when nothing in the file is new), and Delete check-ins, which asks first ("Delete all
 check-ins?", with how many) and then offers Undo. With sync on, the deletion reaches the other devices like any
 deleted record, and an Undo brings them back there too. `checkin.test.js` covers both.
+Everything that reads check-ins goes through `UI.checkins()` (ui.js): TODAY, Restore, and every app. It rebuilds each
+record from the fields it can have, each of its own type (a real date; finite numbers in range; ratings whole 1-5; the
+unit lb or kg; bed and wake only as a pair, at most 16 h apart), leaves out a check-in without its hours or a check-out
+without its time, and keeps the later of a day stored twice. A backup is a file from anywhere: before this, Restore
+stored its fields as they were and five apps wrote `sleep` into their HTML as it was, so a file could run script in
+them. Reading never writes (a record that doesn't read is skipped, not deleted, so a mistake here can't delete data
+and sync the deletion); `ship.js` flags any page that reads `isx.checkin.v1` itself.
 `isx.checkin.v1` keeps its `log` of check-ins, now with `bed` and `wake` (`sleep` stays hours, to a tenth, for every app
 that reads it), and adds `outs`: one record a night, `co-<night>`.
 
