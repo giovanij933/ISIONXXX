@@ -72,8 +72,10 @@ They cover:
 Every run also runs `checkin.test.js`, the tests for TODAY's sleep (ARCHITECTURE.md 2q), on a clock the test sets:
 Check out saving the bedtime in one tap and opening the night screen (the day's rating, Still up, Not yet with Undo);
 the wake screen opening by itself the morning after, counting the sleep from the bedtime (a changed wake time too; a
-bedtime after waking refused); the usual bedtime as a guess without a check-out; Clear and Undo; and a check-out after
-midnight belonging to the night before.
+bedtime after waking refused); the usual bedtime as a guess without a check-out; Clear and Undo; a check-out after
+midnight belonging to the night before; and TODAY's Settings: Clear all asking first (Cancel keeps everything) and
+Undo bringing every check-in and check-out back, and Back up JSON then Restore giving the same check-ins back (a file
+without any is refused).
 
 Every run also runs `personal.test.js`, the tests for the personal homepage (`personal/`). It links into every
 app, so a change in any repo can break it. It also checks the launch image `ui.js` offers in Safari on a phone, on
