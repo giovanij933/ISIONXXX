@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
 <meta charset="utf-8">
-<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'sha256-vtbDO042/giDCdir93hkeyV4AKDZVdbSINpMjwkQBns=' 'sha256-Sf6Z/54p9iauxNLhYcs0nh1M23kRcZdMH9u6U+UI82Y=' 'sha256-ImYvS2WYn7mq7s9EMsJF5pgL5AsfVrWKAW00FmHLIhQ='; object-src 'none'; base-uri 'self'">
+<meta http-equiv="Content-Security-Policy" content="script-src 'self' 'sha256-vtbDO042/giDCdir93hkeyV4AKDZVdbSINpMjwkQBns=' 'sha256-Sf6Z/54p9iauxNLhYcs0nh1M23kRcZdMH9u6U+UI82Y=' 'sha256-5SthduqNBhzP3MAj17ZmAqnFe5YW5+6J7c1+DH3SNjA='; object-src 'none'; base-uri 'self'">
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no,viewport-fit=cover">
 <meta name="theme-color" content="#FFFFFF" media="(prefers-color-scheme: light)">
 <meta name="theme-color" content="#000000" media="(prefers-color-scheme: dark)">
@@ -1098,7 +1098,9 @@ function planHTML(t,C,next){
     const p=UI.planOf(a.id),c=C.find(c=>c&&c.id===a.id);
     if(!p){if(!c)N.push(a);else{planAsk(a.id,'none');if(!document.getElementById('f-'+a.id)?.dataset.ready)R.push({a,c,wait:1,ok:c.done===true})}return}
     if(!p.fresh)planAsk(a.id,UI.planSig(arr(p.src)));
-    const x=planRow(arr(p.items),h);if(!x)return;
+    // nothing planned: an app with nothing in it yet still gets its "Not set up yet" row (JOURNAL and REWIRE save an
+    // empty plan until there's a trade or a habit, and used to drop off the list); one with data just has nothing now
+    const x=planRow(arr(p.items),h);if(!x){if(!c)N.push(a);return}
     // the plan's tick only counts for the day it was given (a plan from yesterday isn't done today)
     const pd=!!x.done&&dayAt(p.at)===t;
     // a session under way in the app (run) is never "done": it's the thing to go back to
