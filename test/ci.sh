@@ -23,6 +23,8 @@ node "$T/personal.test.js" || rc=$?
 node "$T/db.test.js" || rc=$?
 # TODAY's sleep: the check-out and the check-in, on a clock the test sets
 node "$T/checkin.test.js" || rc=$?
+# saved data is never markup: a marker in every saved value, every app and TODAY opened (ARCHITECTURE.md 2u)
+node "$T/stored.test.js" || rc=$?
 # the iPhone lane: the app and TODAY in WebKit, Safari's engine, on an iPhone-sized screen (webkit.test.js)
 if [ "$APP" = ISIONXXX ]; then node "$T/webkit.test.js" || rc=$?; else node "$T/webkit.test.js" "$APP" ISIONXXX || rc=$?; fi
 exit $rc

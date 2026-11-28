@@ -77,6 +77,13 @@ midnight belonging to the night before; and TODAY's Settings: Clear all asking f
 Undo bringing every check-in and check-out back, and Back up JSON then Restore giving the same check-ins back (a file
 without any is refused).
 
+Every run also runs `stored.test.js`: saved data is never markup (ARCHITECTURE.md 2u). It loads every app's sample
+year (plus what the samples don't have: JOURNAL's daily plans, LEARN's pinned videos and drafts, a REWIRE tick from
+another app, a week of check-ins), plants a marker in every saved text, then in every saved number, the way a restored
+backup or a synced copy could hold anything there, and opens each app, its header's sheets, the views that once let one
+in and TODAY with every app's frame. A marker that becomes an attribute or an element in a page, or runs, fails the run
+with where it was saved and what showed it.
+
 Every run also runs `personal.test.js`, the tests for the personal homepage (`personal/`). It links into every
 app, so a change in any repo can break it. It also checks the launch image `ui.js` offers in Safari on a phone, on
 the homepage, TODAY and every app (ARCHITECTURE.md 2e), and that TODAY's plan shows each app's picture and lets
@@ -118,6 +125,7 @@ BRANCH=main bash site.sh nutrition ../../nutrition   # site/ with every app; nut
 SITE=$PWD/site node ship.js nutrition ISIONXXX        # or no app names for all seven
 SITE=$PWD/site node personal.test.js                 # the personal homepage
 SITE=$PWD/site node checkin.test.js                  # TODAY's sleep (check-out and check-in)
+SITE=$PWD/site node stored.test.js                   # saved data stays text in every app and TODAY
 ```
 
 - `site.sh` clones the other apps from GitHub.

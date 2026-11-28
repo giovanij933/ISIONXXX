@@ -508,6 +508,19 @@ one rounded group with thin lines between rows and 15 px row titles; reviews led
 between them; and large buttons sharing the width along the bottom (a ghost such as Cancel keeps its own width, a status
 line sits above them). Fields in a sheet can't be wider than it (REWIRE's habit rows ran 9 px off a 320 px phone).
 
+**2u. Saved data is never markup.** All seven apps share one site, so a script that gets into any page can read every
+app's data on the device, the sync passphrase and the GitHub token among it. Saved data reaches the pages from a
+restored backup file, a sync pairing code someone hands you and the apps' own saves, and the pages build HTML from it.
+So each app's loader makes every value what the app itself writes before anything is drawn (JOURNAL's `state`,
+MIND's `norm`, TRAINING's `fix`, NUTRITION's `loadAll`, REWIRE's `clean`, LEARN's `tidy`, TODAY's `UI.checkins`): a
+choice is one of its options (a trade's side Long or Short, NUTRITION's milk), an id keeps letters, digits, - and _, a
+number is a number (or the default), a pinned video an 11-character YouTube id and a start in seconds; free text is
+escaped where it's drawn. A restore runs the same loader as a start-up, and a synced copy reloads the page, so no
+path skips it. `stored.test.js` plants a marker in every saved value and fails if one gets into a page. Found by it
+and fixed: JOURNAL's side and ids (the weekly review ran a backup's script), NUTRITION's milk and fish target,
+REWIRE's ids, goal, cost, target, urge level, amount and "via" app, LEARN's lesson counts and a pinned video's start
+(it ran a handler on opening the lesson), and TRAINING's ids.
+
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL
 would tie every app's offline start-up and update timing to the shell's deploy. That would also break the
