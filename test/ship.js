@@ -46,16 +46,18 @@ const settle=async(p,ms)=>{await p.waitForLoadState('load').catch(()=>{});await 
     // each shared file's copies, grouped by content: [file, [[hash, apps], ...]] for the files that differ
     const hash=p=>fs.existsSync(p)?require('crypto').createHash('md5').update(fs.readFileSync(p)).digest('hex').slice(0,8):'missing';
     const differ=()=>SHARED.map(f=>{const by={};for(const a of have)(by[hash(path.join(SITE,a,f))]??=[]).push(a);return [f,Object.entries(by).sort((x,y)=>y[1].length-x[1].length)]}).filter(([,v])=>v.length>1);
-    let d=differ();
-    // on main, a change to the shared files lands as seven merges a minute or so apart, and the run of an early merge
-    // finds the apps not merged yet still on the old copy. So there the other apps' main is fetched again every 2
-    // minutes, up to 3 times, before it counts: a copy that still differs after that is real (a repo left out)
-    if(d.length&&process.env.BRANCH==='main'){const wait=+(process.env.DRIFT_WAIT||120),tries=+(process.env.DRIFT_TRIES||3);
-      for(let i=1;i<=tries&&d.length;i++){console.log(`shared files differ on main: fetching the other apps' main again in ${wait} s (${i} of ${tries})`);
+    // the other apps' Content Security Policy problems (a cloned app, not this checkout): a change to it lands the same way
+    const csp=()=>have.filter(a=>!fs.lstatSync(path.join(SITE,a)).isSymbolicLink()&&require('./csp.js').app(path.join(SITE,a),a).length);
+    let d=differ(),c=csp();
+    // on main, a change to the shared files (or to every page's policy) lands as seven merges a minute or so apart, and
+    // the run of an early merge finds the apps not merged yet still on the old copy. So there the other apps' main is
+    // fetched again every 2 minutes, up to 3 times, before it counts: a copy that still differs after that is real
+    if((d.length||c.length)&&process.env.BRANCH==='main'){const wait=+(process.env.DRIFT_WAIT||120),tries=+(process.env.DRIFT_TRIES||3);
+      for(let i=1;i<=tries&&(d.length||c.length);i++){console.log(`${d.length?'shared files differ':'another app\'s policy is out of date'} on main: fetching the other apps' main again in ${wait} s (${i} of ${tries})`);
         await new Promise(r=>setTimeout(r,wait*1000));
         for(const a of have){const dir=path.join(SITE,a);if(fs.lstatSync(dir).isSymbolicLink()||!fs.existsSync(path.join(dir,'.git')))continue;
           try{require('child_process').execSync(`git -C "${dir}" fetch -q origin main && git -C "${dir}" reset -q --hard FETCH_HEAD`,{stdio:'ignore'})}catch(e){console.log(`could not fetch ${a}: ${e.message.split('\n')[0]}`)}}
-        d=differ();if(!d.length)R.notes.push(`they matched once the other apps' merges landed (${i*wait} s)`)}}
+        d=differ();c=csp();if(!d.length&&!c.length)R.notes.push(`they matched once the other apps' merges landed (${i*wait} s)`)}}
     for(const [f,v] of d)R.issues.push({sev:'high',area:'drift',msg:`${f} differs: ${v.map(([k,a])=>`${a.join(', ')} (${k})`).join(' vs ')}`});
     // Settings › Appearance › Dark is the device's dark, copied: the two blocks in ui.css (and their Increase
     // Contrast forms) must hold the same colours (ARCHITECTURE.md, 2c)
@@ -66,6 +68,9 @@ const settle=async(p,ms)=>{await p.waitForLoadState('load').catch(()=>{});await 
   for(const [app,cfg] of Object.entries(APPS)){if(only.length&&!only.includes(app))continue;
     const R={app,issues:[],notes:[]};all.push(R);const I=(sev,area,msg)=>{if(!ACCEPTED.some(x=>x.test(msg))&&!R.issues.some(i=>i.area===area&&i.msg===msg))R.issues.push({sev,area,msg})};
     const DIR=path.join(SITE,app);if(!fs.existsSync(DIR)){I('high','site',`${DIR} is missing`);continue}
+    // every page's Content Security Policy: there, before any script, strict, and naming each inline script by the
+    // fingerprint it has now (ARCHITECTURE.md 2v; node csp.js --fix brings them up to date)
+    require('./csp.js').app(DIR,app).forEach(([f,x])=>I('high','csp',`${f}: ${x}`));
     const mk=async(w,sw)=>{const c=await b.newContext({viewport:{width:w,height:900},hasTouch:w<700,serviceWorkers:sw?'allow':'block'});await c.route(EXT,r=>r.abort());const p=await c.newPage();
       p._errs=[];p._bad=[];p.on('pageerror',e=>p._errs.push(e.message.slice(0,200)));
       p.on('console',m=>{if(m.type()==='error'&&!/net::ERR_FAILED|Failed to load resource/.test(m.text()))p._errs.push('console: '+m.text().slice(0,200))});
@@ -83,7 +88,7 @@ const settle=async(p,ms)=>{await p.waitForLoadState('load').catch(()=>{});await 
       await p.goto(URL);await p.evaluate(()=>localStorage.clear());await p.reload();await settle(p,1200);
       const st=async label=>{const o=await p.evaluate(()=>({sw:document.documentElement.scrollWidth,iw:innerWidth,txt:document.body.innerText.length}));
         if(o.sw>o.iw+1)I('high','layout',`${label} @${w}: horizontal overflow ${o.sw}px > ${o.iw}px`);if(o.txt<40)I('high','render',`${label} @${w}: page nearly empty (${o.txt} chars)`);
-        await p.addScriptTag({content:AXE}).catch(()=>{});
+        await p.evaluate(AXE).catch(()=>{});   // not addScriptTag: the page's Content Security Policy refuses an inline script it doesn't know
         const ax=await p.evaluate(async()=>{try{return (await axe.run(document,{resultTypes:['violations']})).violations.map(v=>({id:v.id,impact:v.impact,n:v.nodes.length,t:v.nodes[0].target.join(' ').slice(0,80)}))}catch(e){return [{id:'axe-failed',impact:'?',n:0,t:e.message}]}});
         ax.forEach(v=>I(v.impact==='critical'||v.impact==='serious'?'medium':'low','a11y',`${label} @${w}: ${v.id} ×${v.n} (${v.impact}) e.g. ${v.t}`))};
       await st('empty');
