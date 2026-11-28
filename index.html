@@ -1131,9 +1131,10 @@ function planHTML(t,C,next){
   const none=a=>`<li class="pl-r pl-${a.id} none">${arts?'<span class="pl-art" aria-hidden="true"></span>':''}<div class="pl-x"><span class="pl-a"><i aria-hidden="true"></i>${a.label}</span>
       <b class="pl-t">Not set up yet</b><span class="pl-s">${EMPTY[a.id]}</span></div>
       ${UI.button({label:'Start',variant:R.length?'ghost':'secondary',attrs:{'data-go':a.id,'aria-label':`Start using ${a.label}: ${EMPTY[a.id]}`}})}</li>`;
-  // a count, not a score: the hero keeps the score (apps without a ring or a plan would make the two differ)
+  // no count of its own: the hero has the day's ("5 to do today"), and a second number here disagreed with it whenever a
+  // row has no ring (JOURNAL's at the weekend). It only says when everything's done, or what's left to set up
   const all=!next&&R.length&&R.every(r=>r.ok);
-  return `<section class="pl" aria-labelledby="pl-h"><div class="tch"><h2 class="h" id="pl-h">Today's plan</h2><span class="st${all?' ok':''}">${all?'✓ All done':R.length?plural(R.length,'session'):plural(N.length,'app')+' to set up'}</span></div>
+  return `<section class="pl" aria-labelledby="pl-h"><div class="tch"><h2 class="h" id="pl-h">Today's plan</h2>${all||!R.length?`<span class="st${all?' ok':''}">${all?'✓ All done':plural(N.length,'app')+' to set up'}</span>`:''}</div>
     <ol class="pl-l">${R.map(row).join('')}${N.map(none).join('')}</ol></section>`;
 }
 /* ---------- TODAY, fluid: rings that fill as you go, motion with meaning ---------- */
