@@ -6,7 +6,8 @@
 //   - a page wider than the screen;
 //   - a card that's laid out but never drawn. Each card is shot as it is and again hidden: if the two pictures are the
 //     same, the card wasn't on screen (TODAY once lost every card under its backdrop this way, on iPhone only);
-//   - a card covered by something else at its middle.
+//   - a card covered by something else at its middle;
+//   - the Content Security Policy refusing one of the page's own scripts, or letting an injected one run.
 // Reduce Motion is on, so nothing on the page moves and two shots of the same thing are the same picture.
 // WebKit on Linux is not iOS Safari: a pass makes an iPhone-only bug less likely, not impossible.
 // BROWSER=chromium (with CHROME=<path>) runs the same checks in Chromium, to work on this file without WebKit.
@@ -42,6 +43,8 @@ const MARK=()=>{const sel='.card,.ui-hero,#today>section,#today>div>section';
   for(const scheme of ['light','dark']){
     const c=await b.newContext({...pw.devices['iPhone 15'],colorScheme:scheme,reducedMotion:'reduce',serviceWorkers:'block'});await c.route(EXT,r=>r.abort());
     const p=await c.newPage();let errs=[];p.on('pageerror',e=>errs.push(e.message.slice(0,200)));p.on('dialog',d=>d.accept());
+    // the page's Content Security Policy refusing one of its own scripts (a stale fingerprint: ARCHITECTURE.md 2v)
+    p.on('console',m=>{if(/Content Security Policy|Refused to (execute|load|run|evaluate|apply)/i.test(m.text()))errs.push('CSP: '+m.text().slice(0,200))});
     // a year of every app's sample data first, so TODAY has something to draw
     for(const [a,cfg] of Object.entries(APPS)){if(!cfg.sample)continue;await p.goto(BASE+a+'/');await settle(p,500);try{await p.evaluate(cfg.sample)}catch(e){}await p.waitForTimeout(1200)}
     for(const [app,cfg] of Object.entries(APPS)){if(only.length&&!only.includes(app))continue;
@@ -68,6 +71,12 @@ const MARK=()=>{const sel='.card,.ui-hero,#today>section,#today>div>section';
           if(shown.equals(gone))I('high','undrawn',`${scheme}: "${names[i]}" is laid out but not drawn`);else drawn++;
         }catch(e){I('medium','check',`${scheme}: could not check "${names[i]}": ${e.message.split('\n')[0].slice(0,100)}`)}}
       R.notes.push(`${scheme}: ${drawn} of ${names.length} cards drawn`);
+      // the policy holds in this engine: markup that gets into the page can't run a script (an onerror=, a javascript:
+      // link, an inserted <script>); the refusals it logs are expected, so they're dropped
+      if(scheme==='light'){const ran=await p.evaluate(async()=>{document.body.insertAdjacentHTML('beforeend','<img src="x" onerror="window.__wkx=1"><a id="wkxl" href="javascript:window.__wkx=2">x</a>');
+          const s=document.createElement('script');s.textContent='window.__wkx=3';document.body.appendChild(s);document.getElementById('wkxl').click();await new Promise(r=>setTimeout(r,600));
+          document.getElementById('wkxl')?.remove();return window.__wkx||0}).catch(e=>'check failed: '+e.message);
+        if(ran)I('high','csp',`an injected ${{1:'onerror handler',2:'javascript: link',3:'inserted script'}[ran]||ran} ran: the page's Content Security Policy isn't holding`);errs=[]}
       if(scheme==='light')await p.evaluate(()=>{(document.querySelector('#today')||document.scrollingElement).scrollTo(0,0)}).then(()=>p.waitForTimeout(200)).then(()=>p.screenshot({path:path.join(OUT,`webkit-${app}.png`)})).catch(()=>{});
     }
     await c.close();

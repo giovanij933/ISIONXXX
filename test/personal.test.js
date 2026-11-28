@@ -122,7 +122,7 @@ async function main() {
 
     const axe = await fs.readFile(require.resolve('axe-core/axe.min.js'), 'utf8');
     const violations = () => page.evaluate(async () => (await axe.run()).violations.map(v => `${v.id}: ${v.nodes.map(n => n.target).join(', ')}`));
-    await page.addScriptTag({ content: axe });
+    await page.evaluate(axe);   // not addScriptTag: the page's Content Security Policy refuses an inline script it doesn't know
     assert.deepEqual(await violations(), [], 'homepage accessibility');
     await page.locator('#edit-focus').click();
     assert.deepEqual(await violations(), [], 'editor accessibility');
@@ -148,7 +148,7 @@ async function main() {
     await page.setViewportSize({ width: 1440, height: 1000 });
     // measured at rest: while the card is still fading in, its text is fainter than it will be
     await page.evaluate(() => Promise.all(document.getAnimations().filter(a => a.effect.getComputedTiming().endTime < Infinity).map(a => a.finished.catch(() => {}))));
-    await page.addScriptTag({ content: axe });
+    await page.evaluate(axe);   // not addScriptTag: the page's Content Security Policy refuses an inline script it doesn't know
     assert.deepEqual(await violations(), [], 'affirmation accessibility');
     await page.locator('.aff-line[href="../../#mind"]').click();
     await page.locator('#tabs [data-t="mind"].on').waitFor();

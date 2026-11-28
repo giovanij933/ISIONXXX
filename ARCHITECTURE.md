@@ -515,11 +515,28 @@ So each app's loader makes every value what the app itself writes before anythin
 MIND's `norm`, TRAINING's `fix`, NUTRITION's `loadAll`, REWIRE's `clean`, LEARN's `tidy`, TODAY's `UI.checkins`): a
 choice is one of its options (a trade's side Long or Short, NUTRITION's milk), an id keeps letters, digits, - and _, a
 number is a number (or the default), a pinned video an 11-character YouTube id and a start in seconds; free text is
-escaped where it's drawn. A restore runs the same loader as a start-up, and a synced copy reloads the page, so no
+escaped where it's drawn (and 2v's policy refuses a script that gets in anyway). A restore runs the same loader as a start-up, and a synced copy reloads the page, so no
 path skips it. `stored.test.js` plants a marker in every saved value and fails if one gets into a page. Found by it
 and fixed: JOURNAL's side and ids (the weekly review ran a backup's script), NUTRITION's milk and fish target,
 REWIRE's ids, goal, cost, target, urge level, amount and "via" app, LEARN's lesson counts and a pinned video's start
 (it ran a handler on opening the lesson), and TRAINING's ids.
+
+**2v. A Content Security Policy in every page.** 2u keeps saved data from becoming markup; this is the second lock, for
+the day a check is missed. Every page (the six apps, TODAY, the personal homepage, the affirmation page, `ui.html`)
+starts with a `<meta http-equiv="Content-Security-Policy">` before its first script: `script-src 'self'` plus the
+SHA-256 of each inline script, `object-src 'none'` and `base-uri 'self'`. The browser then runs only the site's own
+files and those exact inline scripts: an `onerror=` or a `<script>` that gets into a page, or a `javascript:` link, is
+refused, so it can't read the sync passphrase or the token. An app's own code is an inline `type="isx/app"` script that
+`db.js` re-inserts once the data is ready; the same text, so the same fingerprint, lets it run. LEARN adds its two
+runtimes' CDN folders (sql.js 1.8.0, Pyodide 0.26.4) and `'wasm-unsafe-eval'` for their WebAssembly, and nothing
+wider: not `'unsafe-inline'`, `'unsafe-eval'` or a whole host. Nothing else is restricted (styles, images, frames,
+fetches), so the policy can only stop a script.
+- **Editing an inline script changes its fingerprint**, and the page won't start until the policy has the new one:
+  run `node test/csp.js --fix <the app's checkout>` after any edit to a page's own script (an app's code is one).
+  `ship.js` fails on a stale, missing or loosened policy, and on any script the policy refuses during its runs; on
+  main it waits for the other apps' merges first, as for drift. The iPhone lane checks the same in WebKit and that an
+  injected handler, link and script are refused there.
+- **Tests put axe in with `page.evaluate`**, not `addScriptTag`: an added inline script is refused like any other.
 
 **3. Shared files stay copied, not linked.**
 Apps could load `/ISIONXXX/ui.js` directly. But each app's service worker precaches its own files, so a shared URL

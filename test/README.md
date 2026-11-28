@@ -77,6 +77,12 @@ midnight belonging to the night before; and TODAY's Settings: Clear all asking f
 Undo bringing every check-in and check-out back, and Back up JSON then Restore giving the same check-ins back (a file
 without any is refused).
 
+Every page carries a Content Security Policy (ARCHITECTURE.md 2v) naming each of its inline scripts by SHA-256.
+After editing a page's own script, bring the fingerprints up to date with `node csp.js --fix <the app's checkout>`
+(`node csp.js <checkout>` only checks). `ship.js` fails on a stale, missing or loosened policy and on any script the
+policy refuses during its runs; the iPhone lane also checks that an injected handler, link and script are refused in
+WebKit.
+
 Every run also runs `stored.test.js`: saved data is never markup (ARCHITECTURE.md 2u). It loads every app's sample
 year (plus what the samples don't have: JOURNAL's daily plans, LEARN's pinned videos and drafts, a REWIRE tick from
 another app, a week of check-ins), plants a marker in every saved text, then in every saved number, the way a restored
@@ -126,6 +132,7 @@ SITE=$PWD/site node ship.js nutrition ISIONXXX        # or no app names for all 
 SITE=$PWD/site node personal.test.js                 # the personal homepage
 SITE=$PWD/site node checkin.test.js                  # TODAY's sleep (check-out and check-in)
 SITE=$PWD/site node stored.test.js                   # saved data stays text in every app and TODAY
+node csp.js --fix ../../MEDITATE                     # after editing an app's own script: its policy's fingerprints
 ```
 
 - `site.sh` clones the other apps from GitHub.
